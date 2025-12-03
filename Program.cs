@@ -1,4 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using SWP391_Project.Models;
+
 var builder = WebApplication.CreateBuilder(args);
+
+   // Add services to the container.
+   builder.Services.AddControllersWithViews();
+
+   // Đăng ký EzJobDbContext với SQL Server
+   builder.Services.AddDbContext<EzJobDbContext>(options =>
+       options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
