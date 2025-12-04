@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SWP391_Project.Models;
 
@@ -11,9 +12,11 @@ using SWP391_Project.Models;
 namespace SWP391_Project.Migrations
 {
     [DbContext(typeof(EzJobDbContext))]
-    partial class EzJobDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251204121828_SeedData")]
+    partial class SeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
