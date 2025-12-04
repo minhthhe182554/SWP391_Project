@@ -196,5 +196,87 @@ public class EzJobDbContext : DbContext
         modelBuilder.Entity<Certificate>()
             .Property(c => c.Name)
             .HasMaxLength(255);
+
+        // SEED DATA (Dữ liệu mẫu khởi tạo)
+        // =========================================================
+
+        // 1. Tạo dữ liệu Địa điểm (Locations) - Bắt buộc phải có trước
+        modelBuilder.Entity<Location>().HasData(
+            new Location { Id = 1, City = "Hà Nội", Ward = "Cầu Giấy" },
+            new Location { Id = 2, City = "Hồ Chí Minh", Ward = "Quận 1" },
+            new Location { Id = 3, City = "Đà Nẵng", Ward = "Hải Châu" }
+        );
+
+        // 2. Tạo Master Data (Skill & Domain) để có cái mà chọn
+        modelBuilder.Entity<Skill>().HasData(
+            new Skill { Id = 1, Name = "Java" },
+            new Skill { Id = 2, Name = "C#" },
+            new Skill { Id = 3, Name = ".NET Core" },
+            new Skill { Id = 4, Name = "ReactJS" },
+            new Skill { Id = 5, Name = "SQL Server" }
+        );
+
+        modelBuilder.Entity<Domain>().HasData(
+            new Domain { Id = 1, Name = "IT Phần mềm" },
+            new Domain { Id = 2, Name = "Marketing" },
+            new Domain { Id = 3, Name = "Sales" }
+        );
+
+        // 3. Tạo Tài khoản User (Pass là 123456)
+        // Lưu ý: Thực tế pass phải hash, ở đây để plain text demo cho dễ
+        modelBuilder.Entity<User>().HasData(
+            new User { Id = 1, Email = "admin@ezjob.com", Password = "123456", Role = Role.ADMIN, Active = true },
+            new User { Id = 2, Email = "recruiter@fpt.com", Password = "123456", Role = Role.COMPANY, Active = true },
+            new User { Id = 3, Email = "ungvien@gmail.com", Password = "123456", Role = Role.CANDIDATE, Active = true }
+        );
+
+        // 4. Tạo Hồ sơ Company (Liên kết với User 2 và Location 1)
+        modelBuilder.Entity<Company>().HasData(
+            new Company
+            {
+                Id = 1,
+                UserId = 2,
+                Name = "FPT Software",
+                Description = "Công ty công nghệ hàng đầu Việt Nam",
+                Address = "Số 17 Duy Tân",
+                PhoneNumber = "0988888888",
+                LocationId = 1, // Hà Nội
+                Website = "https://fpt-software.com"
+            }
+        );
+
+        // 5. Tạo Hồ sơ Candidate (Liên kết với User 3)
+        modelBuilder.Entity<Candidate>().HasData(
+            new Candidate
+            {
+                Id = 1,
+                UserId = 3,
+                FullName = "Nguyễn Văn A",
+                PhoneNumber = "0912345678",
+                Jobless = true,
+                RemainingReport = 2
+            }
+        );
+
+        // 6. Tạo 1 Job mẫu (Để trang chủ không bị trống)
+        modelBuilder.Entity<Job>().HasData(
+            new Job
+            {
+                Id = 1,
+                Title = "Tuyển dụng Senior .NET Developer",
+                Description = "Tham gia phát triển dự án Banking...",
+                WorkTime = "Full-time (T2-T6)",
+                Type = JobType.FULLTIME,
+                YearsOfExperience = 2,
+                VacancyCount = 5,
+                LowerSalaryRange = 15000000, // 15 Triệu
+                HigherSalaryRange = 30000000, // 30 Triệu
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(30), // Còn hạn 30 ngày
+                CompanyId = 1, // Của FPT
+                LocationId = 1, // Tại Hà Nội
+                IsDelete = false
+            }
+        );
     }
 }

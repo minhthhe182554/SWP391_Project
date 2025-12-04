@@ -1,0 +1,76 @@
+﻿@using SWP391_Project.Models
+@model SWP391_Project.ViewModels.RegisterVM
+
+@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3>Đăng ký thành viên</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Register" method="post">
+
+                        <div class="mb-4 text-center">
+                            <label class="form-label d-block fw-bold">Bạn là ai?</label>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="Role" id="role1" value="CANDIDATE" checked onchange="changeLabel('Ứng viên')">
+                                <label class="btn btn-outline-primary" for="role1">
+                                    <i class="fa fa-user"></i> Ứng viên (Tìm việc)
+                                </label>
+
+                                <input type="radio" class="btn-check" name="Role" id="role2" value="COMPANY" onchange="changeLabel('Nhà tuyển dụng')">
+                                <label class="btn btn-outline-success" for="role2">
+                                    <i class="fa fa-building"></i> Nhà tuyển dụng
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" id="nameLabel">Họ và tên</label>
+                            <input asp-for="FullName" class="form-control" placeholder="Nhập tên của bạn" />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mật khẩu</label>
+                            <input asp-for="Password" type="password" class="form-control" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Xác nhận mật khẩu</label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Đăng ký ngay</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    Đã có tài khoản? <a asp-action="Login">Đăng nhập ngay</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function changeLabel(role) {
+        if (role === 'Nhà tuyển dụng') {
+            document.getElementById('nameLabel').innerText = 'Tên công ty / Doanh nghiệp';
+        } else {
+            document.getElementById('nameLabel').innerText = 'Họ và tên';
+        }
+    }
+</script>
