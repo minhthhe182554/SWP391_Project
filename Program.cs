@@ -10,8 +10,19 @@ var builder = WebApplication.CreateBuilder(args);
    builder.Services.AddDbContext<EzJobDbContext>(options =>
        options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddDistributedMemoryCache();
+
+
 
 var app = builder.Build();
 
@@ -27,7 +38,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthorization();
 
 app.MapControllerRoute(
