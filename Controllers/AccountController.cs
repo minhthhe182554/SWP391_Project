@@ -89,6 +89,7 @@ namespace SWP391_Project.Controllers
             {
                 var cities = await _locationService.GetCitiesAsync();
                 ViewBag.Cities = cities;
+                ViewBag.SelectedRole = model.Role;
                 return View(model);
             }
             //check trung email
@@ -97,6 +98,7 @@ namespace SWP391_Project.Controllers
                 ModelState.AddModelError("Email", "Email này đã được sử dụng");
                 var cities = await _locationService.GetCitiesAsync();
                 ViewBag.Cities = cities;
+                ViewBag.SelectedRole = model.Role;
                 return View(model);
             }
             //tao user
