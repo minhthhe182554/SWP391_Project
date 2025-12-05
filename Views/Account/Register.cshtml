@@ -255,36 +255,36 @@
             </div>
 
             <!-- Company fields -->
-            <div class="company-fields" id="companyFields">
+            <div class="company-fields @(selectedRole == Role.COMPANY ? "show" : "")" id="companyFields">
                 <div class="form-group-custom">
-                    <label class="form-label-custom">Số điện thoại</label>
+                    <label class="form-label-custom">Số điện thoại <span style="color:#dc3545">*</span></label>
                     <div class="input-group-custom">
                         <i class="fa fa-phone input-icon"></i>
-                        <input asp-for="PhoneNumber" class="form-control-custom" placeholder="Số điện thoại" />
+                        <input asp-for="PhoneNumber" class="form-control-custom" placeholder="Số điện thoại liên hệ" />
                     </div>
                     <span asp-validation-for="PhoneNumber" class="text-danger-custom"></span>
                 </div>
 
                 <div class="form-group-custom">
-                    <label class="form-label-custom">Mô tả công ty</label>
+                    <label class="form-label-custom">Mô tả công ty <span style="color:#dc3545">*</span></label>
                     <div class="input-group-custom">
                         <i class="fa fa-file-text input-icon"></i>
-                        <textarea asp-for="Description" class="form-control-custom" placeholder="Mô tả công ty" rows="3" style="padding-left: 2.5rem;"></textarea>
+                        <textarea asp-for="Description" class="form-control-custom" placeholder="Giới thiệu ngắn gọn về công ty" rows="3" style="padding-left: 2.5rem;"></textarea>
                     </div>
                     <span asp-validation-for="Description" class="text-danger-custom"></span>
                 </div>
 
                 <div class="form-group-custom">
-                    <label class="form-label-custom">Địa chỉ</label>
+                    <label class="form-label-custom">Địa chỉ chi tiết (tuỳ chọn)</label>
                     <div class="input-group-custom">
                         <i class="fa fa-map-marker input-icon"></i>
-                        <input asp-for="Address" class="form-control-custom" placeholder="Địa chỉ" />
+                        <input asp-for="Address" class="form-control-custom" placeholder="Số nhà, đường, phường/xã..." />
                     </div>
                     <span asp-validation-for="Address" class="text-danger-custom"></span>
                 </div>
 
                 <div class="form-group-custom">
-                    <label class="form-label-custom">Thành phố</label>
+                    <label class="form-label-custom">Thành phố <span style="color:#dc3545">*</span></label>
                     <select asp-for="City" id="citySelect" class="form-control-custom">
                         <option value="">-- Chọn thành phố --</option>
                         @if (cities != null && cities.Any())
@@ -303,7 +303,7 @@
                 </div>
 
                 <div class="form-group-custom">
-                    <label class="form-label-custom">Phường/Xã</label>
+                    <label class="form-label-custom">Phường/Xã <span style="color:#dc3545">*</span></label>
                     <select asp-for="Ward" id="wardSelect" class="form-control-custom" disabled>
                         <option value="">-- Chọn phường/xã --</option>
                     </select>
