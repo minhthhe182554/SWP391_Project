@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SWP391_Project.Dtos;
 using SWP391_Project.Helpers;
 using SWP391_Project.Models;
+using SWP391_Project.Services;
 using SWP391_Project.ViewModels;
 
 namespace SWP391_Project.Controllers
@@ -9,10 +11,12 @@ namespace SWP391_Project.Controllers
     public class AccountController : Controller
     {
         private readonly EzJobDbContext _context;
+        private readonly ILocationService _locationService;
 
-        public AccountController(EzJobDbContext context)
+        public AccountController(EzJobDbContext context, ILocationService locationService)
         {
             _context = context;
+            _locationService = locationService;
         }
         public IActionResult Index()
         {
@@ -20,22 +24,79 @@ namespace SWP391_Project.Controllers
         }
 
         [HttpGet]
-        public IActionResult Register()
+        public async Task<IActionResult> Register(string? role)
         {
-            return View();
+            var cities = await _locationService.GetCitiesAsync();
+            ViewBag.Cities = cities ?? new List<CityDto>();
+
+            Role? selectedRole = null;
+            if (!string.IsNullOrEmpty(role) && Enum.TryParse<Role>(role, true, out var parsed))
+            {
+                selectedRole = parsed;
+            }
+
+            ViewBag.SelectedRole = selectedRole;
+
+            var vm = new RegisterVM();
+            if (selectedRole.HasValue)
+            {
+                vm.Role = selectedRole.Value;
+            }
+            return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetWards(string cityCode)
+        {
+            if (string.IsNullOrEmpty(cityCode))
+            {
+                return Json(new List<object>());
+            }
+            
+            var wards = await _locationService.GetWardsByCityCodeAsync(cityCode);
+            return Json(wards.Select(w => new { code = w.Code, name = w.Name }));
         }
 
         [HttpPost]
-        public IActionResult Register(RegisterVM model)
+        public async Task<IActionResult> Register(RegisterVM model)
         {
+            // Validate Company fields nếu role là COMPANY
+            if(model.Role == Role.COMPANY)
+            {
+                if(string.IsNullOrWhiteSpace(model.PhoneNumber))
+                {
+                    ModelState.AddModelError("PhoneNumber", "Vui lòng nhập số điện thoại");
+                }
+                if(string.IsNullOrWhiteSpace(model.Description))
+                {
+                    ModelState.AddModelError("Description", "Vui lòng nhập mô tả công ty");
+                }
+                if(string.IsNullOrWhiteSpace(model.Address))
+                {
+                    ModelState.AddModelError("Address", "Vui lòng nhập địa chỉ");
+                }
+                if(string.IsNullOrWhiteSpace(model.City))
+                {
+                    ModelState.AddModelError("City", "Vui lòng chọn thành phố");
+                }
+                if(string.IsNullOrWhiteSpace(model.Ward))
+                {
+                    ModelState.AddModelError("Ward", "Vui lòng chọn phường/xã");
+                }
+            }
+
             if(!ModelState.IsValid)
             {
+                var cities = await _locationService.GetCitiesAsync();
+                ViewBag.Cities = cities;
                 return View(model);
             }
             //check trung email
             if(_context.Users.Any(u => u.Email == model.Email))
             {
-                ModelState.AddModelError("Email", "Email nay da duoc su dung");
+                ModelState.AddModelError("Email", "Email này đã được sử dụng");
+                var cities = await _locationService.GetCitiesAsync();
+                ViewBag.Cities = cities;
                 return View(model);
             }
             //tao user
@@ -61,14 +122,37 @@ namespace SWP391_Project.Controllers
                 _context.Candidates.Add(candidate);
             } else if(model.Role == Role.COMPANY)
             {
+                // Lấy tên thành phố từ code
+                var cities = await _locationService.GetCitiesAsync();
+                var selectedCity = cities.FirstOrDefault(c => c.Code == model.City);
+                var cityName = selectedCity?.Name ?? model.City!;
+                
+                // Ward đã là tên rồi, không cần convert
+                var wardName = model.Ward!;
+                
+                // Tìm hoặc tạo Location từ City và Ward
+                var location = _context.Locations
+                    .FirstOrDefault(l => l.City == cityName && l.Ward == wardName);
+                
+                if(location == null)
+                {
+                    location = new Location
+                    {
+                        City = cityName,
+                        Ward = wardName
+                    };
+                    _context.Locations.Add(location);
+                    _context.SaveChanges();
+                }
+
                 var company = new Company
                 {
                     UserId = newUser.Id,
                     Name = model.FullName,
-                    Description = "Chua cap nhat mo ta",
-                    Address = "Chua cap nhat dia chi",
-                    PhoneNumber = "0122222222",
-                    LocationId = 1
+                    Description = model.Description!,
+                    Address = model.Address!,
+                    PhoneNumber = model.PhoneNumber!,
+                    LocationId = location.Id
                 };
                 _context.Add(company);
             }
@@ -143,7 +227,7 @@ namespace SWP391_Project.Controllers
             ViewBag.Error = "Sai tai khoan hoac mat khau";
             return View(model);
         }
-
+        
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();

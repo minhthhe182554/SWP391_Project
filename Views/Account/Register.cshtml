@@ -1,76 +1,473 @@
 ﻿@using SWP391_Project.Models
+@using SWP391_Project.Dtos
 @model SWP391_Project.ViewModels.RegisterVM
 
 @{
     ViewData["Title"] = "Đăng ký tài khoản";
+    ViewData["HideLayoutChrome"] = true;
+    var cities = ViewBag.Cities as List<CityDto>;
+    var selectedRole = ViewBag.SelectedRole as Role?;
+    if (cities == null)
+    {
+        cities = new List<CityDto>();
+    }
+    var primaryColor = selectedRole == Role.COMPANY ? "#2f80ed" : "#28a745";
+    var primaryHover = selectedRole == Role.COMPANY ? "#256ac5" : "#218838";
+    var overlayActive = selectedRole == null;
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white text-center">
-                    <h3>Đăng ký thành viên</h3>
-                </div>
-                <div class="card-body">
-                    <form asp-action="Register" method="post">
+<style>
+    .register-container {
+        max-width: 500px;
+        margin: 2rem auto;
+    }
+    
+    .welcome-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+.welcome-title {
+    color: @primaryColor;
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .welcome-subtitle {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+    
+    .form-group-custom {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label-custom {
+        color: #495057;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .input-group-custom {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-icon {
+    position: absolute;
+    left: 12px;
+    color: @primaryColor;
+    z-index: 10;
+    }
+    
+    .form-control-custom {
+        width: 100%;
+        padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        font-size: 1rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .form-control-custom:focus {
+        border-color: #28a745;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    
+.btn-register {
+        width: 100%;
+    background-color: @primaryColor;
+    border: 1px solid @primaryColor;
+        color: white;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: background-color 0.15s ease-in-out;
+    }
+    
+.btn-register:hover {
+    background-color: @primaryHover;
+    border-color: @primaryHover;
+    }
+    
+    .role-selector {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .role-radio {
+        display: none;
+    }
+    
+    .role-label {
+        flex: 1;
+        padding: 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+        background-color: white;
+    }
+    
+    .role-label-candidate:hover { border-color: #28a745; }
+    .role-label-company:hover { border-color: #2f80ed; }
+    .role-radio:checked + .role-label-candidate {
+        background-color: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+    .role-radio:checked + .role-label-company {
+        background-color: #2f80ed;
+        color: white;
+        border-color: #2f80ed;
+    }
+    
+    .company-fields {
+        display: none;
+    }
+    
+    .company-fields.show {
+        display: block;
+    }
+    
+    .link-custom {
+    color: @primaryColor;
+        text-decoration: none;
+    }
+    
+    .link-custom:hover {
+        text-decoration: underline;
+    }
+    
+    .text-danger-custom {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    .blur-when-overlay {
+        filter: blur(4px);
+        pointer-events: none;
+        user-select: none;
+    }
+</style>
 
-                        <div class="mb-4 text-center">
-                            <label class="form-label d-block fw-bold">Bạn là ai?</label>
-                            <div class="btn-group" role="group">
-                                <input type="radio" class="btn-check" name="Role" id="role1" value="CANDIDATE" checked onchange="changeLabel('Ứng viên')">
-                                <label class="btn btn-outline-primary" for="role1">
-                                    <i class="fa fa-user"></i> Ứng viên (Tìm việc)
-                                </label>
-
-                                <input type="radio" class="btn-check" name="Role" id="role2" value="COMPANY" onchange="changeLabel('Nhà tuyển dụng')">
-                                <label class="btn btn-outline-success" for="role2">
-                                    <i class="fa fa-building"></i> Nhà tuyển dụng
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label" id="nameLabel">Họ và tên</label>
-                            <input asp-for="FullName" class="form-control" placeholder="Nhập tên của bạn" />
-                            <span asp-validation-for="FullName" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Mật khẩu</label>
-                            <input asp-for="Password" type="password" class="form-control" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Xác nhận mật khẩu</label>
-                            <input asp-for="ConfirmPassword" type="password" class="form-control" />
-                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">Đăng ký ngay</button>
-                    </form>
-                </div>
-                <div class="card-footer text-center">
-                    Đã có tài khoản? <a asp-action="Login">Đăng nhập ngay</a>
+<div class="container">
+    @if (selectedRole == null)
+    {
+        <div id="roleOverlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.35); display:none; align-items:center; justify-content:center; z-index:1050;">
+            <div style="background:white; padding:2rem; border-radius:12px; max-width:720px; width:90%; box-shadow:0 12px 40px rgba(0,0,0,0.12); text-align:center;">
+                <h3 class="fw-bold mb-2" style="color:#172b4d;">Chọn vai trò phù hợp với bạn</h3>
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                    <button type="button" onclick="chooseRole('COMPANY')" style="border:1px solid #2f80ed; color:#2f80ed; padding:0.95rem 1.3rem; border-radius:10px; min-width:220px; font-weight:700; background:white;">Tôi là Nhà tuyển dụng</button>
+                    <button type="button" onclick="chooseRole('CANDIDATE')" style="border:1px solid #28a745; color:#28a745; padding:0.95rem 1.3rem; border-radius:10px; min-width:220px; font-weight:700; background:white;">Tôi là Ứng viên tìm việc</button>
                 </div>
             </div>
+        </div>
+    }
+
+    <div class="register-container @(overlayActive ? "blur-when-overlay" : "")">
+        <div class="welcome-header">
+            <div class="text-center mb-3">
+                <img src="~/imgs/icon_ezjob.png" alt="EZJob" style="height:180px;">
+            </div>
+            <h1 class="welcome-title">Chào mừng đến với EZJob</h1>
+            <p class="welcome-subtitle">Tạo tài khoản mới để kết nối cơ hội nghề nghiệp phù hợp</p>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">
+                <i class="fa fa-check-circle"></i> @TempData["Success"]
+            </div>
+        }
+
+        <form asp-action="Register" method="post">
+            <input type="hidden" asp-for="Role" value="@(selectedRole?.ToString() ?? "CANDIDATE")" />
+            @if (selectedRole == null)
+            {
+                <div class="mb-4">
+                    <label class="form-label-custom">Bạn là ai?</label>
+                    <div class="role-selector">
+                        <input type="radio" class="role-radio" name="Role" id="role1" value="CANDIDATE" checked onchange="toggleCompanyFields(false)">
+                        <label class="role-label role-label-candidate" for="role1">
+                            <i class="fa fa-user"></i> Ứng viên
+                        </label>
+
+                        <input type="radio" class="role-radio" name="Role" id="role2" value="COMPANY" onchange="toggleCompanyFields(true)">
+                        <label class="role-label role-label-company" for="role2">
+                            <i class="fa fa-building"></i> Nhà tuyển dụng
+                        </label>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="mb-3">
+                    <span class="badge" style="background:@primaryColor; color:white; font-size:0.95rem; padding:0.5rem 0.75rem;">
+                        @(selectedRole == Role.COMPANY ? "Nhà tuyển dụng" : "Ứng viên")
+                    </span>
+                </div>
+            }
+
+            <div class="form-group-custom">
+                <label class="form-label-custom" id="nameLabel">Họ và tên</label>
+                <div class="input-group-custom">
+                    <i class="fa fa-user input-icon"></i>
+                    <input asp-for="FullName" class="form-control-custom" placeholder="Nhập tên của bạn" />
+                </div>
+                <span asp-validation-for="FullName" class="text-danger-custom"></span>
+            </div>
+
+            <div class="form-group-custom">
+                <label class="form-label-custom">Email</label>
+                <div class="input-group-custom">
+                    <i class="fa fa-envelope input-icon"></i>
+                    <input asp-for="Email" type="email" class="form-control-custom" placeholder="Email" />
+                </div>
+                <span asp-validation-for="Email" class="text-danger-custom"></span>
+            </div>
+
+            <div class="form-group-custom">
+                <label class="form-label-custom">Mật khẩu</label>
+                <div class="input-group-custom">
+                    <i class="fa fa-lock input-icon"></i>
+                    <input asp-for="Password" type="password" class="form-control-custom" placeholder="Mật khẩu" id="passwordInput" />
+                    <i class="fa fa-eye-slash" style="position: absolute; right: 12px; cursor: pointer; color: #6c757d;" onclick="togglePassword()"></i>
+                </div>
+                <span asp-validation-for="Password" class="text-danger-custom"></span>
+            </div>
+
+            <div class="form-group-custom">
+                <label class="form-label-custom">Xác nhận mật khẩu</label>
+                <div class="input-group-custom">
+                    <i class="fa fa-lock input-icon"></i>
+                    <input asp-for="ConfirmPassword" type="password" class="form-control-custom" placeholder="Xác nhận mật khẩu" id="confirmPasswordInput" />
+                    <i class="fa fa-eye-slash" style="position: absolute; right: 12px; cursor: pointer; color: #6c757d;" onclick="toggleConfirmPassword()"></i>
+                </div>
+                <span asp-validation-for="ConfirmPassword" class="text-danger-custom"></span>
+            </div>
+
+            <!-- Company fields -->
+            <div class="company-fields" id="companyFields">
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Số điện thoại</label>
+                    <div class="input-group-custom">
+                        <i class="fa fa-phone input-icon"></i>
+                        <input asp-for="PhoneNumber" class="form-control-custom" placeholder="Số điện thoại" />
+                    </div>
+                    <span asp-validation-for="PhoneNumber" class="text-danger-custom"></span>
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Mô tả công ty</label>
+                    <div class="input-group-custom">
+                        <i class="fa fa-file-text input-icon"></i>
+                        <textarea asp-for="Description" class="form-control-custom" placeholder="Mô tả công ty" rows="3" style="padding-left: 2.5rem;"></textarea>
+                    </div>
+                    <span asp-validation-for="Description" class="text-danger-custom"></span>
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Địa chỉ</label>
+                    <div class="input-group-custom">
+                        <i class="fa fa-map-marker input-icon"></i>
+                        <input asp-for="Address" class="form-control-custom" placeholder="Địa chỉ" />
+                    </div>
+                    <span asp-validation-for="Address" class="text-danger-custom"></span>
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Thành phố</label>
+                    <select asp-for="City" id="citySelect" class="form-control-custom">
+                        <option value="">-- Chọn thành phố --</option>
+                        @if (cities != null && cities.Any())
+                        {
+                            @foreach (var city in cities)
+                            {
+                                @if (city != null && !string.IsNullOrEmpty(city.Code) && !string.IsNullOrEmpty(city.Name))
+                                {
+                                    var isSelected = Model != null && Model.City == city.Code;
+                                    <option value="@city.Code" selected="@isSelected">@city.Name</option>
+                                }
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="City" class="text-danger-custom"></span>
+                </div>
+
+                <div class="form-group-custom">
+                    <label class="form-label-custom">Phường/Xã</label>
+                    <select asp-for="Ward" id="wardSelect" class="form-control-custom" disabled>
+                        <option value="">-- Chọn phường/xã --</option>
+                    </select>
+                    <span asp-validation-for="Ward" class="text-danger-custom"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register">Đăng ký ngay</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <p style="color: #6c757d;">
+                Đã có tài khoản? <a asp-action="Login" class="link-custom">Đăng nhập ngay</a>
+            </p>
+        </div>
+
+        <div class="text-center mt-4" style="color: #6c757d; font-size: 0.875rem;">
+            <p style="font-weight: bold; margin-bottom: 0.25rem;">Bạn không thể tạo tài khoản?</p>
+            <p style="margin-bottom: 0;">
+                Vui lòng gọi tới số <span style="color: @primaryColor; font-weight: bold;">(085) 232 5683</span> (giờ hành chính).
+            </p>
         </div>
     </div>
 </div>
 
 <script>
-    function changeLabel(role) {
-        if (role === 'Nhà tuyển dụng') {
-            document.getElementById('nameLabel').innerText = 'Tên công ty / Doanh nghiệp';
+    const selectedRoleFromServer = '@(selectedRole?.ToString() ?? "")';
+
+    function toggleCompanyFields(show) {
+        const companyFields = document.getElementById('companyFields');
+        const nameLabel = document.getElementById('nameLabel');
+        
+        if (show) {
+            companyFields.classList.add('show');
+            nameLabel.innerText = 'Tên công ty / Doanh nghiệp';
         } else {
-            document.getElementById('nameLabel').innerText = 'Họ và tên';
+            companyFields.classList.remove('show');
+            nameLabel.innerText = 'Họ và tên';
         }
     }
+
+    function togglePassword() {
+        const passwordInput = document.getElementById('passwordInput');
+        const icon = event.target;
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    }
+
+    function toggleConfirmPassword() {
+        const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+        const icon = event.target;
+        
+        if (confirmPasswordInput.type === 'password') {
+            confirmPasswordInput.type = 'text';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        } else {
+            confirmPasswordInput.type = 'password';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    }
+
+    // Load wards when city is selected
+    document.getElementById('citySelect')?.addEventListener('change', function() {
+        const cityCode = this.value;
+        const wardSelect = document.getElementById('wardSelect');
+        
+        if (!cityCode) {
+            wardSelect.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
+            wardSelect.disabled = true;
+            return;
+        }
+        
+        // Show loading
+        wardSelect.disabled = true;
+        wardSelect.innerHTML = '<option value="">Đang tải...</option>';
+        
+        // Call API to get wards
+        fetch(`/Account/GetWards?cityCode=${cityCode}`)
+            .then(response => response.json())
+            .then(data => {
+                wardSelect.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
+                data.forEach(ward => {
+                    const option = document.createElement('option');
+                    option.value = ward.name;
+                    option.textContent = ward.name;
+                    wardSelect.appendChild(option);
+                });
+                wardSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error loading wards:', error);
+                wardSelect.innerHTML = '<option value="">Lỗi khi tải dữ liệu</option>';
+            });
+    });
+
+    // Role selection popup
+    document.addEventListener('DOMContentLoaded', function() {
+        const overlay = document.getElementById('roleOverlay');
+        if (selectedRoleFromServer === '' && overlay) {
+            overlay.style.display = 'flex';
+        }
+    });
+
+    function chooseRole(role) {
+        window.location.href = `/Account/Register?role=${role}`;
+    }
+
+    // Check if role is COMPANY on page load (for validation errors)
+    document.addEventListener('DOMContentLoaded', function() {
+        const companyRadio = document.getElementById('role2');
+        const candidateRadio = document.getElementById('role1');
+        
+        // Check model role value
+        @if (Model.Role == Role.COMPANY)
+        {
+            <text>
+            if (companyRadio) {
+                companyRadio.checked = true;
+                toggleCompanyFields(true);
+            }
+            </text>
+        }
+        else
+        {
+            <text>
+            if (candidateRadio) {
+                candidateRadio.checked = true;
+                toggleCompanyFields(false);
+            }
+            </text>
+        }
+
+        // If City is already selected (from validation errors), load wards
+        @if (!string.IsNullOrEmpty(Model.City))
+        {
+            <text>
+            const citySelect = document.getElementById('citySelect');
+            if (citySelect && citySelect.value) {
+                citySelect.dispatchEvent(new Event('change'));
+                // Set selected ward after wards are loaded
+                setTimeout(() => {
+                    const wardSelect = document.getElementById('wardSelect');
+                    if (wardSelect) {
+                        wardSelect.value = '@Model.Ward';
+                    }
+                }, 500);
+            }
+            </text>
+        }
+    });
 </script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+

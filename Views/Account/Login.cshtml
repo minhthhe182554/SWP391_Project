@@ -2,54 +2,199 @@
 
 @{
     ViewData["Title"] = "Đăng nhập";
+    ViewData["HideLayoutChrome"] = true;
+    var primaryColor = "#28a745";
+    var primaryHover = "#218838";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow-lg border-0 rounded-lg">
-                <div class="card-header bg-success text-white text-center">
-                    <h3 class="font-weight-light my-2">Đăng Nhập</h3>
-                </div>
-                <div class="card-body">
-                    @if (ViewBag.Error != null)
-                    {
-                        <div class="alert alert-danger">
-                            <i class="fa fa-exclamation-triangle"></i> @ViewBag.Error
-                        </div>
-                    }
+<style>
+    .login-container {
+        max-width: 500px;
+        margin: 2rem auto;
+    }
+    
+    .welcome-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .welcome-title {
+        color: @primaryColor;
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .welcome-subtitle {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+    
+    .form-group-custom {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label-custom {
+        color: #495057;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .input-group-custom {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 12px;
+        color: @primaryColor;
+        z-index: 10;
+    }
+    
+    .form-control-custom {
+        width: 100%;
+        padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        font-size: 1rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .form-control-custom:focus {
+        border-color: @primaryColor;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    
+    .btn-login {
+        width: 100%;
+        background-color: @primaryColor;
+        border: 1px solid @primaryColor;
+        color: white;
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: background-color 0.15s ease-in-out;
+    }
+    
+    .btn-login:hover {
+        background-color: @primaryHover;
+        border-color: @primaryHover;
+    }
+    
+    .link-custom {
+        color: @primaryColor;
+        text-decoration: none;
+    }
+    
+    .link-custom:hover {
+        text-decoration: underline;
+    }
+    
+    .text-danger-custom {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .forgot-password-link {
+        color: @primaryColor;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    
+    .forgot-password-link:hover {
+        text-decoration: underline;
+    }
+</style>
 
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success">
-                            <i class="fa fa-check-circle"></i> @TempData["Success"]
-                        </div>
-                    }
-
-                    <form asp-action="Login" method="post">
-                        <div class="form-floating mb-3">
-                            <input asp-for="Email" class="form-control" placeholder="name@example.com" />
-                            <label for="inputEmail">Địa chỉ Email</label>
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input asp-for="Password" type="password" class="form-control" placeholder="Password" />
-                            <label for="inputPassword">Mật khẩu</label>
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-
-                        <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
-                            <a class="small" asp-action="ForgotPassword">Quên mật khẩu?</a>
-                            <button type="submit" class="btn btn-success px-4">Đăng nhập</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="card-footer text-center py-3">
-                    <div class="small">
-                        <a asp-action="Register">Chưa có tài khoản? Đăng ký ngay!</a>
-                    </div>
-                </div>
+<div class="container">
+    <div class="login-container">
+        <div class="welcome-header">
+            <div class="text-center mb-3">
+                <img src="~/imgs/icon_ezjob.png" alt="EZJob" style="height:180px;">
             </div>
+            <h1 class="welcome-title">Chào mừng bạn đã quay trở lại</h1>
+            <p class="welcome-subtitle">Cùng xây dựng một hồ sơ nổi bật và nhận được các cơ hội sự nghiệp lý tưởng</p>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger">
+                <i class="fa fa-exclamation-triangle"></i> @ViewBag.Error
+            </div>
+        }
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">
+                <i class="fa fa-check-circle"></i> @TempData["Success"]
+            </div>
+        }
+
+        <form asp-action="Login" method="post">
+            <div class="form-group-custom">
+                <label class="form-label-custom">Email</label>
+                <div class="input-group-custom">
+                    <i class="fa fa-envelope input-icon"></i>
+                    <input asp-for="Email" type="email" class="form-control-custom" placeholder="Email" />
+                </div>
+                <span asp-validation-for="Email" class="text-danger-custom"></span>
+            </div>
+
+            <div class="form-group-custom">
+                <label class="form-label-custom">Mật khẩu</label>
+                <div class="input-group-custom">
+                    <i class="fa fa-lock input-icon"></i>
+                    <input asp-for="Password" type="password" class="form-control-custom" placeholder="Mật khẩu" id="passwordInput" />
+                    <i class="fa fa-eye-slash" style="position: absolute; right: 12px; cursor: pointer; color: #6c757d;" onclick="togglePassword()"></i>
+                </div>
+                <span asp-validation-for="Password" class="text-danger-custom"></span>
+            </div>
+
+            <div class="d-flex justify-content-end mb-3">
+                <a asp-action="ForgotPassword" class="forgot-password-link">Quên mật khẩu?</a>
+            </div>
+
+            <button type="submit" class="btn-login">Đăng nhập</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <p style="color: #6c757d;">
+                Bạn chưa có tài khoản? <a asp-action="Register" class="link-custom">Đăng ký ngay</a>
+            </p>
+        </div>
+
+        <div class="text-center mt-4" style="color: #6c757d; font-size: 0.875rem;">
+            <p style="font-weight: bold; margin-bottom: 0.25rem;">Bạn gặp khó khăn khi đăng nhập?</p>
+            <p style="margin-bottom: 0;">
+                Vui lòng gọi tới số <span style="color: @primaryColor; font-weight: bold;">(085) 232 5683</span> (giờ hành chính).
+            </p>
         </div>
     </div>
 </div>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('passwordInput');
+        const icon = event.target;
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    }
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

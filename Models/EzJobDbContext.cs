@@ -4,10 +4,7 @@ namespace SWP391_Project.Models;
 
 public class EzJobDbContext : DbContext
 {
-    public EzJobDbContext(DbContextOptions<EzJobDbContext> options) : base(options)
-    {
-        
-    }
+    public EzJobDbContext(DbContextOptions<EzJobDbContext> options) : base(options) {}
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Candidate> Candidates => Set<Candidate>();
@@ -29,19 +26,19 @@ public class EzJobDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Quan hệ 1-1 giữa User và Candidate.
+        // 1-1 Relationship between User & Candidate.
         modelBuilder.Entity<User>()
             .HasOne(u => u.Candidate)
             .WithOne(c => c.User)
             .HasForeignKey<Candidate>(c => c.UserId);
 
-        // Quan hệ 1-1 giữa User và Company.
+        // 1-1 Relationship between User & Company.
         modelBuilder.Entity<User>()
             .HasOne(u => u.Company)
             .WithOne(c => c.User)
             .HasForeignKey<Company>(c => c.UserId);
 
-        // Bảng trung gian SavedJob (many-to-many giữa Candidate và Job).
+        // SavedJob tables (many-to-many Relationship between Candidate & Job).
         modelBuilder.Entity<SavedJob>()
             .HasKey(sj => new { sj.CandidateId, sj.JobId });
 
@@ -52,16 +49,9 @@ public class EzJobDbContext : DbContext
 
         modelBuilder.Entity<SavedJob>()
             .HasOne(sj => sj.Job)
-            .WithMany() // không có navigation ngược
+            .WithMany() 
             .HasForeignKey(sj => sj.JobId);
 
-        // =========================
-        // Cấu hình DeleteBehavior
-        // =========================
-
-        // Location trong nghiệp vụ KHÔNG bị xóa hard delete,
-        // nên ta đặt DeleteBehavior.Restrict để tránh multiple cascade path
-        // mà vẫn an toàn vì code không gọi Remove(Location).
         modelBuilder.Entity<Company>()
             .HasOne(c => c.Location)
             .WithMany(l => l.Companies)
@@ -74,34 +64,28 @@ public class EzJobDbContext : DbContext
             .HasForeignKey(j => j.LocationId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Company cũng soft delete, nên không cascade Company -> Jobs.
-        // Khi cần xóa Job, ta chủ động Remove(Job) trong code.
         modelBuilder.Entity<Job>()
             .HasOne(j => j.Company)
             .WithMany(c => c.Jobs)
             .HasForeignKey(j => j.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // =========================
-        // Global query filters & ràng buộc dữ liệu
-        // =========================
-
-        // Soft delete cho Job: mặc định mọi query DbSet<Job> sẽ ẩn Job đã bị xoá (IsDelete = true).
+        // Global query filters
         modelBuilder.Entity<Job>()
             .HasQueryFilter(j => !j.IsDelete);
 
         // User
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
-            .IsUnique(); // Email phải là duy nhất
+            .IsUnique(); // Email must be unique
 
         modelBuilder.Entity<User>()
             .Property(u => u.Email)
-            .HasMaxLength(255);
+            .HasMaxLength(255); // email length must be <= 255 chars
 
         modelBuilder.Entity<User>()
             .Property(u => u.Password)
-            .HasMaxLength(255); // đủ cho hash password
+            .HasMaxLength(255); // password length must be <= 255 chars
 
         // Candidate
         modelBuilder.Entity<Candidate>()
@@ -158,7 +142,7 @@ public class EzJobDbContext : DbContext
         // Skill
         modelBuilder.Entity<Skill>()
             .HasIndex(s => s.Name)
-            .IsUnique(); // tránh trùng tên kỹ năng
+            .IsUnique(); // Skill name is unique
 
         modelBuilder.Entity<Skill>()
             .Property(s => s.Name)
@@ -167,7 +151,7 @@ public class EzJobDbContext : DbContext
         // Domain
         modelBuilder.Entity<Domain>()
             .HasIndex(d => d.Name)
-            .IsUnique(); // tránh trùng tên domain
+            .IsUnique(); // Domain name is unique
 
         modelBuilder.Entity<Domain>()
             .Property(d => d.Name)
@@ -198,16 +182,15 @@ public class EzJobDbContext : DbContext
             .HasMaxLength(255);
 
         // SEED DATA (Dữ liệu mẫu khởi tạo)
-        // =========================================================
 
-        // 1. Tạo dữ liệu Địa điểm (Locations) - Bắt buộc phải có trước
+        // 1. Locations data
         modelBuilder.Entity<Location>().HasData(
             new Location { Id = 1, City = "Hà Nội", Ward = "Cầu Giấy" },
             new Location { Id = 2, City = "Hồ Chí Minh", Ward = "Quận 1" },
             new Location { Id = 3, City = "Đà Nẵng", Ward = "Hải Châu" }
         );
 
-        // 2. Tạo Master Data (Skill & Domain) để có cái mà chọn
+        // 2. Skill & Domain data
         modelBuilder.Entity<Skill>().HasData(
             new Skill { Id = 1, Name = "Java" },
             new Skill { Id = 2, Name = "C#" },
@@ -222,15 +205,14 @@ public class EzJobDbContext : DbContext
             new Domain { Id = 3, Name = "Sales" }
         );
 
-        // 3. Tạo Tài khoản User (Pass là 123456)
-        // Lưu ý: Thực tế pass phải hash, ở đây để plain text demo cho dễ
+        // 3. 3 User accounts with 3 different roles
         modelBuilder.Entity<User>().HasData(
             new User { Id = 1, Email = "admin@ezjob.com", Password = "123456", Role = Role.ADMIN, Active = true },
             new User { Id = 2, Email = "recruiter@fpt.com", Password = "123456", Role = Role.COMPANY, Active = true },
             new User { Id = 3, Email = "ungvien@gmail.com", Password = "123456", Role = Role.CANDIDATE, Active = true }
         );
 
-        // 4. Tạo Hồ sơ Company (Liên kết với User 2 và Location 1)
+        // 4. Companies
         modelBuilder.Entity<Company>().HasData(
             new Company
             {
@@ -245,7 +227,7 @@ public class EzJobDbContext : DbContext
             }
         );
 
-        // 5. Tạo Hồ sơ Candidate (Liên kết với User 3)
+        // 5. Candidate record (userId = 3)
         modelBuilder.Entity<Candidate>().HasData(
             new Candidate
             {
@@ -258,7 +240,7 @@ public class EzJobDbContext : DbContext
             }
         );
 
-        // 6. Tạo 1 Job mẫu (Để trang chủ không bị trống)
+        // 6. Sample Job
         modelBuilder.Entity<Job>().HasData(
             new Job
             {
@@ -269,12 +251,12 @@ public class EzJobDbContext : DbContext
                 Type = JobType.FULLTIME,
                 YearsOfExperience = 2,
                 VacancyCount = 5,
-                LowerSalaryRange = 15000000, // 15 Triệu
-                HigherSalaryRange = 30000000, // 30 Triệu
+                LowerSalaryRange = 15000000, 
+                HigherSalaryRange = 30000000, 
                 StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddDays(30), // Còn hạn 30 ngày
-                CompanyId = 1, // Của FPT
-                LocationId = 1, // Tại Hà Nội
+                EndDate = DateTime.Now.AddDays(30), 
+                CompanyId = 1, // FPT Company
+                LocationId = 1, 
                 IsDelete = false
             }
         );
