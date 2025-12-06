@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using SWP391_Project.Dtos;
 using SWP391_Project.Helpers;
 using SWP391_Project.Models;
@@ -12,11 +13,16 @@ namespace SWP391_Project.Controllers
     {
         private readonly EzJobDbContext _context;
         private readonly ILocationService _locationService;
+        public readonly IEmailService _emailService;
+        public readonly IMemoryCache _cache;
 
-        public AccountController(EzJobDbContext context, ILocationService locationService)
+        public AccountController(EzJobDbContext context, ILocationService locationService, IEmailService emailService, IMemoryCache cache)
         {
             _context = context;
             _locationService = locationService;
+            _emailService = emailService;
+            _cache = cache;
+            
         }
         public IActionResult Index()
         {
@@ -234,6 +240,102 @@ namespace SWP391_Project.Controllers
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult ForgotPassword(ForgotPasswordVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = _context.Users.FirstOrDefault(u => u.Email == model.Email);
+
+            if(user != null){
+                string token = Guid.NewGuid().ToString();
+
+                _cache.Set(token, user.Email, TimeSpan.FromMinutes(15));
+
+                string resetLink = Url.Action("ResetPassword", "Account", new { token = token }, Request.Scheme);
+
+                //gui mail cho user lay link
+                string subject = "Yeu cau dat lai mat khau - EZJob";
+                string body = $@"
+                    <h3>Xin chào,</h3>
+                    <p>Bạn đã yêu cầu đặt lại mật khẩu.</p>
+                    <p>Vui lòng <a href='{resetLink}'>BẤM VÀO ĐÂY</a> để tạo mật khẩu mới.</p>
+                    <p><i>Link này chỉ có hiệu lực trong 15 phút.</i></p>";
+
+                try
+                {
+                    _emailService.SendMail(user.Email, subject, body);
+                }
+                catch
+                {
+                    ModelState.AddModelError("", "Loi gui email, vui long thu lai");
+                    return View(model);
+                }
+            }
+            return View("ForgotPasswordConfirmation");
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPasswordConfirmation()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string token)
+        {
+            if(string.IsNullOrEmpty(token) || !_cache.TryGetValue(token, out string email))
+            {
+                ViewBag.Error = "Duong dan dat lai mat khau khong hop le hoac da het han";
+                return View(new ResetPasswordVM());
+            }
+            var model = new ResetPasswordVM
+            {
+                Token = token,
+                Email = email
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult ResetPassword(ResetPasswordVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            if (!_cache.TryGetValue(model.Token, out string emailFromCache))
+            {
+                ViewBag.Error = "Phiên làm việc đã hết hạn. Vui lòng thực hiện lại.";
+                return View(model);
+            }
+
+            var user = _context.Users.FirstOrDefault(u => u.Email == model.Email);
+            if(user != null)
+            {
+                user.Password = HashHelper.Hash(model.NewPassword);
+                _context.SaveChanges();
+
+                _cache.Remove(model.Token);
+
+                TempData["Success"] = "Doi mat khau thanh cong! Hay dang nhap ngay";
+                return RedirectToAction("Login");
+            }
+
+            ViewBag.Error = "Co loi xay ra. Khong tim thay tai khoan";
+            return View(model);
         }
     }
 }
