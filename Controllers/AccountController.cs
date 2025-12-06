@@ -113,7 +113,7 @@ namespace SWP391_Project.Controllers
                 Email = model.Email,
                 Password = HashHelper.Hash(model.Password),
                 Role = model.Role,
-                Active = true
+                Active = false
             };
             _context.Users.Add(newUser);
             _context.SaveChanges();
@@ -165,10 +165,61 @@ namespace SWP391_Project.Controllers
                 _context.Add(company);
             }
             _context.SaveChanges();
-            // 4. Chuyen ve login
-            TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+
+            string token = Guid.NewGuid().ToString();
+
+            //set thoi gian cho xac thuc la 1 ngfay
+            _cache.Set("Verify_" + token, newUser.Email, TimeSpan.FromHours(24));
+
+            string verifyLink = Url.Action("VerifyAccount", "Account",
+                new { token = token }, Request.Scheme);
+
+            string subject = "Xác thực tài khoản - EZJob";
+            string body = $@"
+                <h3>Chào mừng bạn đến với EZJob!</h3>
+                <p>Bạn đã đăng ký tài khoản thành công.</p>
+                <p>Vui lòng <a href='{verifyLink}'>BẤM VÀO ĐÂY</a> để kích hoạt tài khoản.</p>";
+
+            try
+            {
+                _emailService.SendMail(newUser.Email, subject, body);
+            }
+            catch
+            {
+                // Nếu gửi mail lỗi thì tùy bạn xử lý, tạm thời cứ kệ hoặc log lại
+            }
+            return View("RegisterConfirmation");
+        }
+
+        [HttpGet]
+        public IActionResult VerifyAccount(string token)
+        {
+            if(!_cache.TryGetValue("Verify_" + token, out string email))
+            {
+                ViewBag.Error = "Link xác thực không hợp lệ hoặc đã hết hạn";
+                return View("Login");
+            }
+
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+            if(user != null)
+            {
+                if(user.Active == true)
+                {
+                    TempData["Success"] = "Tài khoản này đã được kích hoạt trước đó rồi.";
+                }
+                else
+                {
+                    user.Active = true;
+                    _context.SaveChanges();
+
+                    _cache.Remove("Verify_" + token);
+                    TempData["Success"] = "Kích hoạt tài khoản thành công! Bạn có thể đăng nhập ngay.";
+                }
+            }
+
             return RedirectToAction("Login");
         }
+
 
         [HttpGet]
         public IActionResult Login()
