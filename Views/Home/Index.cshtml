@@ -1,8 +1,172 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model List<SWP391_Project.Models.Job>
+@using SWP391_Project.Models
+
+@{
+    ViewData["Title"] = "Tìm việc làm - EZJob";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .job-card {
+        border: 1px solid #ced4da;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: box-shadow 0.15s ease-in-out;
+        cursor: pointer;
+    }
+    
+    .job-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .job-title {
+        color: #28a745;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .company-name {
+        color: #495057;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+    
+    .job-meta {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .job-skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+    
+    .skill-badge {
+        background-color: #e9ecef;
+        color: #495057;
+        padding: 0.25rem 0.75rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
+    }
+    
+    .login-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.35);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+    }
+    
+    .login-modal {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    }
+    
+    .btn-primary-custom {
+        background-color: #28a745;
+        border: 1px solid #28a745;
+        color: white;
+        padding: 0.75rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 500;
+        width: 100%;
+        transition: background-color 0.15s ease-in-out;
+    }
+    
+    .btn-primary-custom:hover {
+        background-color: #218838;
+        border-color: #218838;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4" style="color: #28a745; font-size: 2rem; font-weight: bold;">Tìm việc làm</h1>
+            
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var job in Model)
+                {
+                    <div class="job-card" onclick="handleJobClick(@job.Id)">
+                        <h3 class="job-title">@job.Title</h3>
+                        <div class="company-name">@job.Company?.Name</div>
+                        <div class="job-meta">
+                            <i class="fa fa-map-marker"></i> @job.Location?.City - @job.Location?.Ward
+                            @if (job.LowerSalaryRange.HasValue && job.HigherSalaryRange.HasValue)
+                            {
+                                <span class="ms-3">
+                                    <i class="fa fa-money-bill"></i> @job.LowerSalaryRange.Value.ToString("N0") - @job.HigherSalaryRange.Value.ToString("N0") VNĐ
+                                </span>
+                            }
+                        </div>
+                        @if (job.RequiredSkills != null && job.RequiredSkills.Any())
+                        {
+                            <div class="job-skills">
+                                @foreach (var skill in job.RequiredSkills)
+                                {
+                                    <span class="skill-badge">@skill.Name</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <p class="text-muted">Hiện tại chưa có công việc nào.</p>
+                </div>
+            }
+        </div>
+    </div>
 </div>
+
+<!-- Login Modal -->
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-modal">
+        <h3 class="mb-3" style="color: #28a745; font-weight: bold;">Đăng nhập để xem chi tiết</h3>
+        <p class="text-muted mb-4">Bạn cần đăng nhập để xem chi tiết công việc và ứng tuyển.</p>
+        <div class="d-flex gap-2">
+            <a asp-controller="Account" asp-action="Login" class="btn-primary-custom text-decoration-none text-center">
+                Đăng nhập
+            </a>
+            <a asp-controller="Account" asp-action="Register" class="btn btn-outline-success" style="border-radius: 10px; padding: 0.75rem; flex: 1;">
+                Đăng ký
+            </a>
+        </div>
+        <button type="button" class="btn btn-link mt-3" onclick="closeLoginModal()" style="color: #6c757d; text-decoration: none;">
+            Đóng
+        </button>
+    </div>
+</div>
+
+<script>
+    function handleJobClick(jobId) {
+        // Check if user is logged in
+        // For now, always show login modal for guests
+        document.getElementById('loginOverlay').style.display = 'flex';
+    }
+    
+    function closeLoginModal() {
+        document.getElementById('loginOverlay').style.display = 'none';
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('loginOverlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeLoginModal();
+        }
+    });
+</script>

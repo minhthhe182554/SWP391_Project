@@ -1,0 +1,52 @@
+@model SWP391_Project.ViewModels.CandidateHomeVM
+@{
+    Layout = "_LayoutCandidate";
+    ViewData["Title"] = "Trang chủ - Ứng viên";
+    var primaryColor = "#28a745";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4" style="color: @primaryColor; font-size: 2rem; font-weight: bold;">Chào mừng trở lại</h1>
+    
+    @if (Model.RecommendedJobs.Any())
+    {
+        <h2 class="mb-3" style="font-size: 1.5rem; font-weight: 600;">Công việc phù hợp với bạn</h2>
+        <div class="row">
+            @foreach (var job in Model.RecommendedJobs)
+            {
+                <div class="col-md-6 mb-3">
+                    <div class="card" style="border-radius: 10px; border: 1px solid #ced4da;">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color: @primaryColor;">@job.Title</h5>
+                            <p class="card-text text-muted">@job.Company?.Name</p>
+                            <p class="card-text"><small class="text-muted">@job.Location?.City - @job.Location?.Ward</small></p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    
+    <h2 class="mb-3 mt-5" style="font-size: 1.5rem; font-weight: 600;">Tất cả công việc</h2>
+    @if (Model.AllJobs.Any())
+    {
+        <div class="row">
+            @foreach (var job in Model.AllJobs)
+            {
+                <div class="col-md-6 mb-3">
+                    <div class="card" style="border-radius: 10px; border: 1px solid #ced4da;">
+                        <div class="card-body">
+                            <h5 class="card-title" style="color: @primaryColor;">@job.Title</h5>
+                            <p class="card-text text-muted">@job.Company?.Name</p>
+                            <p class="card-text"><small class="text-muted">@job.Location?.City - @job.Location?.Ward</small></p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">Hiện tại chưa có công việc nào.</p>
+    }
+</div>
