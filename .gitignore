@@ -54,5 +54,6 @@ TestResult.xml
 nunit-*.xml
 
 # Markdown files
-BUSINESS_LOGIC.md
+business-logic.md
+ui-rules.md
 .vs/

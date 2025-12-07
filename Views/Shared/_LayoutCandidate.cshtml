@@ -1,0 +1,304 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var userId = HttpContextAccessor.HttpContext.Session.GetString("UserID");
+    var email = HttpContextAccessor.HttpContext.Session.GetString("Email");
+    var userName = HttpContextAccessor.HttpContext.Session.GetString("Name") ?? "User";
+    var imageUrl = HttpContextAccessor.HttpContext.Session.GetString("ImageUrl");
+    var defaultAvatar = Url.Content("~/imgs/ic_default_avatar.png");
+    var avatarUrl = !string.IsNullOrEmpty(imageUrl) ? imageUrl : defaultAvatar;
+    var userDisplayId = userId ?? "N/A";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SWP391_Project</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SWP391_Project.styles.css" asp-append-version="true" />
+    <style>
+        .dropdown-menu-candidate {
+            border-radius: 10px;
+            border: 1px solid #ced4da;
+            margin-top: 0.5rem;
+            min-width: 320px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 0;
+        }
+        .dropdown-header-section {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .dropdown-header-section .avatar-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .dropdown-header-section .avatar-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ced4da;
+        }
+        .dropdown-header-section .user-info h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #495057;
+        }
+        .dropdown-header-section .user-info .verified-badge {
+            color: #28a745;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .dropdown-header-section .user-info .user-details {
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .dropdown-section {
+            border-bottom: 1px solid #e9ecef;
+        }
+        .dropdown-section:last-child {
+            border-bottom: none;
+        }
+        .dropdown-section-header {
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+        }
+        .dropdown-section-header:hover {
+            background-color: #f8f9fa;
+        }
+        .dropdown-section-header .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #495057;
+            font-weight: 500;
+            margin: 0;
+        }
+        .dropdown-section-header .section-title i {
+            color: #28a745;
+        }
+        .dropdown-section-header .section-arrow {
+            color: #6c757d;
+            transition: transform 0.2s ease-in-out;
+        }
+        .dropdown-section-header[aria-expanded="true"] .section-arrow {
+            transform: rotate(180deg);
+        }
+        .dropdown-section-content .dropdown-item {
+            cursor: pointer;
+        }
+        .dropdown-section-content {
+            padding: 0;
+        }
+        .dropdown-section-content .dropdown-item {
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            color: #495057;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.15s ease-in-out;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        .dropdown-section-content .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #28a745;
+        }
+        .dropdown-section-content .dropdown-item i {
+            margin-right: 0.5rem;
+            width: 16px;
+        }
+        .dropdown-logout {
+            padding: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+        .dropdown-logout .btn-logout {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 10px;
+            color: #495057;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.15s ease-in-out;
+            text-decoration: none;
+        }
+        .dropdown-logout .btn-logout:hover {
+            background-color: #e9ecef;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    @if (ViewData["HideLayoutChrome"] == null)
+    {
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+                    <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                        <img src="~/imgs/ic_ezjob.png" alt="EZJob" style="height: 40px; margin-right: 8px;" />
+                        <span style="font-weight: 600;">EZJob</span>
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="dropdown">
+                                <a class="nav-link d-flex align-items-center" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; padding: 0.25rem 0.5rem; text-decoration: none;">
+                                    <img src="~/imgs/ic_notification.png" alt="Thông báo" style="width: 24px; height: 24px; object-fit: contain;" />
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="border-radius: 10px; border: 1px solid #ced4da; margin-top: 0.5rem; min-width: 320px; max-width: 400px; max-height: 500px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                    <li class="dropdown-header" style="padding: 1rem; border-bottom: 1px solid #e9ecef; font-weight: 600; color: #495057;">
+                                        Thông báo
+                                    </li>
+                                    <li>
+                                        <div class="p-3 text-center text-muted" style="min-height: 100px; display: flex; align-items: center; justify-content: center;">
+                                            <div>
+                                                <i class="fa fa-bell-slash" style="font-size: 2rem; color: #ced4da; margin-bottom: 0.5rem;"></i>
+                                                <p style="margin: 0;">Chưa có thông báo nào</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; padding: 0.25rem 0.5rem; text-decoration: none;">
+                                    <img src="@avatarUrl" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #ced4da;" onerror="this.src='@defaultAvatar'" />
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-candidate" aria-labelledby="userDropdown">
+                                    <li class="dropdown-header-section">
+                                        <div class="avatar-container">
+                                            <img src="@avatarUrl" alt="Avatar" class="avatar-large" onerror="this.src='@defaultAvatar'" />
+                                            <div class="user-info">
+                                                <h6>@userName</h6>
+                                                <div class="verified-badge">
+                                                    <i class="fa fa-check-circle"></i> Tài khoản đã xác thực
+                                                </div>
+                                                <div class="user-details">
+                                                    ID @userDisplayId | @email
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="dropdown-section">
+                                        <div class="dropdown-section-header" data-bs-toggle="collapse" data-bs-target="#jobManagementSection" aria-expanded="false" onclick="event.stopPropagation();">
+                                            <span class="section-title">
+                                                <i class="fa fa-briefcase"></i>
+                                                Quản lý tìm việc
+                                            </span>
+                                            <i class="fa fa-chevron-down section-arrow"></i>
+                                        </div>
+                                        <div class="collapse dropdown-section-content" id="jobManagementSection">
+                                            <a class="dropdown-item" href="#">
+                                                <i class="fa fa-bookmark"></i>
+                                                Việc làm đã lưu
+                                            </a>
+                                            <a class="dropdown-item" href="#">
+                                                <i class="fa fa-file-alt"></i>
+                                                Việc làm đã ứng tuyển
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li class="dropdown-section">
+                                        <div class="dropdown-section-header" data-bs-toggle="collapse" data-bs-target="#accountManagementSection" aria-expanded="false" onclick="event.stopPropagation();">
+                                            <span class="section-title">
+                                                <i class="fa fa-user-circle"></i>
+                                                Quản lý tài khoản
+                                            </span>
+                                            <i class="fa fa-chevron-down section-arrow"></i>
+                                        </div>
+                                        <div class="collapse dropdown-section-content" id="accountManagementSection">
+                                            <a class="dropdown-item" href="#">
+                                                <i class="fa fa-user"></i>
+                                                Thông tin cá nhân
+                                            </a>
+                                            <a class="dropdown-item" href="#">
+                                                <i class="fa fa-file-pdf"></i>
+                                                Quản lý CV (Resume)
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li class="dropdown-logout">
+                                        <a class="btn-logout" asp-controller="Account" asp-action="Logout">
+                                            <i class="fa fa-sign-out-alt"></i>
+                                            Đăng xuất
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+    }
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    @if (ViewData["HideLayoutChrome"] == null)
+    {
+        <footer class="border-top footer text-muted">
+            <div class="container">
+                &copy; 2025 - EZJob
+            </div>
+        </footer>
+    }
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ngăn dropdown đóng khi click vào section header hoặc content
+            var dropdownMenu = document.querySelector('.dropdown-menu-candidate');
+            if (dropdownMenu) {
+                dropdownMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+
+            // Cập nhật icon mũi tên khi collapse state thay đổi
+            var collapseElements = document.querySelectorAll('.dropdown-section-header[data-bs-toggle="collapse"]');
+            collapseElements.forEach(function(header) {
+                var targetId = header.getAttribute('data-bs-target');
+                var target = document.querySelector(targetId);
+                var arrow = header.querySelector('.section-arrow');
+                
+                if (target && arrow) {
+                    target.addEventListener('shown.bs.collapse', function() {
+                        arrow.classList.remove('fa-chevron-down');
+                        arrow.classList.add('fa-chevron-up');
+                        header.setAttribute('aria-expanded', 'true');
+                    });
+                    
+                    target.addEventListener('hidden.bs.collapse', function() {
+                        arrow.classList.remove('fa-chevron-up');
+                        arrow.classList.add('fa-chevron-down');
+                        header.setAttribute('aria-expanded', 'false');
+                    });
+                }
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

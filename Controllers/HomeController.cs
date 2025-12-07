@@ -8,24 +8,49 @@ namespace SWP391_Project.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
     private readonly EzJobDbContext _context;
 
-    public HomeController(ILogger<HomeController> logger, EzJobDbContext context)
+    public HomeController(EzJobDbContext context)
     {
-        _logger = logger;
         _context = context;
     }
 
     public IActionResult Index()
     {
-        return View();
+        // Check if user is logged in
+        var email = HttpContext.Session.GetString("Email");
+        var role = HttpContext.Session.GetString("Role");
+        
+        if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(role))
+        {
+            // Redirect to role-specific home page
+            if (role == "ADMIN")
+            {
+                return RedirectToAction("Index", "Admin");
+            }
+            else if (role == "COMPANY")
+            {
+                return RedirectToAction("Index", "Company");
+            }
+            else if (role == "CANDIDATE")
+            {
+                return RedirectToAction("Index", "Candidate");
+            }
+        }
+        
+        // Guest user - show public job browsing page
+        var jobs = _context.Jobs
+            .Include(j => j.Company)
+            .Include(j => j.Location)
+            .Include(j => j.RequiredSkills)
+            .Where(j => j.EndDate >= DateTime.Now && !j.IsDelete)
+            .OrderByDescending(j => j.StartDate)
+            .Take(20)
+            .ToList();
+            
+        return View(jobs);
     }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()

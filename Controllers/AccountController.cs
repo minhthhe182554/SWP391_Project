@@ -253,6 +253,7 @@ namespace SWP391_Project.Controllers
                 HttpContext.Session.SetString("Role", user.Role.ToString());
 
                 string displayName = user.Email; 
+                string? imageUrl = null;
 
                 if(user.Role == Role.CANDIDATE)
                 {
@@ -260,6 +261,7 @@ namespace SWP391_Project.Controllers
                     if (can != null)
                     {
                         displayName = can.FullName;
+                        imageUrl = can.ImageUrl;
                     }
                 } else if( user.Role == Role.COMPANY)
                 {
@@ -267,20 +269,25 @@ namespace SWP391_Project.Controllers
                     if (com != null)
                     {
                         displayName = com.Name;
+                        imageUrl = com.ImageUrl;
                     }
                 }
                 HttpContext.Session.SetString("Name", displayName);
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    HttpContext.Session.SetString("ImageUrl", imageUrl);
+                }
 
                 if(user.Role == Role.ADMIN)
                 {
-                    return RedirectToAction("Dashboard", "Admin");
+                    return RedirectToAction("Index", "Admin");
                 } else if(user.Role == Role.COMPANY)
                 {
-                    return RedirectToAction("Dashboard", "Company");
+                    return RedirectToAction("Index", "Company");
                 }
                 else
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Candidate");
                 }
             }
             ViewBag.Error = "Sai tai khoan hoac mat khau";
