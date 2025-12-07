@@ -186,7 +186,6 @@ namespace SWP391_Project.Controllers
             }
             catch
             {
-                // Nếu gửi mail lỗi thì tùy bạn xử lý, tạm thời cứ kệ hoặc log lại
             }
             return View("RegisterConfirmation");
         }
@@ -244,7 +243,7 @@ namespace SWP391_Project.Controllers
             {
                 if(user.Active == false)
                 {
-                    ViewBag.Error = "Tai khoan da bi khoa";
+                    ViewBag.Error = "Tài khoản hiện đang bị khóa hoặc chưa được kích hoạt.";
                     return View();
                 }
                 
@@ -290,7 +289,7 @@ namespace SWP391_Project.Controllers
                     return RedirectToAction("Index", "Candidate");
                 }
             }
-            ViewBag.Error = "Sai tai khoan hoac mat khau";
+            ViewBag.Error = "Sai tài khoản hoặc mật khẩu";
             return View(model);
         }
         
@@ -337,7 +336,7 @@ namespace SWP391_Project.Controllers
                 }
                 catch
                 {
-                    ModelState.AddModelError("", "Loi gui email, vui long thu lai");
+                    ModelState.AddModelError("", "Lỗi gửi email, vui lòng thử lại");
                     return View(model);
                 }
             }
@@ -355,7 +354,7 @@ namespace SWP391_Project.Controllers
         {
             if(string.IsNullOrEmpty(token) || !_cache.TryGetValue(token, out string email))
             {
-                ViewBag.Error = "Duong dan dat lai mat khau khong hop le hoac da het han";
+                ViewBag.Error = "Đường dẫn đătj lại mật khẩu không hợp lệ hoặc đã hết hạn";
                 return View(new ResetPasswordVM());
             }
             var model = new ResetPasswordVM
@@ -388,11 +387,11 @@ namespace SWP391_Project.Controllers
 
                 _cache.Remove(model.Token);
 
-                TempData["Success"] = "Doi mat khau thanh cong! Hay dang nhap ngay";
+                TempData["Success"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
                 return RedirectToAction("Login");
             }
 
-            ViewBag.Error = "Co loi xay ra. Khong tim thay tai khoan";
+            ViewBag.Error = "Có lỗi xảy ra, không tìm thấy tài khoản";
             return View(model);
         }
     }
