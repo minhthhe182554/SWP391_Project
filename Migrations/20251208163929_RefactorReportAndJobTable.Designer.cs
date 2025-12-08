@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SWP391_Project.Models;
 
@@ -11,9 +12,11 @@ using SWP391_Project.Models;
 namespace SWP391_Project.Migrations
 {
     [DbContext(typeof(EzJobDbContext))]
-    partial class EzJobDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251208163929_RefactorReportAndJobTable")]
+    partial class RefactorReportAndJobTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -322,10 +325,6 @@ namespace SWP391_Project.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Address")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
@@ -379,12 +378,12 @@ namespace SWP391_Project.Migrations
                             Id = 1,
                             CompanyId = 1,
                             Description = "Tham gia phát triển dự án Banking...",
-                            EndDate = new DateTime(2026, 1, 7, 23, 44, 21, 958, DateTimeKind.Local).AddTicks(8510),
+                            EndDate = new DateTime(2026, 1, 7, 23, 39, 28, 772, DateTimeKind.Local).AddTicks(30),
                             HigherSalaryRange = 30000000m,
                             IsDelete = false,
                             LocationId = 1,
                             LowerSalaryRange = 15000000m,
-                            StartDate = new DateTime(2025, 12, 8, 23, 44, 21, 958, DateTimeKind.Local).AddTicks(8460),
+                            StartDate = new DateTime(2025, 12, 8, 23, 39, 28, 771, DateTimeKind.Local).AddTicks(9990),
                             Title = "Tuyển dụng Senior .NET Developer",
                             Type = 0,
                             VacancyCount = 5,
