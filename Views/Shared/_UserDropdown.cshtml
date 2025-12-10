@@ -1,0 +1,144 @@
+@using Microsoft.AspNetCore.Http
+@using SWP391_Project.Helpers
+@inject IHttpContextAccessor HttpContextAccessor
+@inject ICloudinaryHelper CloudinaryHelper
+@{
+    var userId = HttpContextAccessor.HttpContext?.Session.GetString("UserID");
+    var email = HttpContextAccessor.HttpContext?.Session.GetString("Email");
+    var userName = HttpContextAccessor.HttpContext?.Session.GetString("Name") ?? "User";
+    var role = HttpContextAccessor.HttpContext?.Session.GetString("Role") ?? "CANDIDATE";
+    var defaultAvatar = Url.Content("~/imgs/ic_default_avatar.png");
+    var adminAvatar = Url.Content("~/imgs/ic_default_avatar.png");
+    
+    // Determine avatar URL based on role
+    string avatarUrl;
+    if (role == "ADMIN")
+    {
+        // Admin uses fixed avatar
+        avatarUrl = adminAvatar;
+    }
+    else
+    {
+        // Candidate/Company load from Cloudinary
+        var publicId = HttpContextAccessor.HttpContext?.Session.GetString("ImageUrl");
+        if (!string.IsNullOrEmpty(publicId))
+        {
+            try
+            {
+                avatarUrl = CloudinaryHelper.BuildImageUrl(publicId);
+            }
+            catch
+            {
+                avatarUrl = defaultAvatar;
+            }
+        }
+        else
+        {
+            avatarUrl = defaultAvatar;
+        }
+    }
+    
+    var userDisplayId = userId ?? "N/A";
+}
+
+<div class="dropdown">
+    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; padding: 0.25rem 0.5rem; text-decoration: none;">
+        <img src="@avatarUrl" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #ced4da;" onerror="this.src='@defaultAvatar'" />
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-candidate" aria-labelledby="userDropdown">
+        <li class="dropdown-header-section">
+            <div class="avatar-container">
+                <img src="@avatarUrl" alt="Avatar" class="avatar-large" onerror="this.src='@defaultAvatar'" />
+                <div class="user-info">
+                    <h6>@userName</h6>
+                    <div class="verified-badge">
+                        <i class="fa fa-check-circle"></i> Tài khoản đã xác thực
+                    </div>
+                    <div class="user-details">
+                        ID @userDisplayId | @email
+                    </div>
+                </div>
+            </div>
+        </li>
+
+        @* If candidate, show management sections *@
+        @if (role == "CANDIDATE")
+        {
+            <li class="dropdown-section">
+                <div class="dropdown-section-header" data-bs-toggle="collapse" data-bs-target="#jobManagementSection" aria-expanded="false" onclick="event.stopPropagation();">
+                    <span class="section-title">
+                        <i class="fa fa-briefcase"></i>
+                        Quản lý tìm việc
+                    </span>
+                    <i class="fa fa-chevron-down section-arrow"></i>
+                </div>
+                <div class="collapse dropdown-section-content" id="jobManagementSection">
+                    <a class="dropdown-item" href="#">
+                        <i class="fa fa-bookmark"></i>
+                        Việc làm đã lưu
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="fa fa-file-alt"></i>
+                        Việc làm đã ứng tuyển
+                    </a>
+                </div>
+            </li>
+            <li class="dropdown-section">
+                <div class="dropdown-section-header" data-bs-toggle="collapse" data-bs-target="#accountManagementSection" aria-expanded="false" onclick="event.stopPropagation();">
+                    <span class="section-title">
+                        <i class="fa fa-user-circle"></i>
+                        Quản lý tài khoản
+                    </span>
+                    <i class="fa fa-chevron-down section-arrow"></i>
+                </div>
+                <div class="collapse dropdown-section-content" id="accountManagementSection">
+                    <a class="dropdown-item" href="#">
+                        <i class="fa fa-user"></i>
+                        Thông tin cá nhân
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="fa fa-file-pdf"></i>
+                        Quản lý Resume
+                    </a>
+                </div>
+            </li>
+        }
+
+        <li class="dropdown-logout">
+            <a class="btn-logout" asp-controller="Account" asp-action="Logout">
+                <i class="fa fa-sign-out-alt"></i>
+                Đăng xuất
+            </a>
+        </li>
+    </ul>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // prevent dropdown from closing when clicking inside
+        var dropdownMenu = document.querySelector('.dropdown-menu-candidate');
+        if (dropdownMenu) {
+            dropdownMenu.addEventListener('click', function (e) { e.stopPropagation(); });
+        }
+
+        // handle collapse arrow icons
+        var collapseElements = document.querySelectorAll('.dropdown-section-header[data-bs-toggle="collapse"]');
+        collapseElements.forEach(function (header) {
+            var targetId = header.getAttribute('data-bs-target');
+            var target = document.querySelector(targetId);
+            var arrow = header.querySelector('.section-arrow');
+            if (target && arrow) {
+                target.addEventListener('shown.bs.collapse', function () {
+                    arrow.classList.remove('fa-chevron-down');
+                    arrow.classList.add('fa-chevron-up');
+                    header.setAttribute('aria-expanded', 'true');
+                });
+                target.addEventListener('hidden.bs.collapse', function () {
+                    arrow.classList.remove('fa-chevron-up');
+                    arrow.classList.add('fa-chevron-down');
+                    header.setAttribute('aria-expanded', 'false');
+                });
+            }
+        });
+    });
+</script>
