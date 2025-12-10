@@ -9,7 +9,7 @@ public class Candidate
     public User User { get; set; } = null!;
     public required string FullName { get; set; }
     public string? PhoneNumber { get; set; }
-    public string? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; } = "default_yvl9oh";
     public List<EducationRecord> EducationRecords { get; set; } = new();
     public List<WorkExperience> WorkExperiences { get; set; } = new();
     public List<Certificate> Certificates { get; set; } = new();
