@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -6,9 +6,11 @@
     <UserSecretsId>a1dde136-0b51-4efc-a2e6-44b3de999200</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.22" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.22" />
-    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.22" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.22"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.22"/>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3"/>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.22"/>
+    <PackageReference Include="CloudinaryDotNet" Version="1.27.9"/>
+    <PackageReference Include="dotenv.net" Version="4.0.0"/>
   </ItemGroup>
 </Project>

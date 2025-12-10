@@ -1,22 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SWP391_Project.Helpers;
 using SWP391_Project.Models;
-using SWP391_Project.ViewModels;
+using SWP391_Project.Services;
 
 namespace SWP391_Project.Controllers
 {
     public class AdminController : Controller
     {
-        private readonly EzJobDbContext _context;
+        private readonly IAdminService _adminService;
 
-        public AdminController(EzJobDbContext context)
+        public AdminController(IAdminService adminService)
         {
-            _context = context;
+            _adminService = adminService;
         }
 
         [RoleAuthorize(Role.ADMIN)]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var userId = HttpContext.Session.GetString("UserID");
             if (string.IsNullOrEmpty(userId))
@@ -24,31 +23,15 @@ namespace SWP391_Project.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var user = _context.Users.FirstOrDefault(u => u.Id == int.Parse(userId));
+            var userIdInt = int.Parse(userId);
+            var user = await _adminService.GetAdminUserByIdAsync(userIdInt);
             if (user != null)
             {
                 HttpContext.Session.SetString("Name", user.Email);
             }
 
-            // Get system statistics
-            var totalUsers = _context.Users.Count();
-            var totalCandidates = _context.Candidates.Count();
-            var totalCompanies = _context.Companies.Count();
-            var totalJobs = _context.Jobs.IgnoreQueryFilters().Count();
-            var totalApplications = _context.Applications.Count();
-            var totalReports = _context.Reports.Count();
-            var pendingReports = _context.Reports.Count(r => r.Status == ReportStatus.PENDING);
-
-            var viewModel = new AdminDashboardVM
-            {
-                TotalUsers = totalUsers,
-                TotalCandidates = totalCandidates,
-                TotalCompanies = totalCompanies,
-                TotalJobs = totalJobs,
-                TotalApplications = totalApplications,
-                TotalReports = totalReports,
-                PendingReports = pendingReports
-            };
+            // Get admin dashboard statistics
+            var viewModel = await _adminService.GetAdminDashboardViewAsync();
 
             return View(viewModel);
         }

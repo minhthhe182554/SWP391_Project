@@ -1,22 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SWP391_Project.Helpers;
 using SWP391_Project.Models;
-using SWP391_Project.ViewModels;
+using SWP391_Project.Services;
 
 namespace SWP391_Project.Controllers
 {
     public class CandidateController : Controller
     {
-        private readonly EzJobDbContext _context;
+        private readonly ICandidateService _candidateService;
 
-        public CandidateController(EzJobDbContext context)
+        public CandidateController(ICandidateService candidateService)
         {
-            _context = context;
+            _candidateService = candidateService;
         }
 
         [RoleAuthorize(Role.CANDIDATE)]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var userId = HttpContext.Session.GetString("UserID");
             if (string.IsNullOrEmpty(userId))
@@ -24,9 +23,8 @@ namespace SWP391_Project.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var candidate = _context.Candidates
-                .Include(c => c.User)
-                .FirstOrDefault(c => c.UserId == int.Parse(userId));
+            var userIdInt = int.Parse(userId);
+            var candidate = await _candidateService.GetCandidateByUserIdAsync(userIdInt);
             if (candidate == null)
             {
                 return RedirectToAction("Login", "Account");
@@ -39,30 +37,8 @@ namespace SWP391_Project.Controllers
                 HttpContext.Session.SetString("ImageUrl", candidate.ImageUrl);
             }
 
-            // Get recommended jobs (to be implemented with matching algorithm)
-            var recommendedJobs = _context.Jobs
-                .Include(j => j.Company)
-                .Include(j => j.Location)
-                .Include(j => j.RequiredSkills)
-                .Where(j => j.EndDate >= DateTime.Now && !j.IsDelete)
-                .OrderByDescending(j => j.StartDate)
-                .Take(10)
-                .ToList();
-
-            // Get all active jobs
-            var allJobs = _context.Jobs
-                .Include(j => j.Company)
-                .Include(j => j.Location)
-                .Include(j => j.RequiredSkills)
-                .Where(j => j.EndDate >= DateTime.Now && !j.IsDelete)
-                .OrderByDescending(j => j.StartDate)
-                .ToList();
-
-            var viewModel = new CandidateHomeVM
-            {
-                RecommendedJobs = recommendedJobs,
-                AllJobs = allJobs
-            };
+            // Get home view with jobs
+            var viewModel = await _candidateService.GetCandidateHomeViewAsync(userIdInt);
 
             return View(viewModel);
         }

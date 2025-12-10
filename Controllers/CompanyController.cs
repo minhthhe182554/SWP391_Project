@@ -1,22 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SWP391_Project.Helpers;
 using SWP391_Project.Models;
-using SWP391_Project.ViewModels;
+using SWP391_Project.Services;
 
 namespace SWP391_Project.Controllers
 {
     public class CompanyController : Controller
     {
-        private readonly EzJobDbContext _context;
+        private readonly ICompanyService _companyService;
 
-        public CompanyController(EzJobDbContext context)
+        public CompanyController(ICompanyService companyService)
         {
-            _context = context;
+            _companyService = companyService;
         }
 
         [RoleAuthorize(Role.COMPANY)]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var userId = HttpContext.Session.GetString("UserID");
             if (string.IsNullOrEmpty(userId))
@@ -24,9 +23,8 @@ namespace SWP391_Project.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var company = _context.Companies
-                .Include(c => c.User)
-                .FirstOrDefault(c => c.UserId == int.Parse(userId));
+            var userIdInt = int.Parse(userId);
+            var company = await _companyService.GetCompanyByUserIdAsync(userIdInt);
             if (company == null)
             {
                 return RedirectToAction("Login", "Account");
@@ -39,18 +37,8 @@ namespace SWP391_Project.Controllers
                 HttpContext.Session.SetString("ImageUrl", company.ImageUrl);
             }
 
-            // Get company statistics
-            var totalJobs = _context.Jobs.Count(j => j.CompanyId == company.Id && !j.IsDelete);
-            var activeJobs = _context.Jobs.Count(j => j.CompanyId == company.Id && j.EndDate >= DateTime.Now && !j.IsDelete);
-            var totalApplications = _context.Applications
-                .Count(a => _context.Jobs.Any(j => j.CompanyId == company.Id && j.Id == a.JobId));
-
-            var viewModel = new CompanyDashboardVM
-            {
-                TotalJobs = totalJobs,
-                ActiveJobs = activeJobs,
-                TotalApplications = totalApplications
-            };
+            // Get company dashboard
+            var viewModel = await _companyService.GetCompanyDashboardViewAsync(company.Id);
 
             return View(viewModel);
         }

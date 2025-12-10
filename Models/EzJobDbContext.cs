@@ -26,6 +26,63 @@ public class EzJobDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Configure Identity Columns for all entities
+        modelBuilder.Entity<User>()
+            .Property(u => u.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Candidate>()
+            .Property(c => c.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Company>()
+            .Property(c => c.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Job>()
+            .Property(j => j.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Application>()
+            .Property(a => a.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Resume>()
+            .Property(r => r.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Skill>()
+            .Property(s => s.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Domain>()
+            .Property(d => d.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Location>()
+            .Property(l => l.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Certificate>()
+            .Property(c => c.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<WorkExperience>()
+            .Property(w => w.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<EducationRecord>()
+            .Property(e => e.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.Id)
+            .UseIdentityColumn();
+
+        modelBuilder.Entity<Report>()
+            .Property(r => r.Id)
+            .UseIdentityColumn();
+            
         // 1-1 Relationship between User & Candidate.
         modelBuilder.Entity<User>()
             .HasOne(u => u.Candidate)
@@ -115,8 +172,9 @@ public class EzJobDbContext : DbContext
 
         modelBuilder.Entity<Company>()
             .Property(c => c.ImageUrl)
-            .HasMaxLength(500);
-
+            .HasMaxLength(500)
+            .HasDefaultValue("default_yvl9oh");
+        
         modelBuilder.Entity<Company>()
             .Property(c => c.Website)
             .HasMaxLength(255);
