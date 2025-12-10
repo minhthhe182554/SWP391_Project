@@ -11,18 +11,24 @@ namespace SWP391_Project.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly EzJobDbContext _context;
+        private readonly IAccountService _accountService;
         private readonly ILocationService _locationService;
-        public readonly IEmailService _emailService;
-        public readonly IMemoryCache _cache;
+        private readonly IEmailService _emailService;
+        private readonly IMemoryCache _cache;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(EzJobDbContext context, ILocationService locationService, IEmailService emailService, IMemoryCache cache)
+        public AccountController(
+            IAccountService accountService,
+            ILocationService locationService,
+            IEmailService emailService,
+            IMemoryCache cache,
+            ILogger<AccountController> logger)
         {
-            _context = context;
+            _accountService = accountService;
             _locationService = locationService;
             _emailService = emailService;
             _cache = cache;
-            
+            _logger = logger;
         }
         public IActionResult Index()
         {
@@ -98,81 +104,45 @@ namespace SWP391_Project.Controllers
                 ViewBag.SelectedRole = model.Role;
                 return View(model);
             }
-            //check trung email
-            if(_context.Users.Any(u => u.Email == model.Email))
+
+            // Register based on role
+            var (success, error) = model.Role == Role.CANDIDATE
+                ? await _accountService.RegisterCandidateAsync(model)
+                : await _accountService.RegisterCompanyAsync(model, SendVerificationEmailAsync);
+
+            if (!success)
             {
-                ModelState.AddModelError("Email", "Email này đã được sử dụng");
+                ModelState.AddModelError("", error ?? "Đăng ký không thành công");
                 var cities = await _locationService.GetCitiesAsync();
                 ViewBag.Cities = cities;
                 ViewBag.SelectedRole = model.Role;
                 return View(model);
             }
-            //tao user
-            var newUser = new User
+
+            // Send verification email
+            var user = await _accountService.GetUserByEmailAsync(model.Email);
+            if (user != null)
             {
-                Email = model.Email,
-                Password = HashHelper.Hash(model.Password),
-                Role = model.Role,
-                Active = false
-            };
-            _context.Users.Add(newUser);
-            _context.SaveChanges();
-            //tao thong tin cho candidate hoac company
-            if(model.Role == Role.CANDIDATE)
-            {
-                var candidate = new Candidate
+                string token = Guid.NewGuid().ToString();
+                _cache.Set("Verify_" + token, user.Email, TimeSpan.FromHours(24));
+
+                try
                 {
-                    UserId = newUser.Id,
-                    FullName = model.FullName,
-                    Jobless = true,
-                    RemainingReport = 2
-                };
-                _context.Candidates.Add(candidate);
-            } else if(model.Role == Role.COMPANY)
-            {
-                // Lấy tên thành phố từ code
-                var cities = await _locationService.GetCitiesAsync();
-                var selectedCity = cities.FirstOrDefault(c => c.Code == model.City);
-                var cityName = selectedCity?.Name ?? model.City!;
-                
-                // Ward đã là tên rồi, không cần convert
-                var wardName = model.Ward!;
-                
-                // Tìm hoặc tạo Location từ City và Ward
-                var location = _context.Locations
-                    .FirstOrDefault(l => l.City == cityName && l.Ward == wardName);
-                
-                if(location == null)
-                {
-                    location = new Location
-                    {
-                        City = cityName,
-                        Ward = wardName
-                    };
-                    _context.Locations.Add(location);
-                    _context.SaveChanges();
+                    await SendVerificationEmailAsync(user.Email, token);
                 }
-
-                var company = new Company
+                catch (Exception ex)
                 {
-                    UserId = newUser.Id,
-                    Name = model.FullName,
-                    Description = model.Description!,
-                    Address = model.Address!,
-                    PhoneNumber = model.PhoneNumber!,
-                    LocationId = location.Id
-                };
-                _context.Add(company);
+                    _logger.LogError(ex, "Error sending verification email");
+                }
             }
-            _context.SaveChanges();
 
-            string token = Guid.NewGuid().ToString();
+            return View("RegisterConfirmation");
+        }
 
-            //set thoi gian cho xac thuc la 1 ngfay
-            _cache.Set("Verify_" + token, newUser.Email, TimeSpan.FromHours(24));
-
+        private async Task SendVerificationEmailAsync(string email, string token)
+        {
             string verifyLink = Url.Action("VerifyAccount", "Account",
-                new { token = token }, Request.Scheme);
+                new { token = token }, Request.Scheme) ?? "";
 
             string subject = "Xác thực tài khoản - EZJob";
             string body = $@"
@@ -180,45 +150,36 @@ namespace SWP391_Project.Controllers
                 <p>Bạn đã đăng ký tài khoản thành công.</p>
                 <p>Vui lòng <a href='{verifyLink}'>BẤM VÀO ĐÂY</a> để kích hoạt tài khoản.</p>";
 
-            try
-            {
-                _emailService.SendMail(newUser.Email, subject, body);
-            }
-            catch
-            {
-            }
-            return View("RegisterConfirmation");
+            await Task.Run(() => _emailService.SendMail(email, subject, body));
         }
 
         [HttpGet]
         public IActionResult VerifyAccount(string token)
         {
-            if(!_cache.TryGetValue("Verify_" + token, out string email))
+            if(!_cache.TryGetValue("Verify_" + token, out string? email) || string.IsNullOrEmpty(email))
             {
                 ViewBag.Error = "Link xác thực không hợp lệ hoặc đã hết hạn";
                 return View("Login");
             }
 
-            var user = _context.Users.FirstOrDefault(u => u.Email == email);
-            if(user != null)
-            {
-                if(user.Active == true)
-                {
-                    TempData["Success"] = "Tài khoản này đã được kích hoạt trước đó rồi.";
-                }
-                else
-                {
-                    user.Active = true;
-                    _context.SaveChanges();
-
-                    _cache.Remove("Verify_" + token);
-                    TempData["Success"] = "Kích hoạt tài khoản thành công! Bạn có thể đăng nhập ngay.";
-                }
-            }
-
-            return RedirectToAction("Login");
+            return RedirectToAction("VerifyAccountPost", new { token, email });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> VerifyAccountPost(string token, string email)
+        {
+            var (success, error) = await _accountService.VerifyAccountAsync(token, email);
+
+            if (!success)
+            {
+                TempData["Success"] = error ?? "Không thể xác thực tài khoản";
+                return RedirectToAction("Login");
+            }
+
+            _cache.Remove("Verify_" + token);
+            TempData["Success"] = "Kích hoạt tài khoản thành công! Bạn có thể đăng nhập ngay.";
+            return RedirectToAction("Login");
+        }
 
         [HttpGet]
         public IActionResult Login()
@@ -231,66 +192,68 @@ namespace SWP391_Project.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login(LoginVM model)
+        public async Task<IActionResult> Login(LoginVM model)
         {
             if(!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var user = _context.Users.FirstOrDefault(u => u.Email == model.Email);
-            if(user != null && HashHelper.Verify(model.Password, user.Password))
+            var (success, user, error) = await _accountService.LoginAsync(model);
+
+            if (!success || user == null)
             {
-                if(user.Active == false)
-                {
-                    ViewBag.Error = "Tài khoản hiện đang bị khóa hoặc chưa được kích hoạt.";
-                    return View();
-                }
-                
-                HttpContext.Session.SetString("UserID", user.Id.ToString());
-                HttpContext.Session.SetString("Email", user.Email);
-                HttpContext.Session.SetString("Role", user.Role.ToString());
+                ViewBag.Error = error ?? "Có lỗi xảy ra";
+                return View(model);
+            }
 
-                string displayName = user.Email; 
-                string? imageUrl = null;
+            // Set session
+            HttpContext.Session.SetString("UserID", user.Id.ToString());
+            HttpContext.Session.SetString("Email", user.Email);
+            HttpContext.Session.SetString("Role", user.Role.ToString());
 
-                if(user.Role == Role.CANDIDATE)
-                {
-                    var can = _context.Candidates.FirstOrDefault(c => c.UserId == user.Id);
-                    if (can != null)
-                    {
-                        displayName = can.FullName;
-                        imageUrl = can.ImageUrl;
-                    }
-                } else if( user.Role == Role.COMPANY)
-                {
-                    var com = _context.Companies.FirstOrDefault(c => c.UserId == user.Id);
-                    if (com != null)
-                    {
-                        displayName = com.Name;
-                        imageUrl = com.ImageUrl;
-                    }
-                }
-                HttpContext.Session.SetString("Name", displayName);
-                if (!string.IsNullOrEmpty(imageUrl))
-                {
-                    HttpContext.Session.SetString("ImageUrl", imageUrl);
-                }
+            // Set user display name and image
+            string displayName = user.Email;
+            string? imageUrl = null;
 
-                if(user.Role == Role.ADMIN)
+            if(user.Role == Role.CANDIDATE)
+            {
+                var candidate = await _accountService.GetCandidateByUserIdAsync(user.Id);
+                if (candidate != null)
                 {
-                    return RedirectToAction("Index", "Admin");
-                } else if(user.Role == Role.COMPANY)
-                {
-                    return RedirectToAction("Index", "Company");
+                    displayName = candidate.FullName;
+                    imageUrl = candidate.ImageUrl;
                 }
-                else
+            } 
+            else if(user.Role == Role.COMPANY)
+            {
+                var company = await _accountService.GetCompanyByUserIdAsync(user.Id);
+                if (company != null)
                 {
-                    return RedirectToAction("Index", "Candidate");
+                    displayName = company.Name;
+                    imageUrl = company.ImageUrl;
                 }
             }
-            ViewBag.Error = "Sai tài khoản hoặc mật khẩu";
-            return View(model);
+
+            HttpContext.Session.SetString("Name", displayName);
+            if (!string.IsNullOrEmpty(imageUrl))
+            {
+                HttpContext.Session.SetString("ImageUrl", imageUrl);
+            }
+
+            // Redirect based on role
+            if(user.Role == Role.ADMIN)
+            {
+                return RedirectToAction("Index", "Admin");
+            } 
+            else if(user.Role == Role.COMPANY)
+            {
+                return RedirectToAction("Index", "Company");
+            }
+            else
+            {
+                return RedirectToAction("Index", "Candidate");
+            }
         }
         
         public IActionResult Logout()
@@ -306,57 +269,52 @@ namespace SWP391_Project.Controllers
         }
 
         [HttpPost]
-        public IActionResult ForgotPassword(ForgotPasswordVM model)
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordVM model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var user = _context.Users.FirstOrDefault(u => u.Email == model.Email);
+            var user = await _accountService.GetUserByEmailAsync(model.Email);
 
-            if(user != null){
+            if(user != null)
+            {
                 string token = Guid.NewGuid().ToString();
-
                 _cache.Set(token, user.Email, TimeSpan.FromMinutes(15));
-
-                string resetLink = Url.Action("ResetPassword", "Account", new { token = token }, Request.Scheme);
-
-                //gui mail cho user lay link
-                string subject = "Yeu cau dat lai mat khau - EZJob";
-                string body = $@"
-                    <h3>Xin chào,</h3>
-                    <p>Bạn đã yêu cầu đặt lại mật khẩu.</p>
-                    <p>Vui lòng <a href='{resetLink}'>BẤM VÀO ĐÂY</a> để tạo mật khẩu mới.</p>
-                    <p><i>Link này chỉ có hiệu lực trong 15 phút.</i></p>";
 
                 try
                 {
-                    _emailService.SendMail(user.Email, subject, body);
+                    string resetLink = Url.Action("ResetPassword", "Account", new { token = token }, Request.Scheme) ?? "";
+                    string subject = "Yeu cau dat lai mat khau - EZJob";
+                    string body = $@"
+                        <h3>Xin chào,</h3>
+                        <p>Bạn đã yêu cầu đặt lại mật khẩu.</p>
+                        <p>Vui lòng <a href='{resetLink}'>BẤM VÀO ĐÂY</a> để tạo mật khẩu mới.</p>
+                        <p><i>Link này chỉ có hiệu lực trong 15 phút.</i></p>";
+
+                    await Task.Run(() => _emailService.SendMail(user.Email, subject, body));
                 }
-                catch
+                catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Error sending password reset email");
                     ModelState.AddModelError("", "Lỗi gửi email, vui lòng thử lại");
                     return View(model);
                 }
             }
+            
             return View("ForgotPasswordConfirmation");
-        }
-
-        [HttpGet]
-        public IActionResult ForgotPasswordConfirmation()
-        {
-            return View();
         }
 
         [HttpGet]
         public IActionResult ResetPassword(string token)
         {
-            if(string.IsNullOrEmpty(token) || !_cache.TryGetValue(token, out string email))
+            if(string.IsNullOrEmpty(token) || !_cache.TryGetValue(token, out string? email) || string.IsNullOrEmpty(email))
             {
-                ViewBag.Error = "Đường dẫn đătj lại mật khẩu không hợp lệ hoặc đã hết hạn";
+                ViewBag.Error = "Đường dẫn đặt lại mật khẩu không hợp lệ hoặc đã hết hạn";
                 return View(new ResetPasswordVM());
             }
+            
             var model = new ResetPasswordVM
             {
                 Token = token,
@@ -366,33 +324,30 @@ namespace SWP391_Project.Controllers
         }
 
         [HttpPost]
-        public IActionResult ResetPassword(ResetPasswordVM model)
+        public async Task<IActionResult> ResetPassword(ResetPasswordVM model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            if (!_cache.TryGetValue(model.Token, out string emailFromCache))
+            if (!_cache.TryGetValue(model.Token, out string? emailFromCache) || string.IsNullOrEmpty(emailFromCache))
             {
                 ViewBag.Error = "Phiên làm việc đã hết hạn. Vui lòng thực hiện lại.";
                 return View(model);
             }
 
-            var user = _context.Users.FirstOrDefault(u => u.Email == model.Email);
-            if(user != null)
+            var (success, error) = await _accountService.ResetPasswordAsync(model.Email, model.NewPassword);
+            
+            if (!success)
             {
-                user.Password = HashHelper.Hash(model.NewPassword);
-                _context.SaveChanges();
-
-                _cache.Remove(model.Token);
-
-                TempData["Success"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
-                return RedirectToAction("Login");
+                ViewBag.Error = error ?? "Có lỗi xảy ra";
+                return View(model);
             }
 
-            ViewBag.Error = "Có lỗi xảy ra, không tìm thấy tài khoản";
-            return View(model);
+            _cache.Remove(model.Token);
+            TempData["Success"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
+            return RedirectToAction("Login");
         }
     }
 }

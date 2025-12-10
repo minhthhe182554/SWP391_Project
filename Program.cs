@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using SWP391_Project.Models;
 using SWP391_Project.Services;
+using SWP391_Project.Repositories;
+using SWP391_Project.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,21 @@ builder.Services.AddControllersWithViews();
 // Regist EzJobDbContext 
 builder.Services.AddDbContext<EzJobDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+// Register Repositories
+builder.Services.AddScoped<ICandidateRepository, CandidateRepository>();
+builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+
+// Register Services
+builder.Services.AddScoped<ICandidateService, CandidateService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ICloudinaryHelper, CloudinaryHelper>();
+
 // Register HttpClient and LocationService
 builder.Services.AddHttpClient<ILocationService, LocationService>();
 
@@ -26,16 +43,12 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddMemoryCache(); //dung ram luu token tam
 
-
-//dang ky Service
-builder.Services.AddScoped<IEmailService, EmailService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
