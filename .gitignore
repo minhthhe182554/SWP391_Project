@@ -56,4 +56,5 @@ nunit-*.xml
 # Markdown files
 business-logic.md
 ui-rules.md
+.env
 .vs/
