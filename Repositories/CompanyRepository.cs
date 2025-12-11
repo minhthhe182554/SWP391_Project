@@ -39,5 +39,32 @@ namespace SWP391_Project.Repositories
                     j.CompanyId == companyId && 
                     j.Id == a.JobId));
         }
+
+        public async Task<Company?> GetByIdAsync(int id)
+        {
+            return await _context.Companies
+                .Include(c => c.Location)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public async Task UpdateAsync(Company company)
+        {
+            _context.Companies.Update(company);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<Location> GetOrCreateLocationAsync(string city, string ward)
+        {
+            var location = await _context.Locations
+                .FirstOrDefaultAsync(l => l.City == city && l.Ward == ward);
+
+            if (location == null)
+            {
+                location = new Location { City = city, Ward = ward };
+                _context.Locations.Add(location);
+                await _context.SaveChangesAsync();
+            }
+            return location;
+        }
     }
 }

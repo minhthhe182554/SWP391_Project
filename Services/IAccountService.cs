@@ -17,5 +17,6 @@ namespace SWP391_Project.Services
         Task<(bool success, string? error)> ResetPasswordAsync(string email, string newPassword);
         Task<Candidate?> GetCandidateByUserIdAsync(int userId);
         Task<Company?> GetCompanyByUserIdAsync(int userId);
+        Task<(bool success, string? error)> ChangePasswordAsync(int userId, string oldPassword, string newPassword);
     }
 }

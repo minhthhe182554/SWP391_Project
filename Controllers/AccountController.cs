@@ -135,7 +135,6 @@ namespace SWP391_Project.Controllers
                     _logger.LogError(ex, "Error sending verification email");
                 }
             }
-
             return View("RegisterConfirmation");
         }
 
@@ -241,7 +240,6 @@ namespace SWP391_Project.Controllers
                 HttpContext.Session.SetString("ImageUrl", imageUrl);
             }
 
-            // Redirect based on role
             if(user.Role == Role.ADMIN)
             {
                 return RedirectToAction("Index", "Admin");
