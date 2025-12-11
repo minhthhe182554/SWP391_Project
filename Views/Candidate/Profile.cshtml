@@ -1,0 +1,1000 @@
+@model SWP391_Project.ViewModels.Candidate.CandidateProfileVM
+@using SWP391_Project.Models
+@{
+    Layout = "_LayoutCandidate";
+    ViewData["Title"] = "Thông tin cá nhân";
+    var primaryColor = "#28a745";
+    var allSkills = ViewBag.AllSkills as List<Skill> ?? new List<Skill>();
+    var imageUrl = ViewBag.ImageUrl as string ?? "";
+}
+
+<style>
+    .profile-container {
+        padding: 1rem 0;
+    }
+    
+    .profile-section {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: @primaryColor;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid @primaryColor;
+    }
+    
+    .profile-image-container {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+    
+    .profile-image {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid @primaryColor;
+    }
+    
+    .profile-image-upload {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: @primaryColor;
+        color: white;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.375rem;
+        font-size: 0.875rem;
+    }
+    
+    .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 0.5rem;
+        width: 100%;
+        font-size: 0.875rem;
+    }
+    
+    .form-control:focus {
+        border-color: @primaryColor;
+        outline: none;
+        box-shadow: 0 0 0 0.15rem rgba(40, 167, 69, 0.25);
+    }
+    
+    .form-control:disabled {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+    
+    .password-wrapper {
+        position: relative;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+    }
+    
+    .btn-primary {
+        background-color: @primaryColor;
+        border: 1px solid @primaryColor;
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: background-color 0.15s ease-in-out;
+    }
+    
+    .btn-primary:hover {
+        background-color: #218838;
+        border-color: #218838;
+    }
+    
+    .btn-danger {
+        background-color: #dc3545;
+        border: 1px solid #dc3545;
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+    }
+    
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+    
+    .btn-success {
+        background-color: @primaryColor;
+        border: 1px solid @primaryColor;
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        border: 1px solid #6c757d;
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+    }
+    
+    .item-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .item-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .item-info {
+        flex: 1;
+    }
+    
+    .item-title {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
+    }
+    
+    .item-meta {
+        font-size: 0.8125rem;
+        color: #6c757d;
+    }
+    
+    .skill-badge {
+        display: inline-block;
+        background: #e9ecef;
+        color: #495057;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        margin: 0.25rem;
+        font-size: 0.8125rem;
+    }
+    
+    .skill-badge .remove-btn {
+        margin-left: 0.375rem;
+        cursor: pointer;
+        color: #dc3545;
+    }
+    
+    .add-form {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-top: 0.75rem;
+    }
+    
+    .add-form.hidden {
+        display: none;
+    }
+    
+    .alert {
+        padding: 0.625rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+    
+    .info-badge {
+        display: inline-block;
+        background: #e9ecef;
+        color: #495057;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+        margin: 0.25rem;
+    }
+    
+    .skill-search-wrapper {
+        position: relative;
+    }
+    
+    .skill-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .skill-dropdown-item {
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+    
+    .skill-dropdown-item:hover {
+        background: #f8f9fa;
+    }
+    
+    .skill-dropdown-create {
+        padding: 0.5rem 0.75rem;
+        border-top: 1px solid #dee2e6;
+        color: @primaryColor;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    .skill-dropdown-create:hover {
+        background: #f8f9fa;
+    }
+</style>
+
+<div class="container profile-container">
+    <h1 class="mb-3" style="color: @primaryColor; font-size: 1.5rem; font-weight: bold;">Cài đặt thông tin cá nhân</h1>
+    <p class="text-muted mb-3" style="font-size: 0.875rem;">(*) Các thông tin bắt buộc</p>
+    
+    <div id="alertContainer"></div>
+    
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Personal Information Section -->
+            <div class="profile-section">
+                <h2 class="section-title">Thông tin cá nhân</h2>
+                
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label class="form-label">Họ và tên *</label>
+                        <input type="text" class="form-control" id="fullName" value="@Model.FullName" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-control" id="phoneNumber" value="@Model.PhoneNumber" 
+                               pattern="[0-9]{10,11}" placeholder="Nhập số điện thoại" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" value="@Model.Email" disabled />
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" onclick="updateProfile()">Lưu</button>
+                </form>
+            </div>
+            
+            <!-- Password Section -->
+            <div class="profile-section">
+                <h2 class="section-title">Đổi mật khẩu</h2>
+                
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu hiện tại</label>
+                        <div class="password-wrapper">
+                            <input type="password" class="form-control" id="currentPassword" />
+                            <i class="fas fa-eye password-toggle" onclick="togglePassword('currentPassword')"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu mới *</label>
+                        <div class="password-wrapper">
+                            <input type="password" class="form-control" id="newPassword" required minlength="6" />
+                            <i class="fas fa-eye password-toggle" onclick="togglePassword('newPassword')"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Xác nhận mật khẩu mới *</label>
+                        <div class="password-wrapper">
+                            <input type="password" class="form-control" id="confirmPassword" required minlength="6" />
+                            <i class="fas fa-eye password-toggle" onclick="togglePassword('confirmPassword')"></i>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" onclick="updatePassword()">Đổi mật khẩu</button>
+                </form>
+            </div>
+            
+            <!-- Education Records Section -->
+            <div class="profile-section">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="section-title mb-0">Học vấn</h2>
+                    <button class="btn btn-success" onclick="toggleAddForm('education')">
+                        <i class="fas fa-plus"></i> Thêm
+                    </button>
+                </div>
+                
+                <div class="item-list" id="educationList">
+                    @if (Model.EducationRecords != null && Model.EducationRecords.Any())
+                    {
+                        @foreach (var record in Model.EducationRecords)
+                        {
+                            <div class="item-card" id="education-@record.Id">
+                                <div class="item-info">
+                                    <div class="item-title">@record.Title</div>
+                                    <div class="item-meta">
+                                        @record.StartDate.ToString("dd/MM/yyyy") - 
+                                        @(record.EndDate?.ToString("dd/MM/yyyy") ?? "Hiện tại")
+                                    </div>
+                                </div>
+                                <button class="btn btn-danger" onclick="deleteEducationRecord(@record.Id)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted" style="font-size: 0.875rem;">Chưa có thông tin học vấn</p>
+                    }
+                </div>
+                
+                <div class="add-form hidden" id="educationForm">
+                    <h5 class="mb-2" style="font-size: 1rem;">Thêm học vấn</h5>
+                    <div class="form-group">
+                        <label class="form-label">Tiêu đề *</label>
+                        <input type="text" class="form-control" id="educationTitle" placeholder="Ví dụ: Tốt nghiệp Đại học FPT" required />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Ngày bắt đầu *</label>
+                                <input type="date" class="form-control" id="educationStartDate" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Ngày kết thúc</label>
+                                <input type="date" class="form-control" id="educationEndDate" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" onclick="addEducationRecord()">Thêm</button>
+                        <button class="btn btn-secondary" onclick="toggleAddForm('education')">Hủy</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Skills Section -->
+            <div class="profile-section">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="section-title mb-0">Kĩ năng</h2>
+                    <button class="btn btn-success" onclick="toggleAddForm('skill')">
+                        <i class="fas fa-plus"></i> Thêm
+                    </button>
+                </div>
+                
+                <div id="skillsList">
+                    @if (Model.Skills != null && Model.Skills.Any())
+                    {
+                        @foreach (var skill in Model.Skills)
+                        {
+                            <span class="skill-badge" id="skill-@skill.Id">
+                                @skill.Name
+                                <span class="remove-btn" onclick="removeSkill(@skill.Id)">
+                                    <i class="fas fa-times"></i>
+                                </span>
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted" style="font-size: 0.875rem;">Chưa có kỹ năng nào</p>
+                    }
+                </div>
+                
+                <div class="add-form hidden" id="skillForm">
+                    <h5 class="mb-2" style="font-size: 1rem;">Thêm kỹ năng</h5>
+                    <div class="form-group">
+                        <label class="form-label">Tìm kiếm kỹ năng *</label>
+                        <div class="skill-search-wrapper">
+                            <input type="text" class="form-control" id="skillSearch" 
+                                   placeholder="Nhập tên kỹ năng..." 
+                                   autocomplete="off"
+                                   oninput="searchSkills(this.value)" 
+                                   onfocus="searchSkills(this.value)" />
+                            <div class="skill-dropdown hidden" id="skillDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-secondary" onclick="toggleAddForm('skill')">Hủy</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Work Experience Section -->
+            <div class="profile-section">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="section-title mb-0">Kinh nghiệm</h2>
+                    <button class="btn btn-success" onclick="toggleAddForm('experience')">
+                        <i class="fas fa-plus"></i> Thêm
+                    </button>
+                </div>
+                
+                <div class="item-list" id="experienceList">
+                    @if (Model.WorkExperiences != null && Model.WorkExperiences.Any())
+                    {
+                        @foreach (var exp in Model.WorkExperiences)
+                        {
+                            <div class="item-card" id="experience-@exp.Id">
+                                <div class="item-info">
+                                    <div class="item-title">@exp.Name</div>
+                                    @if (!string.IsNullOrEmpty(exp.Description))
+                                    {
+                                        <div class="item-meta">@exp.Description</div>
+                                    }
+                                    <div class="item-meta">
+                                        @exp.StartDate.ToString("dd/MM/yyyy") - @exp.EndDate.ToString("dd/MM/yyyy")
+                                    </div>
+                                </div>
+                                <button class="btn btn-danger" onclick="deleteWorkExperience(@exp.Id)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted" style="font-size: 0.875rem;">Chưa có kinh nghiệm làm việc</p>
+                    }
+                </div>
+                
+                <div class="add-form hidden" id="experienceForm">
+                    <h5 class="mb-2" style="font-size: 1rem;">Thêm kinh nghiệm</h5>
+                    <div class="form-group">
+                        <label class="form-label">Tên công việc *</label>
+                        <input type="text" class="form-control" id="experienceName" placeholder="Ví dụ: Developer tại công ty ABC" required />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="experienceDescription" rows="2" placeholder="Mô tả công việc (tùy chọn)"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Ngày bắt đầu *</label>
+                                <input type="date" class="form-control" id="experienceStartDate" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Ngày kết thúc *</label>
+                                <input type="date" class="form-control" id="experienceEndDate" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" onclick="addWorkExperience()">Thêm</button>
+                        <button class="btn btn-secondary" onclick="toggleAddForm('experience')">Hủy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="profile-section text-center">
+                <div class="profile-image-container mb-2" onclick="document.getElementById('imageUpload').click()">
+                    <img src="@imageUrl" alt="Profile" class="profile-image" id="profileImage" />
+                    <div class="profile-image-upload">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;" />
+                </div>
+                
+                <h4 style="color: @primaryColor; font-weight: 700; margin-bottom: 0.75rem; font-size: 1.125rem;">@Model.FullName</h4>
+                
+                <div style="background: #e9ecef; border-radius: 6px; padding: 0.625rem; margin-bottom: 1rem;">
+                    <div style="color: @primaryColor; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.875rem;">
+                        <i class="fas fa-check-circle"></i> Tài khoản đã xác thực
+                    </div>
+                    <div style="font-size: 0.8125rem; color: #6c757d;">
+                        @Model.Email
+                    </div>
+                </div>
+                
+                <div class="mb-2">
+                    <span class="info-badge">
+                        <i class="fas fa-flag"></i> Báo cáo còn lại: @Model.RemainingReport
+                    </span>
+                </div>
+                
+                <div style="background: white; border: 1px solid #dee2e6; border-radius: 6px; padding: 1rem;">
+                    <h5 style="color: #495057; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem;" id="joblessStatusText">@(Model.Jobless ? "Đang Bật tìm việc" : "Đang Tắt tìm việc")</h5>
+                    
+                    <div class="form-check form-switch" style="display: flex; align-items: center; justify-content: center;">
+                        <input class="form-check-input" type="checkbox" id="joblessToggle" 
+                               @(Model.Jobless ? "checked" : "") 
+                               onchange="updateJoblessStatus(this.checked)"
+                               style="width: 50px; height: 25px; cursor: pointer; margin: 0;">
+                        <label class="form-check-label ms-2" for="joblessToggle" style="font-weight: 600; color: @primaryColor; cursor: pointer; font-size: 0.875rem;" id="joblessLabel">
+                            @(Model.Jobless ? "Đang tìm việc" : "Không tìm việc")
+                        </label>
+                    </div>
+                    
+                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e9ecef;">
+                        <h6 style="color: #495057; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.8125rem;">
+                            Khi có cơ hội việc làm phù hợp, NTD sẽ liên hệ qua:
+                        </h6>
+                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.8125rem; color: #6c757d;">
+                            <li>
+                                <i class="fas fa-check" style="color: @primaryColor; margin-right: 0.375rem;"></i>
+                                Email và Số điện thoại
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const allSkills = @Html.Raw(Json.Serialize(allSkills.Select(s => new { id = s.Id, name = s.Name })));
+    let filteredSkills = [];
+    
+    function showAlert(message, type) {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        alertContainer.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+        setTimeout(() => {
+            alertContainer.innerHTML = '';
+        }, 5000);
+    }
+    
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = input.nextElementSibling;
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+    
+    function updateProfile() {
+        const fullName = document.getElementById('fullName').value.trim();
+        const phoneNumber = document.getElementById('phoneNumber').value.trim();
+        
+        if (!fullName) {
+            showAlert('Họ và tên không được để trống', 'danger');
+            return;
+        }
+        
+        if (phoneNumber && !/^[0-9]{10,11}$/.test(phoneNumber)) {
+            showAlert('Số điện thoại không hợp lệ', 'danger');
+            return;
+        }
+        
+        fetch('@Url.Action("UpdateProfile", "Candidate")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `fullName=${encodeURIComponent(fullName)}&phoneNumber=${encodeURIComponent(phoneNumber)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                setTimeout(() => location.reload(), 1000);
+            }
+        })
+        .catch(error => {
+            showAlert('Có lỗi xảy ra', 'danger');
+        });
+    }
+    
+    function updatePassword() {
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (!newPassword || newPassword.length < 6) {
+            showAlert('Mật khẩu mới phải có ít nhất 6 ký tự', 'danger');
+            return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            showAlert('Mật khẩu xác nhận không khớp', 'danger');
+            return;
+        }
+        
+        fetch('@Url.Action("UpdatePassword", "Candidate")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `currentPassword=${encodeURIComponent(currentPassword)}&newPassword=${encodeURIComponent(newPassword)}&confirmPassword=${encodeURIComponent(confirmPassword)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                document.getElementById('passwordForm').reset();
+            }
+        })
+        .catch(error => {
+            showAlert('Có lỗi xảy ra', 'danger');
+        });
+    }
+    
+    function toggleAddForm(type) {
+        const form = document.getElementById(type + 'Form');
+        form.classList.toggle('hidden');
+        
+        if (type === 'education') {
+            document.getElementById('educationTitle').value = '';
+            document.getElementById('educationStartDate').value = '';
+            document.getElementById('educationEndDate').value = '';
+        } else if (type === 'skill') {
+            document.getElementById('skillSearch').value = '';
+            document.getElementById('skillDropdown').classList.add('hidden');
+        } else if (type === 'experience') {
+            document.getElementById('experienceName').value = '';
+            document.getElementById('experienceDescription').value = '';
+            document.getElementById('experienceStartDate').value = '';
+            document.getElementById('experienceEndDate').value = '';
+        }
+    }
+    
+    function addEducationRecord() {
+        const title = document.getElementById('educationTitle').value.trim();
+        const startDate = document.getElementById('educationStartDate').value;
+        const endDate = document.getElementById('educationEndDate').value;
+        
+        if (!title || !startDate) {
+            showAlert('Vui lòng điền đầy đủ thông tin bắt buộc', 'danger');
+            return;
+        }
+        
+        fetch('@Url.Action("AddEducationRecord", "Candidate")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `title=${encodeURIComponent(title)}&startDate=${startDate}&endDate=${endDate}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                setTimeout(() => location.reload(), 1000);
+            }
+        })
+        .catch(error => {
+            showAlert('Có lỗi xảy ra', 'danger');
+        });
+    }
+    
+    function deleteEducationRecord(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa?')) return;
+        
+        fetch('@Url.Action("DeleteEducationRecord", "Candidate")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `recordId=${id}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                document.getElementById('education-' + id).remove();
+            }
+        })
+        .catch(error => {
+            showAlert('Có lỗi xảy ra', 'danger');
+        });
+    }
+    
+    function searchSkills(query) {
+        const dropdown = document.getElementById('skillDropdown');
+        const currentSkillIds = @Html.Raw(Json.Serialize(Model.Skills.Select(s => s.Id)));
+        
+        // Trim query để loại bỏ khoảng trắng thừa
+        const trimmedQuery = query ? query.trim() : '';
+        
+        // Nếu query rỗng hoặc chỉ có khoảng trắng, ẩn dropdown
+        if (!trimmedQuery || trimmedQuery.length === 0) {
+            dropdown.classList.add('hidden');
+            dropdown.innerHTML = '';
+            return;
+        }
+        
+        // Lọc skills theo query và loại trừ skills đã có
+        filteredSkills = allSkills.filter(skill => 
+            skill.name.toLowerCase().includes(trimmedQuery.toLowerCase()) &&
+            !currentSkillIds.includes(skill.id)
+        );
+        
+        let html = '';
+        
+        // Hiển thị các skills tìm được
+        if (filteredSkills.length > 0) {
+            filteredSkills.forEach(skill => {
+                html += `<div class="skill-dropdown-item" onclick="selectSkill(${skill.id}, '${skill.name.replace(/'/g, "\\'")}')">
+                    ${skill.name}
+                </div>`;
+            });
+        }
+        
+        // Luôn hiển thị option tạo skill mới
+        html += `<div class="skill-dropdown-create" onclick="createNewSkill('${trimmedQuery.replace(/'/g, "\\'")}')">
+            <i class="fas fa-plus"></i> Tạo kỹ năng mới: "${trimmedQuery}"
+        </div>`;
+        
+        dropdown.innerHTML = html;
+        dropdown.classList.remove('hidden');
+    }
+    
+    function selectSkill(skillId, skillName) {
+        fetch('@Url.Action("AddSkill", "Candidate")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `skillId=${skillId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                setTimeout(() => location.reload(), 1000);
+            }
+        })
+        .catch(error => {
+            showAlert('Có lỗi xảy ra', 'danger');
+        });
+    }
+    
+    function createNewSkill(skillName) {
+        if (!skillName || skillName.trim().length === 0) {
+            showAlert('Tên kỹ năng không hợp lệ', 'danger');
+            return;
+        }
+        
+        fetch('@Url.Action("CreateAndAddSkill", "Candidate")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `skillName=${encodeURIComponent(skillName.trim())}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                setTimeout(() => location.reload(), 1000);
+            }
+        })
+        .catch(error => {
+            showAlert('Có lỗi xảy ra', 'danger');
+        });
+    }
+    
+    function removeSkill(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa kỹ năng này?')) return;
+        
+        fetch('@Url.Action("RemoveSkill", "Candidate")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `skillId=${id}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                document.getElementById('skill-' + id).remove();
+            }
+        })
+        .catch(error => {
+            showAlert('Có lỗi xảy ra', 'danger');
+        });
+    }
+    
+    function addWorkExperience() {
+        const name = document.getElementById('experienceName').value.trim();
+        const description = document.getElementById('experienceDescription').value.trim();
+        const startDate = document.getElementById('experienceStartDate').value;
+        const endDate = document.getElementById('experienceEndDate').value;
+        
+        if (!name || !startDate || !endDate) {
+            showAlert('Vui lòng điền đầy đủ thông tin bắt buộc', 'danger');
+            return;
+        }
+        
+        if (new Date(endDate) < new Date(startDate)) {
+            showAlert('Ngày kết thúc phải sau ngày bắt đầu', 'danger');
+            return;
+        }
+        
+        fetch('@Url.Action("AddWorkExperience", "Candidate")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `name=${encodeURIComponent(name)}&description=${encodeURIComponent(description)}&startDate=${startDate}&endDate=${endDate}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                setTimeout(() => location.reload(), 1000);
+            }
+        })
+        .catch(error => {
+            showAlert('Có lỗi xảy ra', 'danger');
+        });
+    }
+    
+    function deleteWorkExperience(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa?')) return;
+        
+        fetch('@Url.Action("DeleteWorkExperience", "Candidate")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `experienceId=${id}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                document.getElementById('experience-' + id).remove();
+            }
+        })
+        .catch(error => {
+            showAlert('Có lỗi xảy ra', 'danger');
+        });
+    }
+    
+    function updateJoblessStatus(isJobless) {
+        fetch('@Url.Action("UpdateJoblessStatus", "Candidate")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `jobless=${isJobless}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                document.getElementById('joblessLabel').textContent = isJobless ? 'Đang tìm việc' : 'Không tìm việc';
+                document.getElementById('joblessStatusText').textContent = isJobless ? 'Đang Bật tìm việc' : 'Đang Tắt tìm việc';
+            }
+        })
+        .catch(error => {
+            showAlert('Có lỗi xảy ra', 'danger');
+            document.getElementById('joblessToggle').checked = !isJobless;
+        });
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('skillDropdown');
+        const searchInput = document.getElementById('skillSearch');
+        if (dropdown && searchInput && !dropdown.contains(event.target) && event.target !== searchInput) {
+            dropdown.classList.add('hidden');
+        }
+    });
+    
+    // Image upload handler
+    document.getElementById('imageUpload').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            showAlert('Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)', 'danger');
+            e.target.value = '';
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('Kích thước file phải nhỏ hơn 5MB', 'danger');
+            e.target.value = '';
+            return;
+        }
+        
+        // Show loading state
+        const profileImage = document.getElementById('profileImage');
+        const originalSrc = profileImage.src;
+        showAlert('Đang upload ảnh...', 'info');
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('@Url.Action("UploadProfileImage", "Candidate")', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showAlert(data.message, 'success');
+                // Update image preview
+                profileImage.src = data.imageUrl;
+                // Reload page after 1 second to update navbar avatar
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showAlert(data.message, 'danger');
+                e.target.value = '';
+            }
+        } catch (error) {
+            showAlert('Có lỗi xảy ra khi upload ảnh', 'danger');
+            e.target.value = '';
+        }
+    });
+</script>
