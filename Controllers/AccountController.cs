@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using SWP391_Project.Dtos;
@@ -250,7 +250,8 @@ namespace SWP391_Project.Controllers
             }
             else
             {
-                return RedirectToAction("Index", "Candidate");
+                // Candidate: show Home with jobs + companies sections
+                return RedirectToAction("Index", "Home");
             }
         }
         

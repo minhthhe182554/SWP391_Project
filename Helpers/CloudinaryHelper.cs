@@ -170,7 +170,7 @@ namespace SWP391_Project.Helpers
                 var cloudinary = GetCloudinaryClient();
 
                 using var stream = file.OpenReadStream();
-                var uploadParams = new RawUploadParams
+                var uploadParams = new ImageUploadParams
                 {
                     File = new FileDescription(file.FileName, stream),
                     Folder = folder,
@@ -212,8 +212,10 @@ namespace SWP391_Project.Helpers
             }
 
             var cloudinary = GetCloudinaryClient();
-            var url = cloudinary.Api.UrlVideoUp.ResourceType("raw").BuildUrl(publicId);
-            return url;
+            // deliver original pdf (even though stored as image-type)
+            return cloudinary.Api.UrlImgUp
+                .Format("pdf")
+                .BuildUrl(publicId);
         }
 
         public string BuildPdfImageUrl(string publicId, int page = 1, int width = 800, int density = 150)
@@ -235,7 +237,7 @@ namespace SWP391_Project.Helpers
                 .ResourceType("image")
                 .Format("jpg")
                 .Transform(transformation)
-                .BuildUrl($"{publicId}.pdf");
+                .BuildUrl(publicId);
 
             return url;
         }
