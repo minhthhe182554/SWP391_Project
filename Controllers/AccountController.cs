@@ -112,7 +112,7 @@ namespace SWP391_Project.Controllers
 
             if (!success)
             {
-                ModelState.AddModelError("", error ?? "Đăng ký không thành công");
+                ModelState.AddModelError("Email", error ?? "Đăng ký không thành công");
                 var cities = await _locationService.GetCitiesAsync();
                 ViewBag.Cities = cities;
                 ViewBag.SelectedRole = model.Role;

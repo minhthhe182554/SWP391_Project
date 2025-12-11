@@ -59,13 +59,12 @@ namespace SWP391_Project.Services
         {
             try
             {
-                // Check email exists
                 if (await _accountRepository.EmailExistsAsync(model.Email))
                 {
+                    
                     return (false, "Email này đã được sử dụng");
                 }
 
-                // Create user
                 var newUser = new User
                 {
                     Email = model.Email,
@@ -75,7 +74,6 @@ namespace SWP391_Project.Services
                 };
                 await _accountRepository.CreateUserAsync(newUser);
 
-                // Create candidate
                 var candidate = new Candidate
                 {
                     UserId = newUser.Id,
@@ -98,7 +96,6 @@ namespace SWP391_Project.Services
         {
             try
             {
-                // Check email exists
                 if (await _accountRepository.EmailExistsAsync(model.Email))
                 {
                     return (false, "Email này đã được sử dụng");
