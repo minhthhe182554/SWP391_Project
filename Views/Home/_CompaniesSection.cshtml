@@ -1,0 +1,102 @@
+@model SWP391_Project.ViewModels.Home.HomePageVM
+
+<div class="top-companies-section">
+    <div class="top-companies-header">
+        <div class="top-companies-header-content">
+            <div>
+                <h2 class="top-companies-title">Công ty tiêu biểu</h2>
+                <p class="top-companies-subtitle">Hàng trăm công ty lớn tiêu biểu đang tuyển dụng trên EZJob</p>
+            </div>
+            <a class="top-companies-link" href="javascript:void(0)" onclick="showComingSoon(); return false;">
+                <span>Xem tất cả</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="domain-badges-wrap">
+            <button type="button" class="domain-scroll-btn" onclick="scrollCompanyDomains(-240)" aria-label="Scroll left">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <div id="companyDomainScroller" class="domain-badges">
+                <div class="domain-badge @(Model.SelectedCompanyDomainId == null ? "active" : "")" onclick="applyCompanyDomain(null)">
+                    Tất cả
+                </div>
+                @if (Model.CompanyDomainOptions != null && Model.CompanyDomainOptions.Any())
+                {
+                    foreach (var d in Model.CompanyDomainOptions)
+                    {
+                        <div class="domain-badge @(Model.SelectedCompanyDomainId == d.Id ? "active" : "")" onclick="applyCompanyDomain(@d.Id)">
+                            @d.Name
+                        </div>
+                    }
+                }
+            </div>
+
+            <button type="button" class="domain-scroll-btn" onclick="scrollCompanyDomains(240)" aria-label="Scroll right">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="top-companies-body">
+        @if (Model.CompanyCards != null && Model.CompanyCards.Any())
+        {
+            <div class="companies-grid">
+                @foreach (var c in Model.CompanyCards)
+                {
+                    <div class="company-card" onclick="showComingSoon()">
+                        <img class="company-card__logo" src="@c.CompanyImageUrl" alt="@c.Company.Name" />
+                        <div style="flex:1; min-width:0;">
+                            <h3 class="company-card__name">@c.Company.Name</h3>
+                            <div class="company-card__meta">
+                                <span class="company-domain-pill">@(!string.IsNullOrEmpty(c.DomainName) ? c.DomainName : "Khác")</span>
+                                <span class="company-job-count">
+                                    <i class="fas fa-briefcase"></i>
+                                    @c.ActiveJobCount việc làm
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (Model.CompanyTotalPages > 1)
+            {
+                <div class="top-jobs-pagination company-pagination" style="margin-top: 1.25rem;">
+                    <div class="pagination">
+                        <button class="pagination-btn @(Model.CompanyCurrentPage == 1 ? "disabled" : "")"
+                                onclick="goToCompanyPage(@(Model.CompanyCurrentPage - 1))"
+                                @(Model.CompanyCurrentPage == 1 ? "disabled" : "")>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+
+                        @for (int i = Math.Max(1, Model.CompanyCurrentPage - 2); i <= Math.Min(Model.CompanyTotalPages, Model.CompanyCurrentPage + 2); i++)
+                        {
+                            <button class="pagination-btn @(i == Model.CompanyCurrentPage ? "active" : "")"
+                                    onclick="goToCompanyPage(@i)">
+                                @i
+                            </button>
+                        }
+
+                        <button class="pagination-btn @(Model.CompanyCurrentPage == Model.CompanyTotalPages ? "disabled" : "")"
+                                onclick="goToCompanyPage(@(Model.CompanyCurrentPage + 1))"
+                                @(Model.CompanyCurrentPage == Model.CompanyTotalPages ? "disabled" : "")>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="text-center mt-2">
+                        <span class="text-muted">Trang @Model.CompanyCurrentPage / @Model.CompanyTotalPages</span>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <p class="text-muted mb-0">Chưa có công ty nào đang tuyển dụng.</p>
+            </div>
+        }
+    </div>
+</div>
+

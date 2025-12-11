@@ -8,6 +8,7 @@ using SWP391_Project.Helpers;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CloudinaryDotNet.Actions;
 
 namespace SWP391_Project.Services
 {
@@ -331,7 +332,7 @@ namespace SWP391_Project.Services
                 if (!saved)
                 {
                     // best-effort cleanup on cloudinary
-                    await _cloudinaryHelper.DeleteAssetAsync(uploadResult.PublicId, CloudinaryDotNet.Actions.ResourceType.Raw);
+                    await _cloudinaryHelper.DeleteAssetAsync(uploadResult.PublicId, ResourceType.Raw);
                     return (false, "Không lưu được hồ sơ. Vui lòng thử lại.");
                 }
 
@@ -354,7 +355,7 @@ namespace SWP391_Project.Services
                 var resume = await _candidateRepository.GetResumeAsync(resumeId, candidate.Id);
                 if (resume == null) return false;
 
-                var deletedCloud = await _cloudinaryHelper.DeleteAssetAsync(resume.Url, CloudinaryDotNet.Actions.ResourceType.Raw);
+                var deletedCloud = await _cloudinaryHelper.DeleteAssetAsync(resume.Url, ResourceType.Image);
                 var deletedDb = await _candidateRepository.DeleteResumeAsync(resumeId, candidate.Id);
                 return deletedDb && deletedCloud;
             }
@@ -413,7 +414,7 @@ namespace SWP391_Project.Services
                 if (resume == null) return (false, "Không tìm thấy hồ sơ");
 
                 // delete old on cloud
-                await _cloudinaryHelper.DeleteAssetAsync(resume.Url, CloudinaryDotNet.Actions.ResourceType.Raw);
+                await _cloudinaryHelper.DeleteAssetAsync(resume.Url, ResourceType.Image); 
 
                 var originalFileName = Path.GetFileName(resumeFile.FileName);
                 var baseName = Path.GetFileNameWithoutExtension(originalFileName);
@@ -448,7 +449,9 @@ namespace SWP391_Project.Services
 
             // Take last segment after folder and append pdf for display
             var fileName = Path.GetFileName(publicId);
-            return $"{fileName}.pdf";
+            return fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)
+                ? fileName
+                : $"{fileName}.pdf";
         }
 
         public async Task<bool> AddCertificateAsync(int candidateId, Certificate certificate)

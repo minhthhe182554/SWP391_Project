@@ -10,505 +10,10 @@
     var newJobsToday = 1855;
 }
 
-<style>
-    :root {
-        --primary-color: #28a745;
-        --primary-hover: #218838;
-        --primary-gradient: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        --text-primary: #495057;
-        --text-secondary: #6c757d;
-        --border-color: #ced4da;
-        --bg-light: #e9ecef;
-        --border-radius-sm: 10px;
-        --border-radius-lg: 50px;
-        --border-radius-md: 20px;
-        --transition: 0.15s ease-in-out;
-    }
-    
-    .hero-section {
-        background-image: url('/imgs/hero.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        padding: 3rem 0 4rem 0;
-        width: 100%;
-        position: relative;
-        overflow: hidden;
-        margin-top: -1rem;
-    }
-    
-    .hero-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: var(--primary-color);
-        opacity: 0.7;
-        z-index: 1;
-    }
-    
-    .hero-content {
-        position: relative;
-        z-index: 2;
-    }
-    
-    .hero-title {
-        color: white;
-        font-size: 1.75rem;
-        font-weight: 600;
-        text-align: center;
-        margin-bottom: 2rem;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .search-container {
-        background: white;
-        border-radius: var(--border-radius-lg);
-        padding: 0.5rem;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    
-    .search-input {
-        flex: 1;
-        border: none;
-        outline: none;
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-        border-radius: var(--border-radius-lg);
-    }
-    
-    .search-input::placeholder {
-        color: var(--text-secondary);
-    }
-    
-    .search-btn {
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: var(--border-radius-lg);
-        padding: 0.75rem 2rem;
-        font-weight: 500;
-        transition: background-color var(--transition);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .search-btn:hover {
-        background-color: var(--primary-hover);
-    }
-    
-    .market-stats {
-        background-image: url('/imgs/today.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        padding: 2rem 0;
-        width: 100%;
-        border-radius: 0;
-        position: relative;
-    }
-    
-    .market-stats::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: var(--primary-color);
-        opacity: 0.8;
-        z-index: 1;
-    }
-    
-    .market-stats .container {
-        position: relative;
-        z-index: 2;
-    }
-    
-    .market-stats-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 2rem;
-    }
-    
-    .market-stats-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        color: white;
-    }
-    
-    .market-stats-header h3 {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: white;
-    }
-    
-    .market-stats-header .date {
-        font-size: 1rem;
-        opacity: 0.9;
-    }
-    
-    .market-stats-items {
-        display: flex;
-        gap: 3rem;
-        flex-wrap: wrap;
-    }
-    
-    .market-stat-item {
-        color: white;
-        text-align: center;
-    }
-    
-    .market-stat-item .label {
-        font-size: 0.9rem;
-        opacity: 0.9;
-        margin-bottom: 0.5rem;
-    }
-    
-    .market-stat-item .value {
-        font-size: 1.75rem;
-        font-weight: 700;
-    }
-    
-    .job-card {
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius-sm);
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        transition: box-shadow var(--transition);
-        cursor: pointer;
-    }
-    
-    .job-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .job-title {
-        color: var(--primary-color);
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-    
-    .company-name {
-        color: var(--text-primary);
-        font-weight: 500;
-        margin-bottom: 0.25rem;
-    }
-    
-    .job-meta {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .job-skills {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-    }
-    
-    .skill-badge {
-        background-color: var(--bg-light);
-        color: var(--text-primary);
-        padding: 0.25rem 0.75rem;
-        border-radius: var(--border-radius-sm);
-        font-size: 0.875rem;
-    }
-    
-    .section-jobs {
-        padding: 3rem 0;
-    }
-    
-    .filter-sidebar {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius-sm);
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    .filter-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid var(--primary-color);
-    }
-    
-    .filter-group {
-        margin-bottom: 1.5rem;
-    }
-    
-    .filter-group-label {
-        font-weight: 500;
-        color: var(--text-primary);
-        margin-bottom: 0.75rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .filter-group-label:hover {
-        color: var(--primary-color);
-    }
-    
-    .filter-options {
-        display: none;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-    }
-    
-    .filter-options.active {
-        display: flex;
-    }
-    
-    .filter-option {
-        padding: 0.5rem 1rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius-sm);
-        background: white;
-        color: var(--text-primary);
-        cursor: pointer;
-        transition: all var(--transition);
-        font-size: 0.9rem;
-    }
-    
-    .filter-option:hover {
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-    }
-    
-    .filter-option.active {
-        background: var(--primary-color);
-        color: white;
-        border-color: var(--primary-color);
-    }
-    
-    .filter-options-scrollable {
-        max-height: 200px;
-        overflow-y: auto;
-        padding-right: 0.5rem;
-    }
-    
-    .filter-options-scrollable::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .filter-options-scrollable::-webkit-scrollbar-track {
-        background: var(--bg-light);
-        border-radius: 3px;
-    }
-    
-    .filter-options-scrollable::-webkit-scrollbar-thumb {
-        background: var(--primary-color);
-        border-radius: 3px;
-    }
-    
-    .jobs-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    .job-card-grid {
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius-sm);
-        padding: 1.5rem;
-        transition: box-shadow var(--transition);
-        cursor: pointer;
-        background: white;
-    }
-    
-    .job-card-grid:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 2rem;
-    }
-    
-    .pagination-btn {
-        padding: 0.5rem 1rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius-sm);
-        background: white;
-        color: var(--text-primary);
-        cursor: pointer;
-        transition: all var(--transition);
-    }
-    
-    .pagination-btn:hover:not(.disabled):not(.active) {
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-    }
-    
-    .pagination-btn.active {
-        background: var(--primary-color);
-        color: white;
-        border-color: var(--primary-color);
-    }
-    
-    .pagination-btn.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    
-    .active-filters {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius-sm);
-        padding: 1rem 1.5rem;
-        margin: 2rem 0;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .active-filters-label {
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-right: 0.5rem;
-    }
-    
-    .filter-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: var(--primary-color);
-        color: white;
-        border-radius: var(--border-radius-sm);
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
-    
-    .filter-badge-remove {
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
-        color: white;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: background var(--transition);
-        padding: 0;
-        font-size: 0.75rem;
-    }
-    
-    .filter-badge-remove:hover {
-        background: rgba(255, 255, 255, 0.3);
-    }
-    
-    @@media (max-width: 992px) {
-        .jobs-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-    
-    @@media (max-width: 768px) {
-        .jobs-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    
-    .login-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.35);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 1050;
-    }
-    
-    .login-modal {
-        background: white;
-        padding: 2rem;
-        border-radius: 12px;
-        max-width: 500px;
-        width: 90%;
-        box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-    }
-    
-    .btn-primary-custom {
-        background-color: var(--primary-color);
-        border: 1px solid var(--primary-color);
-        color: white;
-        padding: 0.75rem;
-        border-radius: var(--border-radius-sm);
-        font-size: 1rem;
-        font-weight: 500;
-        width: 100%;
-        transition: background-color var(--transition);
-    }
-    
-    .btn-primary-custom:hover {
-        background-color: var(--primary-hover);
-        border-color: var(--primary-hover);
-    }
-    
-    @@media (max-width: 768px) {
-        .hero-section {
-            padding: 2rem 0 3rem 0;
-        }
-        
-        .hero-title {
-            font-size: 1.25rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .search-container {
-            flex-direction: column;
-            border-radius: var(--border-radius-md);
-        }
-        
-        .search-input {
-            border-radius: var(--border-radius-md);
-            margin-bottom: 0.5rem;
-        }
-        
-        .search-btn {
-            width: 100%;
-            border-radius: var(--border-radius-md);
-            justify-content: center;
-        }
-        
-        .market-stats-content {
-            flex-direction: column;
-            text-align: center;
-        }
-        
-        .market-stats-items {
-            justify-content: center;
-            gap: 2rem;
-        }
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
+
 
 <!-- Hero Section -->
 <div class="hero-section">
@@ -551,229 +56,19 @@
     </div>
 </div>
 
-<!-- Active Filters -->
-@if (!string.IsNullOrEmpty(Model.SelectedLocation) && Model.SelectedLocation != "Ngẫu nhiên" || 
-     !string.IsNullOrEmpty(Model.SelectedSalaryRange) || 
-     !string.IsNullOrEmpty(Model.SelectedExperience) || 
-     Model.SelectedDomainId.HasValue)
-{
+<!-- Section Jobs -->
+<section class="section-jobs" id="top-jobs">
     <div class="container">
-        <div class="active-filters">
-            <span class="active-filters-label">Bộ lọc đang áp dụng:</span>
-            
-            @if (!string.IsNullOrEmpty(Model.SelectedLocation) && Model.SelectedLocation != "Ngẫu nhiên")
-            {
-                <div class="filter-badge">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>@Model.SelectedLocation</span>
-                    <button class="filter-badge-remove" onclick="removeFilter('location')" title="Xóa bộ lọc">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            }
-            
-            @if (!string.IsNullOrEmpty(Model.SelectedSalaryRange))
-            {
-                var salaryLabel = Model.SalaryRangeOptions.FirstOrDefault(s => s.Label == Model.SelectedSalaryRange)?.Label;
-                var displayLabel = salaryLabel?.Contains("triệu") == true ? salaryLabel : salaryLabel + " triệu";
-                <div class="filter-badge">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <span>@displayLabel</span>
-                    <button class="filter-badge-remove" onclick="removeFilter('salary')" title="Xóa bộ lọc">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            }
-            
-            @if (!string.IsNullOrEmpty(Model.SelectedExperience))
-            {
-                <div class="filter-badge">
-                    <i class="fas fa-briefcase"></i>
-                    <span>@Model.SelectedExperience</span>
-                    <button class="filter-badge-remove" onclick="removeFilter('experience')" title="Xóa bộ lọc">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            }
-            
-            @if (Model.SelectedDomainId.HasValue)
-            {
-                var domain = Model.TopDomains.FirstOrDefault(d => d.Id == Model.SelectedDomainId.Value);
-                if (domain != null)
-                {
-                    <div class="filter-badge">
-                        <i class="fas fa-industry"></i>
-                        <span>@domain.Name</span>
-                        <button class="filter-badge-remove" onclick="removeFilter('domain')" title="Xóa bộ lọc">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                }
-            }
+        <div id="jobsSectionRoot">
+            <partial name="_JobsSection" model="Model" />
         </div>
     </div>
-}
+</section>
 
-<!-- Section Jobs -->
-<section class="section-jobs">
-    <div class="container">
-        <h1 class="mb-4" style="color: #28a745; font-size: 2rem; font-weight: bold;">Việc làm mới nhất</h1>
-        
-        <div class="row">
-            <!-- Filter Sidebar -->
-            <div class="col-lg-3">
-                <div class="filter-sidebar">
-                    <div class="filter-title">Lọc theo</div>
-                    
-                    <!-- Location Filter -->
-                    <div class="filter-group">
-                        <div class="filter-group-label" onclick="toggleFilter('location')">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>Địa điểm</span>
-                            <i class="fas fa-chevron-down ms-auto" id="location-chevron"></i>
-                        </div>
-                        <div class="filter-options" id="location-options">
-                            @foreach (var loc in Model.LocationOptions)
-                            {
-                                <div class="filter-option @(Model.SelectedLocation == loc ? "active" : "")" 
-                                     onclick="applyFilter('location', '@loc')">
-                                    @loc
-                                </div>
-                            }
-                        </div>
-                    </div>
-                    
-                    <!-- Salary Filter -->
-                    <div class="filter-group">
-                        <div class="filter-group-label" onclick="toggleFilter('salary')">
-                            <i class="fas fa-money-bill-wave"></i>
-                            <span>Mức lương</span>
-                            <i class="fas fa-chevron-down ms-auto" id="salary-chevron"></i>
-                        </div>
-                        <div class="filter-options filter-options-scrollable" id="salary-options">
-                            @foreach (var salary in Model.SalaryRangeOptions)
-                            {
-                                var label = salary.Label.Contains("triệu") ? salary.Label : salary.Label + " triệu";
-                                <div class="filter-option @(Model.SelectedSalaryRange == salary.Label ? "active" : "")" 
-                                     onclick="applyFilter('salary', '@salary.Label')">
-                                    @label
-                                </div>
-                            }
-                        </div>
-                    </div>
-                    
-                    <!-- Experience Filter -->
-                    <div class="filter-group">
-                        <div class="filter-group-label" onclick="toggleFilter('experience')">
-                            <i class="fas fa-briefcase"></i>
-                            <span>Kinh nghiệm</span>
-                            <i class="fas fa-chevron-down ms-auto" id="experience-chevron"></i>
-                        </div>
-                        <div class="filter-options" id="experience-options">
-                            @foreach (var exp in Model.ExperienceOptions)
-                            {
-                                <div class="filter-option @(Model.SelectedExperience == exp.Label ? "active" : "")" 
-                                     onclick="applyFilter('experience', '@exp.Label')">
-                                    @exp.Label
-                                </div>
-                            }
-                        </div>
-                    </div>
-                    
-                    <!-- Domain Filter -->
-                    <div class="filter-group">
-                        <div class="filter-group-label" onclick="toggleFilter('domain')">
-                            <i class="fas fa-industry"></i>
-                            <span>Ngành nghề</span>
-                            <i class="fas fa-chevron-down ms-auto" id="domain-chevron"></i>
-                        </div>
-                        <div class="filter-options" id="domain-options">
-                            @foreach (var domain in Model.TopDomains)
-                            {
-                                <div class="filter-option @(Model.SelectedDomainId == domain.Id ? "active" : "")" 
-                                     onclick="applyFilter('domain', '@domain.Id')">
-                                    @domain.Name
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Jobs Grid -->
-            <div class="col-lg-9">
-                @if (Model.Jobs != null && Model.Jobs.Any())
-                {
-                    <div class="jobs-grid">
-                        @foreach (var job in Model.Jobs)
-                        {
-                            <div class="job-card-grid" onclick="handleJobClick(@job.Id)">
-                                <h3 class="job-title">@job.Title</h3>
-                                <div class="company-name">@job.Company?.Name</div>
-                                <div class="job-meta">
-                                    <i class="fa fa-map-marker"></i> @job.Location?.City - @job.Location?.Ward
-                                    @if (job.LowerSalaryRange.HasValue && job.HigherSalaryRange.HasValue)
-                                    {
-                                        <div class="mt-2">
-                                            <i class="fa fa-money-bill"></i> @job.LowerSalaryRange.Value.ToString("N0") - @job.HigherSalaryRange.Value.ToString("N0") VNĐ
-                                        </div>
-                                    }
-                                </div>
-                                @if (job.RequiredSkills != null && job.RequiredSkills.Any())
-                                {
-                                    <div class="job-skills">
-                                        @foreach (var skill in job.RequiredSkills.Take(3))
-                                        {
-                                            <span class="skill-badge">@skill.Name</span>
-                                        }
-                                        @if (job.RequiredSkills.Count > 3)
-                                        {
-                                            <span class="skill-badge">+@(job.RequiredSkills.Count - 3)</span>
-                                        }
-                                    </div>
-                                }
-                            </div>
-                        }
-                    </div>
-                    
-                    <!-- Pagination -->
-                    @if (Model.TotalPages > 1)
-                    {
-                        <div class="pagination">
-                            <button class="pagination-btn @(Model.CurrentPage == 1 ? "disabled" : "")" 
-                                    onclick="goToPage(@(Model.CurrentPage - 1))" 
-                                    @(Model.CurrentPage == 1 ? "disabled" : "")>
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            
-                            @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
-                            {
-                                <button class="pagination-btn @(i == Model.CurrentPage ? "active" : "")" 
-                                        onclick="goToPage(@i)">
-                                    @i
-                                </button>
-                            }
-                            
-                            <button class="pagination-btn @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")" 
-                                    onclick="goToPage(@(Model.CurrentPage + 1))" 
-                                    @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")>
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="text-center mt-2">
-                            <span class="text-muted">Trang @Model.CurrentPage / @Model.TotalPages</span>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="text-center py-5">
-                        <p class="text-muted">Hiện tại chưa có công việc nào.</p>
-                    </div>
-                }
-            </div>
-        </div>
+<!-- Top Companies Section -->
+<section class="container" id="top-companies">
+    <div id="companiesSectionRoot">
+        <partial name="_CompaniesSection" model="Model" />
     </div>
 </section>
 
@@ -798,9 +93,7 @@
 
 <script>
     function handleJobClick(jobId) {
-        // Check if user is logged in
-        // For now, always show login modal for guests
-        document.getElementById('loginOverlay').style.display = 'flex';
+        showComingSoon();
     }
     
     function closeLoginModal() {
@@ -840,10 +133,85 @@
         }
     }
     
+    const jobsSectionEndpoint = '@Url.Action("JobsSection", "Home")';
+    const companiesSectionEndpoint = '@Url.Action("CompaniesSection", "Home")';
+
+    async function refreshJobsSection(nextUrl) {
+        const container = document.getElementById('jobsSectionRoot');
+        if (!container) {
+            window.location.href = nextUrl.toString();
+            return;
+        }
+
+        const partialUrl = new URL(jobsSectionEndpoint, window.location.origin);
+        const keys = ['page', 'location', 'salaryRange', 'experience', 'domainId', 'sort'];
+        keys.forEach(k => {
+            const v = nextUrl.searchParams.get(k);
+            if (v === null || v === '') {
+                partialUrl.searchParams.delete(k);
+            } else {
+                partialUrl.searchParams.set(k, v);
+            }
+        });
+
+        container.style.opacity = '0.6';
+        try {
+            const res = await fetch(partialUrl.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) throw new Error('Failed to load jobs section');
+            const html = await res.text();
+            container.innerHTML = html;
+
+            nextUrl.hash = 'top-jobs';
+            history.replaceState(null, '', nextUrl.toString());
+        } catch (e) {
+            window.location.href = nextUrl.toString();
+        } finally {
+            container.style.opacity = '1';
+        }
+    }
+
+    async function refreshCompaniesSection(nextUrl) {
+        const container = document.getElementById('companiesSectionRoot');
+        if (!container) {
+            window.location.href = nextUrl.toString();
+            return;
+        }
+
+        const partialUrl = new URL(companiesSectionEndpoint, window.location.origin);
+        const keys = ['companyPage', 'companyDomainId'];
+        keys.forEach(k => {
+            const v = nextUrl.searchParams.get(k);
+            if (v === null || v === '') {
+                partialUrl.searchParams.delete(k);
+            } else {
+                partialUrl.searchParams.set(k, v);
+            }
+        });
+
+        container.style.opacity = '0.6';
+        try {
+            const res = await fetch(partialUrl.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) throw new Error('Failed to load companies section');
+            const html = await res.text();
+            container.innerHTML = html;
+
+            nextUrl.hash = 'top-companies';
+            history.replaceState(null, '', nextUrl.toString());
+        } catch (e) {
+            window.location.href = nextUrl.toString();
+        } finally {
+            container.style.opacity = '1';
+        }
+    }
+
     function applyFilter(filterType, value) {
         const url = new URL(window.location.href);
         url.searchParams.set('page', '1'); // Reset to page 1 when filter changes
-        
+
         if (filterType === 'location') {
             if (value === 'Ngẫu nhiên') {
                 url.searchParams.delete('location');
@@ -857,22 +225,31 @@
         } else if (filterType === 'domain') {
             url.searchParams.set('domainId', value);
         }
-        
-        window.location.href = url.toString();
+
+        refreshJobsSection(url);
     }
-    
+
+    function applySort(value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', '1');
+        if (value === 'newest') {
+            url.searchParams.delete('sort');
+        } else {
+            url.searchParams.set('sort', value);
+        }
+        refreshJobsSection(url);
+    }
+
     function goToPage(page) {
-        if (page < 1 || page > @Model.TotalPages) return;
-        
         const url = new URL(window.location.href);
         url.searchParams.set('page', page.toString());
-        window.location.href = url.toString();
+        refreshJobsSection(url);
     }
-    
+
     function removeFilter(filterType) {
         const url = new URL(window.location.href);
         url.searchParams.set('page', '1'); // Reset to page 1
-        
+
         if (filterType === 'location') {
             url.searchParams.delete('location');
         } else if (filterType === 'salary') {
@@ -882,8 +259,8 @@
         } else if (filterType === 'domain') {
             url.searchParams.delete('domainId');
         }
-        
-        window.location.href = url.toString();
+
+        refreshJobsSection(url);
     }
     
     // Initialize: show active filter options
@@ -912,4 +289,36 @@
             </text>
         }
     });
+
+    function scrollCompanyDomains(delta) {
+        const el = document.getElementById('companyDomainScroller');
+        if (!el) return;
+        el.scrollLeft += delta;
+    }
+
+    function applyCompanyDomain(domainId) {
+        const url = new URL(window.location.href);
+        // giữ các filter job hiện tại, chỉ đổi filter company
+        url.searchParams.set('companyPage', '1');
+        if (domainId === null || domainId === undefined) {
+            url.searchParams.delete('companyDomainId');
+        } else {
+            url.searchParams.set('companyDomainId', domainId.toString());
+        }
+        refreshCompaniesSection(url);
+    }
+
+    function goToCompanyPage(page) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('companyPage', page.toString());
+        refreshCompaniesSection(url);
+    }
+
+    function viewAllCompanies() {
+        showComingSoon();
+    }
+
+    function showComingSoon() {
+        alert('Tính năng sẽ được triển khai sau.');
+    }
 </script>
