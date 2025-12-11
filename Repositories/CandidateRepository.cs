@@ -25,7 +25,15 @@ namespace SWP391_Project.Repositories
                 .Include(c => c.User)
                 .Include(c => c.EducationRecords)
                 .Include(c => c.WorkExperiences)
+                .Include(c => c.Certificates)
                 .Include(c => c.Skills)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+        }
+
+        public async Task<Candidate?> GetCandidateWithResumesByUserIdAsync(int userId)
+        {
+            return await _context.Candidates
+                .Include(c => c.Resumes)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
         }
 
@@ -173,6 +181,97 @@ namespace SWP391_Project.Repositories
         public async Task<List<Skill>> GetAllSkillsAsync()
         {
             return await _context.Skills.OrderBy(s => s.Name).ToListAsync();
+        }
+
+        public async Task<List<Resume>> GetResumesAsync(int candidateId)
+        {
+            return await _context.Resumes
+                .Where(r => r.CandidateId == candidateId)
+                .OrderByDescending(r => r.Id)
+                .ToListAsync();
+        }
+
+        public async Task<Resume?> GetResumeAsync(int resumeId, int candidateId)
+        {
+            return await _context.Resumes.FirstOrDefaultAsync(r => r.Id == resumeId && r.CandidateId == candidateId);
+        }
+
+        public async Task<bool> AddResumeAsync(Resume resume)
+        {
+            try
+            {
+                await _context.Resumes.AddAsync(resume);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteResumeAsync(int resumeId, int candidateId)
+        {
+            try
+            {
+                var resume = await _context.Resumes
+                    .FirstOrDefaultAsync(r => r.Id == resumeId && r.CandidateId == candidateId);
+                if (resume == null) return false;
+
+                _context.Resumes.Remove(resume);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateResumeAsync(Resume resume)
+        {
+            try
+            {
+                _context.Resumes.Update(resume);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> AddCertificateAsync(Certificate certificate)
+        {
+            try
+            {
+                await _context.Certificates.AddAsync(certificate);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteCertificateAsync(int certificateId, int candidateId)
+        {
+            try
+            {
+                var certificate = await _context.Certificates
+                    .FirstOrDefaultAsync(c => c.Id == certificateId && c.CandidateId == candidateId);
+                if (certificate == null) return false;
+
+                _context.Certificates.Remove(certificate);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<bool> CreateAndAddSkillAsync(int candidateId, string skillName)
