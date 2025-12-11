@@ -267,10 +267,11 @@
 
                 <div class="form-group-custom">
                     <label class="form-label-custom">Mô tả công ty <span style="color:#dc3545">*</span></label>
-                    <div class="input-group-custom">
-                        <i class="fa fa-file-text input-icon"></i>
-                        <textarea asp-for="Description" class="form-control-custom" placeholder="Giới thiệu ngắn gọn về công ty" rows="3" style="padding-left: 2.5rem;"></textarea>
+
+                    <div>
+                        <textarea asp-for="Description" id="companyDescription" class="form-control-custom" placeholder="Giới thiệu về công ty..." rows="3"></textarea>
                     </div>
+
                     <span asp-validation-for="Description" class="text-danger-custom"></span>
                 </div>
 
@@ -467,7 +468,31 @@
 </script>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+
+    <script>
+        // Kiểm tra xem có cái textarea đó không (vì nếu chọn Role Candidate thì ô này bị ẩn hoặc không render)
+        var textarea = document.querySelector('#companyDescription');
+
+        if (textarea) {
+            ClassicEditor
+                .create(textarea, {
+                    toolbar: ['bold', 'italic', 'bulletedList', 'numberedList', 'undo', 'redo'],
+                    placeholder: 'Nhập mô tả chi tiết về công ty...'
+                })
+                .then(editor => {
+                    // Fix lỗi chiều cao: Mặc định nó hơi thấp, set cho nó cao lên tí cho đẹp
+                    editor.ui.view.editable.element.style.minHeight = '150px';
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
 
 

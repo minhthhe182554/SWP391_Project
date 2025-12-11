@@ -26,7 +26,7 @@ public class LocationService : ILocationService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{BaseUrl}/new-provinces");
+            var response = await _httpClient.GetAsync($"{BaseUrl}/new-provinces?limit=100");
             response.EnsureSuccessStatusCode();
             
             var jsonString = await response.Content.ReadAsStringAsync();
@@ -47,7 +47,7 @@ public class LocationService : ILocationService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"{BaseUrl}/new-provinces/{cityCode}/wards");
+            var response = await _httpClient.GetAsync($"{BaseUrl}/new-provinces/{cityCode}/wards?limit=1000");
             response.EnsureSuccessStatusCode();
             
             var jsonString = await response.Content.ReadAsStringAsync();

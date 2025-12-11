@@ -59,13 +59,12 @@ namespace SWP391_Project.Services
         {
             try
             {
-                // Check email exists
                 if (await _accountRepository.EmailExistsAsync(model.Email))
                 {
+                    
                     return (false, "Email này đã được sử dụng");
                 }
 
-                // Create user
                 var newUser = new User
                 {
                     Email = model.Email,
@@ -75,7 +74,6 @@ namespace SWP391_Project.Services
                 };
                 await _accountRepository.CreateUserAsync(newUser);
 
-                // Create candidate
                 var candidate = new Candidate
                 {
                     UserId = newUser.Id,
@@ -98,7 +96,6 @@ namespace SWP391_Project.Services
         {
             try
             {
-                // Check email exists
                 if (await _accountRepository.EmailExistsAsync(model.Email))
                 {
                     return (false, "Email này đã được sử dụng");
@@ -112,7 +109,6 @@ namespace SWP391_Project.Services
                     return (false, "Không thể tạo vị trí cho công ty");
                 }
 
-                // Create user
                 var newUser = new User
                 {
                     Email = model.Email,
@@ -122,7 +118,6 @@ namespace SWP391_Project.Services
                 };
                 await _accountRepository.CreateUserAsync(newUser);
 
-                // Create company
                 var company = new Company
                 {
                     UserId = newUser.Id,
@@ -242,6 +237,31 @@ namespace SWP391_Project.Services
             {
                 _logger.LogError(ex, "Error getting company by user id {UserId}", userId);
                 throw;
+            }
+        }
+
+        public async Task<(bool success, string? error)> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
+        {
+            try
+            {
+                var user = await _accountRepository.GetUserByIdAsync(userId);
+                if(user == null)
+                {
+                    return (false, "Người dùng không tồn tại");
+                }
+                if(!HashHelper.Verify(oldPassword, user.Password))
+                {
+                    return (false, "Mật khẩu cũ không đúng");
+                }
+
+                user.Password = HashHelper.Hash(newPassword);
+                await _accountRepository.UpdateUserAsync(user);
+
+                return (true, null);
+            } catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error changing password for user {UserId}", userId);
+                return (false, "Có lỗi xảy ra khi đổi mật khẩu");
             }
         }
     }

@@ -1,0 +1,339 @@
+﻿@model SWP391_Project.ViewModels.Company.CompanyProfileVM
+@{
+    Layout = "_LayoutCompany";
+    ViewData["Title"] = "Hồ sơ công ty";
+    var primaryColor = "#2f80ed"; 
+}
+
+<style>
+    :root {
+        --company-primary: #2f80ed;
+        --company-hover: #256ac5;
+        --border-radius-std: 10px; 
+    }
+
+    /* Tiêu đề trang */
+    .page-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #495057;
+    }
+
+    /* Chuẩn hóa Card */
+    .card-custom {
+        border-radius: var(--border-radius-std);
+        border: 1px solid #ced4da;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Nhẹ nhàng hơn */
+    }
+
+    .card-header-custom {
+        background-color: white;
+        border-bottom: 1px solid #ced4da;
+        font-weight: 700;
+        padding: 1.5rem;
+        border-top-left-radius: var(--border-radius-std);
+        border-top-right-radius: var(--border-radius-std);
+    }
+
+    /* Input Field có Icon bên trái */
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%; /* Canh giữa chiều dọc */
+        transform: translateY(-50%);
+        color: var(--company-primary);
+        z-index: 5;
+        font-size: 1rem;
+    }
+
+    /* Áp dụng cho cả Input và Select */
+    .form-control-custom, .form-select-custom {
+        border-radius: var(--border-radius-std);
+        border: 1px solid #ced4da;
+        padding: 0.75rem 0.75rem 0.75rem 2.5rem !important; /* Padding trái để né icon */
+        font-size: 1rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    /* Riêng Textarea thì icon nằm ở trên cùng */
+    textarea.form-control-custom {
+        padding-left: 0.75rem !important; /* Textarea không cần icon bên trong */
+    }
+
+    .form-control-custom:focus, .form-select-custom:focus {
+        border-color: var(--company-primary);
+        box-shadow: 0 0 0 0.2rem rgba(47, 128, 237, 0.25);
+        outline: 0;
+    }
+
+    /* Button chuẩn */
+    .btn-company {
+        background-color: var(--company-primary);
+        border-color: var(--company-primary);
+        color: white;
+        border-radius: var(--border-radius-std);
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+        .btn-company:hover {
+            background-color: var(--company-hover);
+            border-color: var(--company-hover);
+        }
+
+    /* Label */
+    .form-label-custom {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Avatar */
+    .avatar-upload {
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        border: 2px solid #ced4da;
+        object-fit: cover;
+        padding: 4px; /* Tạo khoảng trắng nhỏ */
+    }
+</style>
+
+<div class="container-fluid px-4 mb-5">
+    <h1 class="mt-4 mb-2 page-title">Hồ sơ công ty</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-controller="Company" asp-action="Index" style="color: @primaryColor; text-decoration: none;">Dashboard</a></li>
+        <li class="breadcrumb-item active">Cập nhật thông tin</li>
+    </ol>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            <i class="fas fa-check-circle me-1"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            <i class="fas fa-exclamation-triangle me-1"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="Profile" method="post" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-xl-4 mb-4">
+                <div class="card card-custom h-100">
+                    <div class="card-header-custom">Logo công ty</div>
+                    <div class="card-body text-center d-flex flex-column justify-content-center align-items-center">
+                        <div class="mb-4 position-relative">
+                            <img id="imgPreview"
+                                 class="avatar-upload shadow-sm"
+                                 src="@(string.IsNullOrEmpty(Model.ExistingImageUrl) ? "/imgs/default-company.png" : Model.ExistingImageUrl)"
+                                 alt="Company Logo"
+                                 onerror="this.src='https://via.placeholder.com/180?text=Logo'">
+                        </div>
+
+                        <div class="small text-muted mb-3">
+                            Định dạng JPG hoặc PNG. Dung lượng tối đa 5MB.<br>
+                            Kích thước hiển thị tốt nhất: Vuông (1:1)
+                        </div>
+
+                        <div class="w-100 px-4">
+                            <label class="btn btn-company w-100" for="customFile">
+                                <i class="fas fa-upload me-2"></i> Tải ảnh mới
+                            </label>
+                            <input type="file" class="d-none" id="customFile" asp-for="AvatarFile" accept=".jpg,.jpeg,.png,.gif" onchange="previewImage(this)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-8 mb-4">
+                <div class="card card-custom">
+                    <div class="card-header-custom">Thông tin chi tiết</div>
+                    <div class="card-body p-4">
+
+                        <div class="mb-4">
+                            <label class="form-label-custom" asp-for="Name">Tên công ty <span class="text-danger">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-building input-icon"></i>
+                                <input class="form-control form-control-custom" asp-for="Name" placeholder="Nhập tên đầy đủ của công ty">
+                            </div>
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row gx-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label-custom" asp-for="PhoneNumber">Số điện thoại <span class="text-danger">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-phone input-icon"></i>
+                                    <input class="form-control form-control-custom" asp-for="PhoneNumber" placeholder="09xxxxxxxx">
+                                </div>
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom" asp-for="Website">Website</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-globe input-icon"></i>
+                                    <input class="form-control form-control-custom" asp-for="Website" placeholder="https://website.com">
+                                </div>
+                                <span asp-validation-for="Website" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row gx-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label-custom" asp-for="City">Tỉnh / Thành phố <span class="text-danger">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-map-marker-alt input-icon"></i>
+                                    <select class="form-select form-select-custom" asp-for="City" id="citySelect">
+                                        <option value="">-- Chọn --</option>
+                                        @if (ViewBag.Cities != null)
+                                        {
+                                            foreach (var city in ViewBag.Cities)
+                                            {
+                                                <option value="@city.Name" data-code="@city.Code">@city.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <span asp-validation-for="City" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom" asp-for="Ward">Phường / Xã <span class="text-danger">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-map-signs input-icon"></i>
+                                    <select class="form-select form-select-custom" asp-for="Ward" id="wardSelect">
+                                        <option value="">-- Chọn --</option>
+                                        @if (!string.IsNullOrEmpty(Model.Ward))
+                                        {
+                                            <option value="@Model.Ward" selected>@Model.Ward</option>
+                                        }
+                                    </select>
+                                </div>
+                                <span asp-validation-for="Ward" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label-custom" asp-for="Address">Địa chỉ chi tiết <span class="text-danger">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-map-pin input-icon"></i>
+                                <input class="form-control form-control-custom" asp-for="Address" placeholder="Số nhà, tên đường, tòa nhà...">
+                            </div>
+                            <span asp-validation-for="Address" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label-custom" asp-for="Description">Giới thiệu công ty <span class="text-danger">*</span></label>
+                            <textarea asp-for="Description" class="form-control form-control-custom" rows="6" placeholder="Giới thiệu về lịch sử, quy mô, văn hóa và chế độ đãi ngộ..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-company px-5" type="submit">
+                                <i class="fas fa-save me-2"></i> Lưu Hồ Sơ
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="card card-custom mt-4">
+        <div class="card-header-custom">
+            <i class="fas fa-lock me-1"></i> Đổi mật khẩu
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="ChangePassword" method="post">
+
+                <div class="mb-4">
+                    <label class="form-label-custom">Mật khẩu hiện tại</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-key input-icon"></i>
+                        <input type="password" name="OldPassword" class="form-control form-control-custom" required placeholder="••••••">
+                    </div>
+                </div>
+
+                <div class="row gx-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Mật khẩu mới</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-unlock-alt input-icon"></i>
+                            <input type="password" name="NewPassword" class="form-control form-control-custom" required placeholder="Tối thiểu 6 ký tự">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Xác nhận mật khẩu mới</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-check-double input-icon"></i>
+                            <input type="password" name="ConfirmPassword" class="form-control form-control-custom" required placeholder="Nhập lại mật khẩu mới">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-outline-danger px-4" type="submit" style="border-radius: 10px;">
+                        <i class="fas fa-sync-alt me-2"></i> Cập nhật mật khẩu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 1. Preview Ảnh
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('imgPreview').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // 2. Load Tỉnh/Huyện (AJAX)
+        $(document).ready(function () {
+            $('#citySelect').change(function () {
+                var cityCode = $(this).find(':selected').data('code');
+                var wardSelect = $('#wardSelect');
+
+                wardSelect.empty().append('<option value="">Đang tải...</option>');
+
+                if (cityCode) {
+                    $.ajax({
+                        url: '/Account/GetWards',
+                        type: 'GET',
+                        data: { cityCode: cityCode },
+                        success: function (data) {
+                            wardSelect.empty().append('<option value="">-- Chọn Phường/Xã --</option>');
+                            $.each(data, function (index, item) {
+                                wardSelect.append('<option value="' + item.name + '">' + item.name + '</option>');
+                            });
+                        },
+                        error: function () {
+                            wardSelect.empty().append('<option value="">Lỗi tải dữ liệu</option>');
+                        }
+                    });
+                } else {
+                    wardSelect.empty().append('<option value="">-- Chọn Phường/Xã --</option>');
+                }
+            });
+        });
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

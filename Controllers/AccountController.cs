@@ -112,7 +112,7 @@ namespace SWP391_Project.Controllers
 
             if (!success)
             {
-                ModelState.AddModelError("", error ?? "Đăng ký không thành công");
+                ModelState.AddModelError("Email", error ?? "Đăng ký không thành công");
                 var cities = await _locationService.GetCitiesAsync();
                 ViewBag.Cities = cities;
                 ViewBag.SelectedRole = model.Role;
@@ -135,7 +135,6 @@ namespace SWP391_Project.Controllers
                     _logger.LogError(ex, "Error sending verification email");
                 }
             }
-
             return View("RegisterConfirmation");
         }
 
@@ -241,7 +240,6 @@ namespace SWP391_Project.Controllers
                 HttpContext.Session.SetString("ImageUrl", imageUrl);
             }
 
-            // Redirect based on role
             if(user.Role == Role.ADMIN)
             {
                 return RedirectToAction("Index", "Admin");
