@@ -13,5 +13,6 @@ public class CandidateProfileVM
     public int RemainingReport { get; set; }
     public List<EducationRecord> EducationRecords { get; set; } = new();
     public List<WorkExperience> WorkExperiences { get; set; } = new();
+    public List<Certificate> Certificates { get; set; } = new();
     public List<Skill> Skills { get; set; } = new();
 }

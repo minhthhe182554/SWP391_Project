@@ -4,6 +4,7 @@ using SWP391_Project.Models;
 using SWP391_Project.Services;
 using SWP391_Project.ViewModels.Candidate;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace SWP391_Project.Controllers
 {
@@ -50,8 +51,108 @@ namespace SWP391_Project.Controllers
         [HttpGet]
         public async Task<IActionResult> Resume()
         {
-            System.Console.WriteLine("Quan ly resume");
-            return View();
+            var userId = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userIdInt = int.Parse(userId);
+            var viewModel = await _candidateService.GetResumesAsync(userIdInt);
+            if (viewModel == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewData["PrimaryColor"] = "#28a745";
+            ViewData["Success"] = TempData["Success"];
+            ViewData["Error"] = TempData["Error"];
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadResume(string? resumeName, IFormFile? resumeFile)
+        {
+            var userId = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["Error"] = "Vui lòng đăng nhập để tải lên hồ sơ";
+                return RedirectToAction(nameof(Resume));
+            }
+
+            var userIdInt = int.Parse(userId);
+            if (resumeFile == null)
+            {
+                TempData["Error"] = "Vui lòng chọn tệp PDF";
+                return RedirectToAction(nameof(Resume));
+            }
+
+            var uploadResult = await _candidateService.UploadResumeAsync(userIdInt, resumeName, resumeFile);
+
+            if (!uploadResult.Success)
+            {
+                TempData["Error"] = uploadResult.Message;
+                return RedirectToAction(nameof(Resume));
+            }
+
+            TempData["Success"] = uploadResult.Message;
+            return RedirectToAction(nameof(Resume));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteResume(int id)
+        {
+            var userId = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["Error"] = "Vui lòng đăng nhập để thao tác";
+                return RedirectToAction(nameof(Resume));
+            }
+
+            var success = await _candidateService.DeleteResumeAsync(int.Parse(userId), id);
+            TempData[success ? "Success" : "Error"] = success ? "Đã xóa hồ sơ" : "Xóa hồ sơ thất bại";
+            return RedirectToAction(nameof(Resume));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateResumeName(int id, string? newName)
+        {
+            var userId = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["Error"] = "Vui lòng đăng nhập để thao tác";
+                return RedirectToAction(nameof(Resume));
+            }
+
+            var result = await _candidateService.UpdateResumeNameAsync(int.Parse(userId), id, newName ?? string.Empty);
+            TempData[result.Success ? "Success" : "Error"] = result.Message;
+            return RedirectToAction(nameof(Resume));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateResumeFile(int id, IFormFile? resumeFile)
+        {
+            var userId = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userId))
+            {
+                TempData["Error"] = "Vui lòng đăng nhập để thao tác";
+                return RedirectToAction(nameof(Resume));
+            }
+
+            if (resumeFile == null)
+            {
+                TempData["Error"] = "Vui lòng chọn tệp PDF";
+                return RedirectToAction(nameof(Resume));
+            }
+
+            var result = await _candidateService.UpdateResumeFileAsync(int.Parse(userId), id, resumeFile);
+            TempData[result.Success ? "Success" : "Error"] = result.Message;
+            return RedirectToAction(nameof(Resume));
         }
 
         [HttpGet]
@@ -271,6 +372,56 @@ namespace SWP391_Project.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> AddCertificate(string name)
+        {
+            var userId = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "Chưa đăng nhập" });
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return Json(new { success = false, message = "Tên chứng chỉ không được để trống" });
+            }
+
+            var userIdInt = int.Parse(userId);
+            var candidate = await _candidateService.GetCandidateByUserIdAsync(userIdInt);
+            if (candidate == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin ứng viên" });
+            }
+
+            var certificate = new Certificate
+            {
+                Name = name
+            };
+
+            var success = await _candidateService.AddCertificateAsync(candidate.Id, certificate);
+            return Json(new { success, message = success ? "Thêm thành công" : "Thêm thất bại" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteCertificate(int certificateId)
+        {
+            var userId = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "Chưa đăng nhập" });
+            }
+
+            var userIdInt = int.Parse(userId);
+            var candidate = await _candidateService.GetCandidateByUserIdAsync(userIdInt);
+            if (candidate == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin ứng viên" });
+            }
+
+            var success = await _candidateService.DeleteCertificateAsync(candidate.Id, certificateId);
+            return Json(new { success, message = success ? "Xóa thành công" : "Xóa thất bại" });
+        }
+
+        [HttpPost]
         public async Task<IActionResult> AddSkill(int skillId)
         {
             var userId = HttpContext.Session.GetString("UserID");
@@ -375,10 +526,10 @@ namespace SWP391_Project.Controllers
                 }
 
                 // Use custom public ID based on user ID to enable overwriting
-                // Format: user_{userId} - this will always be the same for each user
+                // Format: user_{userId} 
                 var customPublicId = $"user_{userIdInt}";
                 
-                // Upload to Cloudinary (will overwrite if already exists)
+                // Upload to Cloudinary 
                 var publicId = await _cloudinaryHelper.UploadImageAsync(file, "profile-images", customPublicId);
 
                 // Update database only if it's different (first time upload or changed)

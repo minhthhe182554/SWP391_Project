@@ -19,5 +19,13 @@ namespace SWP391_Project.Repositories
         Task<List<Skill>> GetAllSkillsAsync();
         Task<bool> CreateAndAddSkillAsync(int candidateId, string skillName);
         Task<bool> UpdateProfileImageAsync(int candidateId, string publicId);
+        Task<Candidate?> GetCandidateWithResumesByUserIdAsync(int userId);
+        Task<bool> AddResumeAsync(Resume resume);
+        Task<bool> DeleteResumeAsync(int resumeId, int candidateId);
+        Task<List<Resume>> GetResumesAsync(int candidateId);
+        Task<Resume?> GetResumeAsync(int resumeId, int candidateId);
+        Task<bool> UpdateResumeAsync(Resume resume);
+        Task<bool> AddCertificateAsync(Certificate certificate);
+        Task<bool> DeleteCertificateAsync(int certificateId, int candidateId);
     }
 }
