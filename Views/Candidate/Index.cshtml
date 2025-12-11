@@ -3,7 +3,260 @@
     Layout = "_LayoutCandidate";
     ViewData["Title"] = "Trang chủ - Ứng viên";
     var primaryColor = "#28a745";
+    var currentDate = DateTime.Now.ToString("dd/MM/yyyy");
+    var totalJobs = Model.AllJobs?.Count() ?? 0;
+    var newJobsToday = Model.AllJobs?.Count(j => j.StartDate.Date == DateTime.Now.Date) ?? 0;
 }
+
+<style>
+    :root {
+        --primary-color: #28a745;
+        --primary-hover: #218838;
+        --primary-gradient: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        --text-primary: #495057;
+        --text-secondary: #6c757d;
+        --border-color: #ced4da;
+        --bg-light: #e9ecef;
+        --border-radius-sm: 10px;
+        --border-radius-lg: 50px;
+        --border-radius-md: 20px;
+        --transition: 0.15s ease-in-out;
+    }
+    
+    .hero-section {
+        background-image: url('/imgs/hero.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        padding: 3rem 0 4rem 0;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        margin-top: -1rem;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--primary-color);
+        opacity: 0.7;
+        z-index: 1;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .hero-title {
+        color: white;
+        font-size: 1.75rem;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 2rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .search-container {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .search-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: var(--border-radius-lg);
+    }
+    
+    .search-input::placeholder {
+        color: var(--text-secondary);
+    }
+    
+    .search-btn {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius-lg);
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+        transition: background-color var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .search-btn:hover {
+        background-color: var(--primary-hover);
+    }
+    
+    .market-stats {
+        background-image: url('/imgs/today.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        padding: 2rem 0;
+        width: 100%;
+        border-radius: 0;
+        position: relative;
+    }
+    
+    .market-stats::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--primary-color);
+        opacity: 0.8;
+        z-index: 1;
+    }
+    
+    .market-stats .container {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .market-stats-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 2rem;
+    }
+    
+    .market-stats-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: white;
+    }
+    
+    .market-stats-header h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+    }
+    
+    .market-stats-header .date {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    .market-stats-items {
+        display: flex;
+        gap: 3rem;
+        flex-wrap: wrap;
+    }
+    
+    .market-stat-item {
+        color: white;
+        text-align: center;
+    }
+    
+    .market-stat-item .label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+    
+    .market-stat-item .value {
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+    
+    @@media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0 3rem 0;
+        }
+        
+        .hero-title {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-container {
+            flex-direction: column;
+            border-radius: var(--border-radius-md);
+        }
+        
+        .search-input {
+            border-radius: var(--border-radius-md);
+            margin-bottom: 0.5rem;
+        }
+        
+        .search-btn {
+            width: 100%;
+            border-radius: var(--border-radius-md);
+            justify-content: center;
+        }
+        
+        .market-stats-content {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .market-stats-items {
+            justify-content: center;
+            gap: 2rem;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">EZJob - Tìm việc làm, Tuyển dụng hiệu quả</h1>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Vị trí tuyển dụng, tên công ty" />
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                    <span>Tìm kiếm</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Thị trường việc làm hôm nay -->
+<div class="market-stats">
+    <div class="container">
+        <div class="market-stats-content">
+            <div class="market-stats-header">
+                <i class="fas fa-briefcase" style="font-size: 1.5rem;"></i>
+                <div>
+                    <h3>Thị trường việc làm hôm nay</h3>
+                    <div class="date">@currentDate</div>
+                </div>
+            </div>
+            <div class="market-stats-items">
+                <div class="market-stat-item">
+                    <div class="label">Việc làm đang tuyển</div>
+                    <div class="value">@totalJobs.ToString("N0")</div>
+                </div>
+                <div class="market-stat-item">
+                    <div class="label">Việc làm mới hôm nay</div>
+                    <div class="value">@newJobsToday.ToString("N0")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="container mt-4">
     <h1 class="mb-4" style="color: @primaryColor; font-size: 2rem; font-weight: bold;">Chào mừng trở lại</h1>
