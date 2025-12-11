@@ -18,14 +18,14 @@
     <link rel="stylesheet" href="~/SWP391_Project.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/user-dropdown.css" asp-append-version="true" />
 </head>
-<body>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
     @if (ViewData["HideLayoutChrome"] == null)
     {
         <header>
             <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
                 <div class="container-fluid">
                     <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
-                        <img src="~/imgs/ic_ezjob.png" alt="EZJob" style="height: 40px; margin-right: 8px;" />
+                        <img src="~/imgs/ic_ezjob.png" alt="EZJob" style="height: 60px; margin-right: 8px;" />
                         <span style="font-weight: 600;">EZJob</span>
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -59,17 +59,39 @@
             </nav>
         </header>
     }
-    <div class="container">
-        <main role="main" class="pb-3">
+    <main role="main" class="pb-3" style="flex: 1;">
             @RenderBody()
         </main>
-    </div>
 
     @if (ViewData["HideLayoutChrome"] == null)
     {
-        <footer class="border-top footer text-muted">
+        <footer class="border-top footer text-muted" style="background-color: #f8f9fa; padding: 1.5rem 0 0.75rem 0; margin-top: auto;">
             <div class="container">
-                &copy; 2025 - EZJob
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        <h6 style="color: #28a745; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem;">Dự án môn SWP391</h6>
+                        <h5 style="color: #495057; font-weight: 700; margin-bottom: 0.75rem; font-size: 1.1rem;">TÊN DỰ ÁN: EZJOB</h5>
+                        <div style="color: #6c757d; line-height: 1.6; font-size: 0.875rem;">
+                            <div style="margin-bottom: 0.4rem;">
+                                <i class="fas fa-map-marker-alt" style="color: #28a745; margin-right: 0.5rem; font-size: 0.875rem;"></i>
+                                <span>Địa điểm: Đại học FPT cơ sở Hoà Lạc, Hà Nội</span>
+                            </div>
+                            <div style="margin-bottom: 0.4rem;">
+                                <i class="fas fa-phone" style="color: #28a745; margin-right: 0.5rem; font-size: 0.875rem;"></i>
+                                <span>Số điện thoại: 0852325683</span>
+                            </div>
+                            <div>
+                                <i class="fas fa-envelope" style="color: #28a745; margin-right: 0.5rem; font-size: 0.875rem;"></i>
+                                <span>Email: <a href="mailto:kakassj25@gmail.com" style="color: #28a745; text-decoration: none;">kakassj25@gmail.com</a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 text-center" style="padding-top: 0.75rem; border-top: 1px solid #dee2e6; margin-top: 0.75rem;">
+                        <p style="margin: 0; color: #6c757d; font-size: 0.875rem;">© 2025 EZJob. All rights reserved.</p>
+                    </div>
+                </div>
             </div>
         </footer>
     }

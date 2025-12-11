@@ -1,5 +1,7 @@
 using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using dotenv.net;
+using Microsoft.AspNetCore.Http;
 
 namespace SWP391_Project.Helpers
 {
@@ -10,6 +12,9 @@ namespace SWP391_Project.Helpers
 
         // Builds a secure image URL for a given public ID
         string BuildImageUrl(string publicId);
+
+        // Uploads an image to Cloudinary and returns the public ID
+        Task<string> UploadImageAsync(IFormFile file, string folder, string customPublicId = null);
     }
 
     public class CloudinaryHelper : ICloudinaryHelper
@@ -58,6 +63,67 @@ namespace SWP391_Project.Helpers
                 var url = cloudinary.Api.UrlImgUp.Format("png").BuildUrl(publicId);
 
                 return url;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<string> UploadImageAsync(IFormFile file, string folder, string customPublicId = null)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    throw new ArgumentException("File is empty or null");
+                }
+
+                // Validate file is an image
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    throw new ArgumentException("Invalid file type. Only images are allowed.");
+                }
+
+                // Validate file size (max 5MB)
+                if (file.Length > 5 * 1024 * 1024)
+                {
+                    throw new ArgumentException("File size must be less than 5MB");
+                }
+
+                var cloudinary = GetCloudinaryClient();
+
+                // Create upload parameters
+                using var stream = file.OpenReadStream();
+                var uploadParams = new ImageUploadParams
+                {
+                    File = new FileDescription(file.FileName, stream),
+                    Folder = folder,
+                    UseFilename = false,
+                    UniqueFilename = string.IsNullOrEmpty(customPublicId), // Only unique if no custom ID
+                    Overwrite = !string.IsNullOrEmpty(customPublicId), // Overwrite if custom ID provided
+                    Invalidate = true // Clear CDN cache when overwriting
+                };
+
+                // Set custom public ID if provided
+                if (!string.IsNullOrEmpty(customPublicId))
+                {
+                    uploadParams.PublicId = $"{folder}/{customPublicId}";
+                }
+
+                // Upload image
+                var uploadResult = await cloudinary.UploadAsync(uploadParams);
+
+                if (uploadResult.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new Exception($"Upload failed: {uploadResult.Error?.Message}");
+                }
+
+                // Return public ID
+                return uploadResult.PublicId;
             }
             catch (Exception)
             {
