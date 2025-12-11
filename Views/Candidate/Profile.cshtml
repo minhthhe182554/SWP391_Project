@@ -284,7 +284,7 @@
 </style>
 
 <div class="container profile-container">
-    <h1 class="mb-3" style="color: @primaryColor; font-size: 1.5rem; font-weight: bold;">Cài đặt thông tin cá nhân</h1>
+    <h1 class="mb-3" style="color: @primaryColor; font-size: 1.5rem; font-weight: bold;">Thông tin cá nhân</h1>
     <p class="text-muted mb-3" style="font-size: 0.875rem;">(*) Các thông tin bắt buộc</p>
     
     <div id="alertContainer"></div>
@@ -388,7 +388,7 @@
                     <h5 class="mb-2" style="font-size: 1rem;">Thêm học vấn</h5>
                     <div class="form-group">
                         <label class="form-label">Tiêu đề *</label>
-                        <input type="text" class="form-control" id="educationTitle" placeholder="Ví dụ: Tốt nghiệp Đại học FPT" required />
+                        <input type="text" class="form-control" id="educationTitle" placeholder="Ví dụ: Tốt nghiệp Đại học A" required />
                     </div>
                     <div class="row">
                         <div class="col-md-6">
@@ -411,53 +411,6 @@
                 </div>
             </div>
             
-            <!-- Skills Section -->
-            <div class="profile-section">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h2 class="section-title mb-0">Kĩ năng</h2>
-                    <button class="btn btn-success" onclick="toggleAddForm('skill')">
-                        <i class="fas fa-plus"></i> Thêm
-                    </button>
-                </div>
-                
-                <div id="skillsList">
-                    @if (Model.Skills != null && Model.Skills.Any())
-                    {
-                        @foreach (var skill in Model.Skills)
-                        {
-                            <span class="skill-badge" id="skill-@skill.Id">
-                                @skill.Name
-                                <span class="remove-btn" onclick="removeSkill(@skill.Id)">
-                                    <i class="fas fa-times"></i>
-                                </span>
-                            </span>
-                        }
-                    }
-                    else
-                    {
-                        <p class="text-muted" style="font-size: 0.875rem;">Chưa có kỹ năng nào</p>
-                    }
-                </div>
-                
-                <div class="add-form hidden" id="skillForm">
-                    <h5 class="mb-2" style="font-size: 1rem;">Thêm kỹ năng</h5>
-                    <div class="form-group">
-                        <label class="form-label">Tìm kiếm kỹ năng *</label>
-                        <div class="skill-search-wrapper">
-                            <input type="text" class="form-control" id="skillSearch" 
-                                   placeholder="Nhập tên kỹ năng..." 
-                                   autocomplete="off"
-                                   oninput="searchSkills(this.value)" 
-                                   onfocus="searchSkills(this.value)" />
-                            <div class="skill-dropdown hidden" id="skillDropdown"></div>
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-secondary" onclick="toggleAddForm('skill')">Hủy</button>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Work Experience Section -->
             <div class="profile-section">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -471,7 +424,7 @@
                     @if (Model.WorkExperiences != null && Model.WorkExperiences.Any())
                     {
                         @foreach (var exp in Model.WorkExperiences)
-                        {
+                        { 
                             <div class="item-card" id="experience-@exp.Id">
                                 <div class="item-info">
                                     <div class="item-title">@exp.Name</div>
@@ -525,6 +478,49 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Certificates Section -->
+            <div class="profile-section">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="section-title mb-0">Chứng chỉ</h2>
+                    <button class="btn btn-success" onclick="toggleAddForm('certificate')">
+                        <i class="fas fa-plus"></i> Thêm
+                    </button>
+                </div>
+                
+                <div class="item-list" id="certificateList">
+                    @if (Model.Certificates != null && Model.Certificates.Any())
+                    {
+                        @foreach (var cert in Model.Certificates)
+                        {
+                            <div class="item-card" id="certificate-@cert.Id">
+                                <div class="item-info">
+                                    <div class="item-title">@cert.Name</div>
+                                </div>
+                                <button class="btn btn-danger" onclick="deleteCertificate(@cert.Id)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted" style="font-size: 0.875rem;">Chưa có chứng chỉ nào</p>
+                    }
+                </div>
+                
+                <div class="add-form hidden" id="certificateForm">
+                    <h5 class="mb-2" style="font-size: 1rem;">Thêm chứng chỉ</h5>
+                    <div class="form-group">
+                        <label class="form-label">Tên chứng chỉ *</label>
+                        <input type="text" class="form-control" id="certificateName" placeholder="Ví dụ: AWS Certified Solutions Architect" required />
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" onclick="addCertificate()">Thêm</button>
+                        <button class="btn btn-secondary" onclick="toggleAddForm('certificate')">Hủy</button>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Sidebar -->
@@ -555,7 +551,7 @@
                     </span>
                 </div>
                 
-                <div style="background: white; border: 1px solid #dee2e6; border-radius: 6px; padding: 1rem;">
+                <div style="background: white; border: 1px solid #dee2e6; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
                     <h5 style="color: #495057; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem;" id="joblessStatusText">@(Model.Jobless ? "Đang Bật tìm việc" : "Đang Tắt tìm việc")</h5>
                     
                     <div class="form-check form-switch" style="display: flex; align-items: center; justify-content: center;">
@@ -578,6 +574,53 @@
                                 Email và Số điện thoại
                             </li>
                         </ul>
+                    </div>
+                </div>
+
+                <!-- Skills Section moved to sidebar -->
+                <div class="profile-section" style="text-align: left;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h2 class="section-title mb-0">Kĩ năng</h2>
+                        <button class="btn btn-success btn-sm" onclick="toggleAddForm('skill')">
+                            <i class="fas fa-plus"></i> Thêm
+                        </button>
+                    </div>
+                    
+                    <div id="skillsList">
+                        @if (Model.Skills != null && Model.Skills.Any())
+                        {
+                            @foreach (var skill in Model.Skills)
+                            {
+                                <span class="skill-badge" id="skill-@skill.Id">
+                                    @skill.Name
+                                    <span class="remove-btn" onclick="removeSkill(@skill.Id)">
+                                        <i class="fas fa-times"></i>
+                                    </span>
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted" style="font-size: 0.875rem;">Chưa có kỹ năng nào</p>
+                        }
+                    </div>
+                    
+                    <div class="add-form hidden" id="skillForm">
+                        <h5 class="mb-2" style="font-size: 1rem;">Thêm kỹ năng</h5>
+                        <div class="form-group">
+                            <label class="form-label">Tìm kiếm kỹ năng *</label>
+                            <div class="skill-search-wrapper">
+                                <input type="text" class="form-control" id="skillSearch" 
+                                       placeholder="Nhập tên kỹ năng..." 
+                                       autocomplete="off"
+                                       oninput="searchSkills(this.value)" 
+                                       onfocus="searchSkills(this.value)" />
+                                <div class="skill-dropdown hidden" id="skillDropdown"></div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-secondary" onclick="toggleAddForm('skill')">Hủy</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -696,6 +739,8 @@
             document.getElementById('experienceDescription').value = '';
             document.getElementById('experienceStartDate').value = '';
             document.getElementById('experienceEndDate').value = '';
+        } else if (type === 'certificate') {
+            document.getElementById('certificateName').value = '';
         }
     }
     
@@ -728,6 +773,45 @@
         });
     }
     
+    function addCertificate() {
+        const name = document.getElementById('certificateName').value.trim();
+        if (!name) {
+            showAlert('Tên chứng chỉ không được để trống', 'danger');
+            return;
+        }
+
+        fetch('@Url.Action("AddCertificate", "Candidate")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `name=${encodeURIComponent(name)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                setTimeout(() => location.reload(), 1000);
+            }
+        })
+        .catch(() => showAlert('Có lỗi xảy ra', 'danger'));
+    }
+
+    function deleteCertificate(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa chứng chỉ này?')) return;
+        fetch('@Url.Action("DeleteCertificate", "Candidate")', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `certificateId=${id}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'danger');
+            if (data.success) {
+                document.getElementById('certificate-' + id)?.remove();
+            }
+        })
+        .catch(() => showAlert('Có lỗi xảy ra', 'danger'));
+    }
+    
     function deleteEducationRecord(id) {
         if (!confirm('Bạn có chắc chắn muốn xóa?')) return;
         
@@ -754,17 +838,17 @@
         const dropdown = document.getElementById('skillDropdown');
         const currentSkillIds = @Html.Raw(Json.Serialize(Model.Skills.Select(s => s.Id)));
         
-        // Trim query để loại bỏ khoảng trắng thừa
+        // Trim query to avoid white spaces
         const trimmedQuery = query ? query.trim() : '';
         
-        // Nếu query rỗng hoặc chỉ có khoảng trắng, ẩn dropdown
+        // Hide dropdown if query is empty
         if (!trimmedQuery || trimmedQuery.length === 0) {
             dropdown.classList.add('hidden');
             dropdown.innerHTML = '';
             return;
         }
         
-        // Lọc skills theo query và loại trừ skills đã có
+        // Filter skills by query & already existed skills
         filteredSkills = allSkills.filter(skill => 
             skill.name.toLowerCase().includes(trimmedQuery.toLowerCase()) &&
             !currentSkillIds.includes(skill.id)
@@ -772,7 +856,7 @@
         
         let html = '';
         
-        // Hiển thị các skills tìm được
+        // Display filtered skills
         if (filteredSkills.length > 0) {
             filteredSkills.forEach(skill => {
                 html += `<div class="skill-dropdown-item" onclick="selectSkill(${skill.id}, '${skill.name.replace(/'/g, "\\'")}')">
@@ -781,7 +865,6 @@
             });
         }
         
-        // Luôn hiển thị option tạo skill mới
         html += `<div class="skill-dropdown-create" onclick="createNewSkill('${trimmedQuery.replace(/'/g, "\\'")}')">
             <i class="fas fa-plus"></i> Tạo kỹ năng mới: "${trimmedQuery}"
         </div>`;
