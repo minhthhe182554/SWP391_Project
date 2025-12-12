@@ -5,21 +5,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SWP391_Project.Models;
 using SWP391_Project.ViewModels.Home;
-using SWP391_Project.Helpers;
-
+using SWP391_Project.Services.Storage;
 namespace SWP391_Project.Controllers;
 
 public class HomeController : Controller
 {
     private readonly EzJobDbContext _context;
+    private readonly IStorageService _storageService;
     private const int PageSize = 9;
     private const int CompanyPageSize = 12;
-    private readonly ICloudinaryHelper _cloudinaryHelper;
 
-    public HomeController(EzJobDbContext context, ICloudinaryHelper cloudinaryHelper)
+    public HomeController(EzJobDbContext context, IStorageService storageService)
     {
         _context = context;
-        _cloudinaryHelper = cloudinaryHelper;
+        _storageService = storageService;
     }
 
     public IActionResult Index(int page = 1, string? location = null, string? salaryRange = null, string? experience = null, int? domainId = null, string? sort = null, int? companyDomainId = null, int companyPage = 1)
@@ -192,7 +191,7 @@ public class HomeController : Controller
         viewModel.JobCards = jobs.Select(j => new JobCardVM
         {
             Job = j,
-            CompanyImageUrl = _cloudinaryHelper.BuildImageUrl(
+            CompanyImageUrl = _storageService.BuildImageUrl(
                 !string.IsNullOrEmpty(j.Company?.ImageUrl) ? j.Company!.ImageUrl : "default_yvl9oh")
         }).ToList();
     }
@@ -327,7 +326,7 @@ public class HomeController : Controller
                 Company = c,
                 ActiveJobCount = activeJobCountMap.GetValueOrDefault(c.Id, activeJobs.Count),
                 DomainName = domainName,
-                CompanyImageUrl = _cloudinaryHelper.BuildImageUrl(
+                CompanyImageUrl = _storageService.BuildImageUrl(
                     !string.IsNullOrEmpty(c.ImageUrl) ? c.ImageUrl! : "default_yvl9oh")
             };
         }).ToList();

@@ -29,15 +29,19 @@ namespace SWP391_Project.ViewModels
         // Company fields 
         [StringLength(20, ErrorMessage = "Số điện thoại không được vượt quá 20 ký tự")]
         public string? PhoneNumber { get; set; }
-
+        
+        [Required(ErrorMessage = "Vui lòng nhập mô tả công ty")]
+        [StringLength(500, ErrorMessage = "Mô tả công ty không được vượt quá 500 ký tự")]
         public string? Description { get; set; }
 
         [StringLength(500, ErrorMessage = "Địa chỉ không được vượt quá 500 ký tự")]
         public string? Address { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn tỉnh/thành phố")]    
         [StringLength(100, ErrorMessage = "Thành phố không được vượt quá 100 ký tự")]
         public string? City { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn quận/huyện")]
         [StringLength(100, ErrorMessage = "Phường/Xã không được vượt quá 100 ký tự")]
         public string? Ward { get; set; }
     }

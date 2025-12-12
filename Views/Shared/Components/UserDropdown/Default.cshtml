@@ -1,44 +1,12 @@
+@model SWP391_Project.ViewModels.Shared.UserDropdownVM
 @using Microsoft.AspNetCore.Http
-@using SWP391_Project.Helpers
-@inject IHttpContextAccessor HttpContextAccessor
-@inject ICloudinaryHelper CloudinaryHelper
 @{
-    var userId = HttpContextAccessor.HttpContext?.Session.GetString("UserID");
-    var email = HttpContextAccessor.HttpContext?.Session.GetString("Email");
-    var userName = HttpContextAccessor.HttpContext?.Session.GetString("Name") ?? "User";
-    var role = HttpContextAccessor.HttpContext?.Session.GetString("Role") ?? "CANDIDATE";
     var defaultAvatar = Url.Content("~/imgs/ic_default_avatar.png");
-    var adminAvatar = Url.Content("~/imgs/ic_default_avatar.png");
-    
-    // Determine avatar URL based on role
-    string avatarUrl;
-    if (role == "ADMIN")
-    {
-        // Admin uses fixed avatar
-        avatarUrl = adminAvatar;
-    }
-    else
-    {
-        // Candidate/Company load from Cloudinary
-        var publicId = HttpContextAccessor.HttpContext?.Session.GetString("ImageUrl");
-        if (!string.IsNullOrEmpty(publicId))
-        {
-            try
-            {
-                avatarUrl = CloudinaryHelper.BuildImageUrl(publicId);
-            }
-            catch
-            {
-                avatarUrl = defaultAvatar;
-            }
-        }
-        else
-        {
-            avatarUrl = defaultAvatar;
-        }
-    }
-    
-    var userDisplayId = userId ?? "N/A";
+    var avatarUrl = string.IsNullOrEmpty(Model.AvatarUrl) ? defaultAvatar : Model.AvatarUrl;
+    var userDisplayId = Model.UserId ?? "N/A";
+    var role = Model.Role ?? "CANDIDATE";
+    var email = Model.Email ?? string.Empty;
+    var userName = Model.Name ?? "User";
 }
 
 <div class="dropdown">
@@ -61,7 +29,6 @@
             </div>
         </li>
 
-        @* If candidate, show management sections *@
         @if (role == "CANDIDATE")
         {
             <li class="dropdown-section">
@@ -103,8 +70,7 @@
                 </div>
             </li>
         }
-        @* If company, show management sections *@
-        @if (role == "COMPANY")
+        else if (role == "COMPANY")
         {
             <li class="dropdown-section">
                 <div class="dropdown-section-header collapsed"
@@ -172,3 +138,5 @@
         });
     });
 </script>
+
+

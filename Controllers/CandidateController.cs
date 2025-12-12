@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using SWP391_Project.Helpers;
 using SWP391_Project.Models;
 using SWP391_Project.Services;
 using SWP391_Project.ViewModels.Candidate;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
+using SWP391_Project.Services.Storage;
+using SWP391_Project.Helpers;
 
 namespace SWP391_Project.Controllers
 {
@@ -12,12 +13,12 @@ namespace SWP391_Project.Controllers
     public class CandidateController : Controller
     {
         private readonly ICandidateService _candidateService;
-        private readonly ICloudinaryHelper _cloudinaryHelper;
+        private readonly IStorageService _storageService;
 
-        public CandidateController(ICandidateService candidateService, ICloudinaryHelper cloudinaryHelper)
+        public CandidateController(ICandidateService candidateService, IStorageService storageService)
         {
             _candidateService = candidateService;
-            _cloudinaryHelper = cloudinaryHelper;
+            _storageService = storageService;
         }
 
         public async Task<IActionResult> Index()
@@ -173,8 +174,8 @@ namespace SWP391_Project.Controllers
 
             ViewBag.AllSkills = await _candidateService.GetAllSkillsAsync();
             ViewBag.ImageUrl = viewModel.ImageUrl != null 
-                ? _cloudinaryHelper.BuildImageUrl(viewModel.ImageUrl) 
-                : _cloudinaryHelper.BuildImageUrl("default_yvl9oh");
+                ? _storageService.BuildImageUrl(viewModel.ImageUrl) 
+                : _storageService.BuildImageUrl("default_yvl9oh");
 
             return View(viewModel);
         }
@@ -530,7 +531,7 @@ namespace SWP391_Project.Controllers
                 var customPublicId = $"user_{userIdInt}";
                 
                 // Upload to Cloudinary 
-                var publicId = await _cloudinaryHelper.UploadImageAsync(file, "profile-images", customPublicId);
+                var publicId = await _storageService.UploadImageAsync(file, "profile-images", customPublicId);
 
                 // Update database only if it's different (first time upload or changed)
                 if (candidate.ImageUrl != publicId)
@@ -546,7 +547,7 @@ namespace SWP391_Project.Controllers
                 // Update session with new image public ID
                 HttpContext.Session.SetString("ImageUrl", publicId);
                 
-                var imageUrl = _cloudinaryHelper.BuildImageUrl(publicId);
+                var imageUrl = _storageService.BuildImageUrl(publicId);
                 return Json(new { success = true, message = "Cập nhật ảnh đại diện thành công", imageUrl });
             }
             catch (ArgumentException ex)

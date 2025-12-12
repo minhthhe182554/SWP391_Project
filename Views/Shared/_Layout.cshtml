@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SWP391_Project.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/user-dropdown.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
@@ -27,7 +28,7 @@
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
-                        @if(HttpContextAccessor.HttpContext.Session.GetString("Email") == null)
+                        @if (HttpContextAccessor.HttpContext.Session.GetString("Email") == null)
                         {
                             <ul class="navbar-nav d-flex align-items-center gap-2">
                                 <li class="nav-item">
@@ -41,6 +42,14 @@
                                        onmouseover="this.style.backgroundColor='#218838'; this.style.borderColor='#218838';" 
                                        onmouseout="this.style.backgroundColor='#28a745'; this.style.borderColor='#28a745';"
                                        asp-controller="Account" asp-action="Register">Đăng ký</a>
+                                </li>
+                            </ul>
+                        }
+                        else
+                        {
+                            <ul class="navbar-nav d-flex align-items-center">
+                                <li class="nav-item dropdown">
+                                    @await Component.InvokeAsync("UserDropdown")
                                 </li>
                             </ul>
                         }

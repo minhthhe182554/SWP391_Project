@@ -4,11 +4,11 @@ using SWP391_Project.ViewModels;
 using SWP391_Project.ViewModels.Candidate;
 using Microsoft.AspNetCore.Http;
 using System.IO;
-using SWP391_Project.Helpers;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CloudinaryDotNet.Actions;
+using SWP391_Project.Services.Storage;
 
 namespace SWP391_Project.Services
 {
@@ -16,13 +16,13 @@ namespace SWP391_Project.Services
     {
         private readonly ICandidateRepository _candidateRepository;
         private readonly ILogger<CandidateService> _logger;
-        private readonly ICloudinaryHelper _cloudinaryHelper;
+        private readonly IStorageService _storageService;
 
-        public CandidateService(ICandidateRepository candidateRepository, ILogger<CandidateService> logger, ICloudinaryHelper cloudinaryHelper)
+        public CandidateService(ICandidateRepository candidateRepository, ILogger<CandidateService> logger, IStorageService storageService)
         {
             _candidateRepository = candidateRepository;
             _logger = logger;
-            _cloudinaryHelper = cloudinaryHelper;
+            _storageService = storageService;
         }
 
         public async Task<Candidate?> GetCandidateByUserIdAsync(int userId)
@@ -270,10 +270,10 @@ namespace SWP391_Project.Services
                         {
                             Id = r.Id,
                             Name = string.IsNullOrWhiteSpace(r.Name) ? "Không tên" : r.Name,
-                            Url = _cloudinaryHelper.BuildRawUrl(r.Url),
+                            Url = _storageService.BuildRawUrl(r.Url),
                             OriginalFileName = ExtractOriginalFileName(r.Url),
                             PreviewUrls = Enumerable.Range(1, 3)
-                                .Select(pg => _cloudinaryHelper.BuildPdfImageUrl(r.Url, pg, 900, 150))
+                                .Select(pg => _storageService.BuildPdfImageUrl(r.Url, pg, 900, 150))
                                 .ToList()
                         })
                         .ToList()
@@ -318,7 +318,7 @@ namespace SWP391_Project.Services
                 var publicId = sanitizedBase;
                 var folder = $"resumes/{userId}";
 
-                var uploadResult = await _cloudinaryHelper.UploadPdfAsync(resumeFile, folder, publicId);
+                var uploadResult = await _storageService.UploadPdfAsync(resumeFile, folder, publicId);
 
                 Console.WriteLine($"Resume info: {folder}, publicId: {publicId}" );
                 var resume = new Resume
@@ -332,7 +332,7 @@ namespace SWP391_Project.Services
                 if (!saved)
                 {
                     // best-effort cleanup on cloudinary
-                    await _cloudinaryHelper.DeleteAssetAsync(uploadResult.PublicId, ResourceType.Raw);
+                    await _storageService.DeleteAssetAsync(uploadResult.PublicId, ResourceType.Raw);
                     return (false, "Không lưu được hồ sơ. Vui lòng thử lại.");
                 }
 
@@ -355,7 +355,7 @@ namespace SWP391_Project.Services
                 var resume = await _candidateRepository.GetResumeAsync(resumeId, candidate.Id);
                 if (resume == null) return false;
 
-                var deletedCloud = await _cloudinaryHelper.DeleteAssetAsync(resume.Url, ResourceType.Image);
+                var deletedCloud = await _storageService.DeleteAssetAsync(resume.Url, ResourceType.Image);
                 var deletedDb = await _candidateRepository.DeleteResumeAsync(resumeId, candidate.Id);
                 return deletedDb && deletedCloud;
             }
@@ -414,7 +414,7 @@ namespace SWP391_Project.Services
                 if (resume == null) return (false, "Không tìm thấy hồ sơ");
 
                 // delete old on cloud
-                await _cloudinaryHelper.DeleteAssetAsync(resume.Url, ResourceType.Image); 
+                await _storageService.DeleteAssetAsync(resume.Url, ResourceType.Image); 
 
                 var originalFileName = Path.GetFileName(resumeFile.FileName);
                 var baseName = Path.GetFileNameWithoutExtension(originalFileName);
@@ -422,7 +422,7 @@ namespace SWP391_Project.Services
                 var publicId = sanitizedBase;
                 var folder = $"resumes/{userId}";
 
-                var uploadResult = await _cloudinaryHelper.UploadPdfAsync(resumeFile, folder, publicId);
+                var uploadResult = await _storageService.UploadPdfAsync(resumeFile, folder, publicId);
 
                 resume.Url = uploadResult.PublicId;
                 var updated = await _candidateRepository.UpdateResumeAsync(resume);
