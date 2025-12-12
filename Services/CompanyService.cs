@@ -2,8 +2,8 @@
 using SWP391_Project.Repositories;
 using SWP391_Project.ViewModels.Company;
 using Microsoft.AspNetCore.Hosting;
-using SWP391_Project.Helpers;
 using SWP391_Project.ViewModels;
+using SWP391_Project.Services.Storage;
 
 namespace SWP391_Project.Services
 {
@@ -11,13 +11,13 @@ namespace SWP391_Project.Services
     {
         private readonly ICompanyRepository _companyRepository;
         private readonly ILogger<CompanyService> _logger;
-        private readonly ICloudinaryHelper _cloudinaryHelper;
+        private readonly IStorageService _storageService;
 
-        public CompanyService(ICompanyRepository companyRepository, ILogger<CompanyService> logger, ICloudinaryHelper cloudinaryHelper)
+        public CompanyService(ICompanyRepository companyRepository, ILogger<CompanyService> logger, IStorageService storageService)
         {
             _companyRepository = companyRepository;
             _logger = logger;
-            _cloudinaryHelper = cloudinaryHelper;
+            _storageService = storageService;
         }
 
         public async Task<Company?> GetCompanyByUserIdAsync(int userId)
@@ -89,9 +89,9 @@ namespace SWP391_Project.Services
                 {
                     string fixedPublicId = $"avatar_{userId}";
 
-                    string publicId = await _cloudinaryHelper.UploadImageAsync(model.AvatarFile, "companies", fixedPublicId);
+                    string publicId = await _storageService.UploadImageAsync(model.AvatarFile, "companies", fixedPublicId);
 
-                    string secureUrl = _cloudinaryHelper.BuildImageUrl(publicId);
+                    string secureUrl = _storageService.BuildImageUrl(publicId);
 
                     company.ImageUrl = secureUrl;
                 }

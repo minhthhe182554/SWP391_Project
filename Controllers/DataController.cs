@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SWP391_Project.Helpers;
+using SWP391_Project.Services.Storage;
 using SWP391_Project.Models;
 using Role = SWP391_Project.Models.Role;
+using SWP391_Project.Helpers;
 
 namespace SWP391_Project.Controllers
 {
@@ -10,13 +11,13 @@ namespace SWP391_Project.Controllers
     {
         private readonly EzJobDbContext _context;
         private readonly ILogger<DataController> _logger;
-        private readonly ICloudinaryHelper _cloudinaryHelper;
+        private readonly IStorageService _storageService;
 
-        public DataController(EzJobDbContext context, ILogger<DataController> logger, ICloudinaryHelper cloudinaryHelper)
+        public DataController(EzJobDbContext context, ILogger<DataController> logger, IStorageService storageService)
         {
             _context = context;
             _logger = logger;
-            _cloudinaryHelper = cloudinaryHelper;
+            _storageService = storageService;
         }
 
         [HttpGet]
@@ -236,9 +237,9 @@ namespace SWP391_Project.Controllers
                     );
                 }
 
-                // Build image URL using CloudinaryHelper
-                _logger.LogInformation("TestCloudinaryImage: Building image URL using CloudinaryHelper");
-                var finalImageUrl = _cloudinaryHelper.BuildImageUrl(imageUrl);
+                // Build image URL using storage service
+                _logger.LogInformation("TestCloudinaryImage: Building image URL using storage service");
+                var finalImageUrl = _storageService.BuildImageUrl(imageUrl);
 
                 // Return HTML displaying image
                 var html = $@"

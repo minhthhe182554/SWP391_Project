@@ -30,7 +30,7 @@
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
-                        @await Html.PartialAsync("_UserDropdown")
+                        @await Component.InvokeAsync("UserDropdown")
                     </div>
                 </div>
             </nav>
