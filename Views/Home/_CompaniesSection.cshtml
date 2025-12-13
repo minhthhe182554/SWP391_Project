@@ -7,10 +7,11 @@
                 <h2 class="top-companies-title">Công ty tiêu biểu</h2>
                 <p class="top-companies-subtitle">Hàng trăm công ty lớn tiêu biểu đang tuyển dụng trên EZJob</p>
             </div>
-            <a class="top-companies-link" href="javascript:void(0)" onclick="showComingSoon(); return false;">
+            <div class="top-companies-link text-muted" style="cursor: default;">
                 <span>Xem tất cả</span>
                 <i class="fas fa-arrow-right"></i>
-            </a>
+                <small class="d-block mt-1 text-muted" style="font-size: 0.75rem;">Đang triển khai</small>
+            </div>
         </div>
 
         <div class="domain-badges-wrap">
@@ -45,7 +46,7 @@
             <div class="companies-grid">
                 @foreach (var c in Model.CompanyCards)
                 {
-                    <div class="company-card" onclick="showComingSoon()">
+                    <a class="company-card text-decoration-none text-dark" asp-controller="Company" asp-action="Detail" asp-route-id="@c.Company.Id">
                         <img class="company-card__logo" src="@c.CompanyImageUrl" alt="@c.Company.Name" />
                         <div style="flex:1; min-width:0;">
                             <h3 class="company-card__name">@c.Company.Name</h3>
@@ -57,7 +58,7 @@
                                 </span>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 }
             </div>
 

@@ -11,5 +11,6 @@ namespace SWP391_Project.Repositories
         Task<Company?> GetByIdAsync(int id); 
         Task UpdateAsync(Company company);
         Task<Location> GetOrCreateLocationAsync(string city, string ward);
+        Task<Company?> GetDetailAsync(int id);
     }
 }

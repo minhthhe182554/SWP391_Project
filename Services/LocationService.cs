@@ -1,5 +1,6 @@
 using System.Text.Json;
 using SWP391_Project.Dtos;
+using SWP391_Project.Helpers;
 
 namespace SWP391_Project.Services;
 
@@ -7,14 +8,14 @@ public class LocationService : ILocationService
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
-    private const string BaseUrl = "https://tinhthanhpho.com/api/v1";
+    private const string BaseUrl = AppConstants.Urls.LocationApiBase;
 
     public LocationService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _configuration = configuration;
         
-        var apiKey = _configuration["API_KEY:LocationKey"];
+        var apiKey = _configuration[AppConstants.ConfigurationKeys.LocationApiKey];
         if (!string.IsNullOrEmpty(apiKey))
         {
             _httpClient.DefaultRequestHeaders.Authorization = 

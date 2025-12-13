@@ -47,6 +47,19 @@ namespace SWP391_Project.Repositories
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
+        public async Task<Company?> GetDetailAsync(int id)
+        {
+            return await _context.Companies
+                .Include(c => c.Location)
+                .Include(c => c.Jobs)
+                    .ThenInclude(j => j.Domains)
+                .Include(c => c.Jobs)
+                    .ThenInclude(j => j.RequiredSkills)
+                .Include(c => c.Jobs)
+                    .ThenInclude(j => j.Location)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
         public async Task UpdateAsync(Company company)
         {
             _context.Companies.Update(company);
