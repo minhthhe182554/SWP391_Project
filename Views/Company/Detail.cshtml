@@ -1,0 +1,146 @@
+@model SWP391_Project.ViewModels.Company.CompanyDetailVM
+@{
+    ViewData["Title"] = Model.Name;
+    var hasCoords = Model.Latitude.HasValue && Model.Longitude.HasValue;
+}
+
+<section class="py-4">
+    <div class="container">
+        <!-- Header -->
+        <div class="card shadow-sm border mb-4">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div style="width: 96px; height: 96px;" class="flex-shrink-0">
+                    <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded border w-100 h-100" style="object-fit: cover;" />
+                </div>
+                <div class="flex-grow-1">
+                    <h2 class="h4 fw-bold mb-2">@Model.Name</h2>
+                    <div class="d-flex flex-wrap gap-3 text-muted small">
+                        @if (!string.IsNullOrEmpty(Model.Website))
+                        {
+                            <div class="d-flex align-items-center gap-1">
+                                <i class="fas fa-globe text-success"></i>
+                                <a href="@Model.Website" class="text-success text-decoration-none" target="_blank" rel="noopener">@Model.Website</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- About -->
+                <div class="card shadow-sm border mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-semibold mb-3">Giới thiệu công ty</h5>
+                        @if (Model.Domains.Any())
+                        {
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                @foreach (var domain in Model.Domains)
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success">@domain</span>
+                                }
+                            </div>
+                        }
+                        <div class="text-muted">@Html.Raw(Model.Description)</div>
+                    </div>
+                </div>
+
+                <!-- Jobs -->
+                <div class="card shadow-sm border mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-semibold mb-3">Tuyển dụng</h5>
+                        @if (Model.Jobs.Any())
+                        {
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var job in Model.Jobs)
+                                {
+                                    <a class="job-card-grid text-decoration-none text-dark border rounded-3 p-3" asp-controller="Job" asp-action="Detail" asp-route-id="@job.Id">
+                                        <div class="d-flex gap-3 align-items-start">
+                                            <img class="job-card-grid__logo border rounded" src="@job.CompanyImageUrl" alt="@Model.Name" style="width: 56px; height: 56px; object-fit: cover;" />
+                                            <div style="flex:1; min-width:0;">
+                                                <h6 class="mb-1 fw-semibold">@job.Title</h6>
+                                                <div class="d-flex flex-wrap gap-2 text-muted small">
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <i class="fas fa-money-bill-wave text-success"></i>
+                                                        <span>@job.SalaryText</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <i class="fas fa-map-marker-alt text-success"></i>
+                                                        <span>@job.Location</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <i class="fas fa-briefcase text-success"></i>
+                                                        <span>@job.Experience</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <i class="fas fa-clock text-success"></i>
+                                                        <span>@job.JobType</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">Hiện chưa có tin tuyển dụng.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm border mb-3">
+                    <div class="card-body">
+                        <h6 class="fw-semibold mb-3">Địa chỉ</h6>
+                        <div class="small text-muted">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="fas fa-map-marker-alt text-success mt-1"></i>
+                                <span>@Model.Address</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card shadow-sm border">
+                    <div class="card-body">
+                        <h6 class="fw-semibold mb-3">Xem bản đồ</h6>
+                        @if (hasCoords)
+                        {
+                            <div id="company-map" style="width: 100%; height: 240px;" class="rounded border"></div>
+                        }
+                        else
+                        {
+                            <p class="text-muted small mb-0">Chưa có dữ liệu bản đồ</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (hasCoords)
+{
+    <script>
+        function initCompanyMap() {
+            const lat = @Model.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            const lng = @Model.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            const mapEl = document.getElementById('company-map');
+            if (!mapEl) return;
+            const map = new google.maps.Map(mapEl, {
+                center: { lat: parseFloat(lat), lng: parseFloat(lng) },
+                zoom: 15
+            });
+            new google.maps.Marker({
+                position: { lat: parseFloat(lat), lng: parseFloat(lng) },
+                map: map,
+                title: '@Model.Name'
+            });
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=@((ViewBag.GoogleMapsApiKey ?? ""))&callback=initCompanyMap"></script>
+}
+

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace SWP391_Project.ViewModels.Company
 {
@@ -30,6 +30,12 @@ namespace SWP391_Project.ViewModels.Company
         public string Description { get; set; } = null!;
 
         public string? ExistingImageUrl { get; set; }
+        
+        [Display(Name = "Vĩ độ")]
+        public double? Latitude { get; set; }
+
+        [Display(Name = "Kinh độ")]
+        public double? Longitude { get; set; }
         
         [Display(Name = "Logo công ty")]
         public IFormFile? AvatarFile { get; set; }

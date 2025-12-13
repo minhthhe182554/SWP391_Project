@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 
-using System.Collections.Generic;
-
 namespace SWP391_Project.ViewModels.Jobs
 {
     public class JobDetailVM
     {
         public int Id { get; set; }
+        public int CompanyId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string SalaryText { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;

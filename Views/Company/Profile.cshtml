@@ -1,4 +1,4 @@
-﻿@model SWP391_Project.ViewModels.Company.CompanyProfileVM
+@model SWP391_Project.ViewModels.Company.CompanyProfileVM
 @{
     Layout = "_LayoutCompany";
     ViewData["Title"] = "Hồ sơ công ty";
@@ -126,40 +126,14 @@
         </div>
     }
 
-    <form asp-action="Profile" method="post" enctype="multipart/form-data">
+    <form asp-action="UpdateBasicProfile" method="post" enctype="multipart/form-data">
         <div class="row">
-            <div class="col-xl-4 mb-4">
-                <div class="card card-custom h-100">
-                    <div class="card-header-custom">Logo công ty</div>
-                    <div class="card-body text-center d-flex flex-column justify-content-center align-items-center">
-                        <div class="mb-4 position-relative">
-                            <img id="imgPreview"
-                                 class="avatar-upload shadow-sm"
-                                 src="@(string.IsNullOrEmpty(Model.ExistingImageUrl) ? "/imgs/default-company.png" : Model.ExistingImageUrl)"
-                                 alt="Company Logo"
-                                 onerror="this.src='https://via.placeholder.com/180?text=Logo'">
-                        </div>
-
-                        <div class="small text-muted mb-3">
-                            Định dạng JPG hoặc PNG. Dung lượng tối đa 5MB.<br>
-                            Kích thước hiển thị tốt nhất: Vuông (1:1)
-                        </div>
-
-                        <div class="w-100 px-4">
-                            <label class="btn btn-company w-100" for="customFile">
-                                <i class="fas fa-upload me-2"></i> Tải ảnh mới
-                            </label>
-                            <input type="file" class="d-none" id="customFile" asp-for="AvatarFile" accept=".jpg,.jpeg,.png,.gif" onchange="previewImage(this)">
-                        </div>
+            <div class="col-lg-7 mb-4">
+                <div class="card card-custom mb-4">
+                    <div class="card-header-custom">
+                        <i class="fas fa-id-card me-2"></i>Thông tin công ty
                     </div>
-                </div>
-            </div>
-
-            <div class="col-xl-8 mb-4">
-                <div class="card card-custom">
-                    <div class="card-header-custom">Thông tin chi tiết</div>
                     <div class="card-body p-4">
-
                         <div class="mb-4">
                             <label class="form-label-custom" asp-for="Name">Tên công ty <span class="text-danger">*</span></label>
                             <div class="input-wrapper">
@@ -188,7 +162,110 @@
                             </div>
                         </div>
 
+                        <div class="mb-4">
+                            <label class="form-label-custom" asp-for="Description">Giới thiệu công ty <span class="text-danger">*</span></label>
+                            <textarea asp-for="Description" class="form-control form-control-custom" rows="6" placeholder="Giới thiệu về lịch sử, quy mô, văn hóa và chế độ đãi ngộ..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-company px-5" type="submit">
+                                <i class="fas fa-save me-2"></i> Lưu thông tin
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-5 mb-4">
+                <div class="card card-custom mb-4">
+                    <div class="card-header-custom">Logo công ty</div>
+                    <div class="card-body text-center d-flex flex-column justify-content-center align-items-center">
+                        <div class="mb-4 position-relative">
+                            <img id="imgPreview"
+                                 class="avatar-upload shadow-sm"
+                                 src="@(string.IsNullOrEmpty(Model.ExistingImageUrl) ? "/imgs/default-company.png" : Model.ExistingImageUrl)"
+                                 alt="Company Logo"
+                                 onerror="this.src='https://via.placeholder.com/180?text=Logo'">
+                        </div>
+
+                        <div class="small text-muted mb-3">
+                            Định dạng JPG hoặc PNG. Dung lượng tối đa 5MB.<br>
+                            Kích thước hiển thị tốt nhất: Vuông (1:1)
+                        </div>
+
+                        <div class="w-100 px-4">
+                            <label class="btn btn-company w-100" for="customFile">
+                                <i class="fas fa-upload me-2"></i> Tải ảnh mới
+                            </label>
+                            <input type="file" class="d-none" id="customFile" asp-for="AvatarFile" accept=".jpg,.jpeg,.png,.gif" onchange="previewImage(this)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="row">
+        <div class="col-lg-7 mb-4">
+            <div class="card card-custom">
+                <div class="card-header-custom">
+                    <i class="fas fa-lock me-1"></i> Đổi mật khẩu
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="ChangePassword" method="post">
+                        <div class="mb-4">
+                            <label class="form-label-custom">Mật khẩu hiện tại</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-key input-icon"></i>
+                                <input type="password" name="OldPassword" class="form-control form-control-custom" required placeholder="••••••">
+                            </div>
+                        </div>
+
                         <div class="row gx-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Mật khẩu mới</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-unlock-alt input-icon"></i>
+                                    <input type="password" name="NewPassword" class="form-control form-control-custom" required placeholder="Tối thiểu 6 ký tự">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Xác nhận mật khẩu mới</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-check-double input-icon"></i>
+                                    <input type="password" name="ConfirmPassword" class="form-control form-control-custom" required placeholder="Nhập lại mật khẩu mới">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-outline-danger px-4" type="submit" style="border-radius: 10px;">
+                                <i class="fas fa-sync-alt me-2"></i> Cập nhật mật khẩu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 mb-4">
+            <form asp-action="UpdateAddressProfile" method="post">
+                <div class="card card-custom">
+                    <div class="card-header-custom d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-map-marked-alt me-2"></i>Địa chỉ & Bản đồ</span>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnGeocode">
+                                <i class="fas fa-search-location me-1"></i> Cập nhật tọa độ
+                            </button>
+                            <button class="btn btn-company btn-sm" type="submit">
+                                <i class="fas fa-save me-1"></i> Lưu địa chỉ
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row gx-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label-custom" asp-for="City">Tỉnh / Thành phố <span class="text-danger">*</span></label>
                                 <div class="input-wrapper">
@@ -222,7 +299,7 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="form-label-custom" asp-for="Address">Địa chỉ chi tiết <span class="text-danger">*</span></label>
                             <div class="input-wrapper">
                                 <i class="fas fa-map-pin input-icon"></i>
@@ -231,59 +308,23 @@
                             <span asp-validation-for="Address" class="text-danger small"></span>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label-custom" asp-for="Description">Giới thiệu công ty <span class="text-danger">*</span></label>
-                            <textarea asp-for="Description" class="form-control form-control-custom" rows="6" placeholder="Giới thiệu về lịch sử, quy mô, văn hóa và chế độ đãi ngộ..."></textarea>
-                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        <div class="small text-muted mb-2">Kéo thả pin hoặc bấm “Cập nhật tọa độ” để đồng bộ theo địa chỉ chi tiết.</div>
+                        <input type="hidden" asp-for="Latitude" id="Latitude" />
+                        <input type="hidden" asp-for="Longitude" id="Longitude" />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Vĩ độ (lat)</label>
+                                <input class="form-control form-control-custom" id="latDisplay" value="@Model.Latitude" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Kinh độ (lng)</label>
+                                <input class="form-control form-control-custom" id="lngDisplay" value="@Model.Longitude" readonly>
+                            </div>
                         </div>
-
-                        <div class="d-flex justify-content-end">
-                            <button class="btn btn-company px-5" type="submit">
-                                <i class="fas fa-save me-2"></i> Lưu Hồ Sơ
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
-    <div class="card card-custom mt-4">
-        <div class="card-header-custom">
-            <i class="fas fa-lock me-1"></i> Đổi mật khẩu
-        </div>
-        <div class="card-body p-4">
-            <form asp-action="ChangePassword" method="post">
-
-                <div class="mb-4">
-                    <label class="form-label-custom">Mật khẩu hiện tại</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-key input-icon"></i>
-                        <input type="password" name="OldPassword" class="form-control form-control-custom" required placeholder="••••••">
-                    </div>
-                </div>
-
-                <div class="row gx-3 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label-custom">Mật khẩu mới</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-unlock-alt input-icon"></i>
-                            <input type="password" name="NewPassword" class="form-control form-control-custom" required placeholder="Tối thiểu 6 ký tự">
+                        <div class="mt-3">
+                            <div id="company-profile-map" style="width: 100%; height: 320px;" class="rounded border"></div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label-custom">Xác nhận mật khẩu mới</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-check-double input-icon"></i>
-                            <input type="password" name="ConfirmPassword" class="form-control form-control-custom" required placeholder="Nhập lại mật khẩu mới">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-end">
-                    <button class="btn btn-outline-danger px-4" type="submit" style="border-radius: 10px;">
-                        <i class="fas fa-sync-alt me-2"></i> Cập nhật mật khẩu
-                    </button>
                 </div>
             </form>
         </div>
@@ -332,6 +373,97 @@
             });
         });
     </script>
+
+    <script>
+        let map, marker, geocoder;
+        const defaultCenter = { lat: 21.0278, lng: 105.8342 }; // Hà Nội fallback
+
+        function initProfileMap() {
+            const latInput = document.getElementById('Latitude');
+            const lngInput = document.getElementById('Longitude');
+            const latDisplay = document.getElementById('latDisplay');
+            const lngDisplay = document.getElementById('lngDisplay');
+
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(lngInput.value);
+
+            const hasCoords = !isNaN(lat) && !isNaN(lng);
+            const startPos = hasCoords ? { lat, lng } : defaultCenter;
+
+            map = new google.maps.Map(document.getElementById('company-profile-map'), {
+                center: startPos,
+                zoom: hasCoords ? 15 : 12
+            });
+
+            marker = new google.maps.Marker({
+                position: startPos,
+                map,
+                draggable: true
+            });
+            geocoder = new google.maps.Geocoder();
+
+            if (hasCoords) {
+                latDisplay.value = lat.toFixed(6);
+                lngDisplay.value = lng.toFixed(6);
+            } else {
+                latDisplay.value = '';
+                lngDisplay.value = '';
+            }
+
+            marker.addListener('dragend', (event) => {
+                const newLat = event.latLng.lat();
+                const newLng = event.latLng.lng();
+                latInput.value = newLat;
+                lngInput.value = newLng;
+                latDisplay.value = newLat.toFixed(6);
+                lngDisplay.value = newLng.toFixed(6);
+            });
+
+            document.getElementById('btnGeocode')?.addEventListener('click', geocodeAddress);
+        }
+
+        async function geocodeAddress() {
+            const address = document.getElementById('Address')?.value || '';
+            const fullAddress = [address, 'Việt Nam'].filter(Boolean).join(', ');
+            if (!fullAddress.trim()) {
+                alert('Vui lòng nhập địa chỉ chi tiết trước khi geocode.');
+                return;
+            }
+
+            if (!geocoder) {
+                alert('Không khởi tạo được geocoder.');
+                return;
+            }
+
+            geocoder.geocode({ address: fullAddress, region: 'vn' }, function (results, status) {
+                if (status !== 'OK' || !results || !results.length) {
+                    alert(`Không tìm thấy tọa độ cho địa chỉ này (status: ${status}).`);
+                    return;
+                }
+                const loc = results[0].geometry.location;
+                updateMapPosition(loc.lat(), loc.lng());
+            });
+        }
+
+        function updateMapPosition(lat, lng) {
+            const latInput = document.getElementById('Latitude');
+            const lngInput = document.getElementById('Longitude');
+            const latDisplay = document.getElementById('latDisplay');
+            const lngDisplay = document.getElementById('lngDisplay');
+
+            const pos = { lat, lng };
+            marker.setPosition(pos);
+            map.setCenter(pos);
+            map.setZoom(15);
+
+            latInput.value = lat;
+            lngInput.value = lng;
+            latDisplay.value = lat.toFixed(6);
+            lngDisplay.value = lng.toFixed(6);
+        }
+    </script>
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=@(ViewBag.GoogleMapsApiKey ?? "")&callback=initProfileMap"></script>
 
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

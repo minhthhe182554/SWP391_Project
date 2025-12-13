@@ -1,11 +1,10 @@
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SWP391_Project.Models;
 
 namespace SWP391_Project.ViewModels.Home;
 
 public class HomePageVM
 {
-    public List<Models.Job> Jobs { get; set; } = new();
+    public List<Job> Jobs { get; set; } = new();
     public List<JobCardVM> JobCards { get; set; } = new();
     public List<CompanyCardVM> CompanyCards { get; set; } = new();
     public List<Domain> CompanyDomainOptions { get; set; } = new();
@@ -36,7 +35,7 @@ public class HomePageVM
 
 public class JobCardVM
 {
-    public Models.Job Job { get; set; } = null!;
+    public Job Job { get; set; } = null!;
     public string CompanyImageUrl { get; set; } = string.Empty;
 }
 

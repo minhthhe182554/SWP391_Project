@@ -36,6 +36,7 @@ namespace SWP391_Project.Services
             var vm = new JobDetailVM
             {
                 Id = job.Id,
+                CompanyId = job.CompanyId,
                 Title = job.Title,
                 SalaryText = salaryText,
                 Location = locationLabel,

@@ -4,6 +4,7 @@ using SWP391_Project.Models;
 using SWP391_Project.Services;
 using SWP391_Project.ViewModels.Account;
 using SWP391_Project.ViewModels.Company;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SWP391_Project.Controllers
 {
@@ -12,12 +13,14 @@ namespace SWP391_Project.Controllers
         private readonly ICompanyService _companyService;
         private readonly ILocationService _locationService;
         private readonly IAccountService _accountService;
+        private readonly IConfiguration _configuration;
 
-        public CompanyController(ICompanyService companyService, ILocationService locationService, IAccountService accountService)
+        public CompanyController(ICompanyService companyService, ILocationService locationService, IAccountService accountService, IConfiguration configuration)
         {
             _companyService = companyService;
             _locationService = locationService; 
             _accountService = accountService;
+            _configuration = configuration;
         }
         
         [RoleAuthorize(Role.COMPANY)]
@@ -62,6 +65,7 @@ namespace SWP391_Project.Controllers
 
             // Load lại danh sách Thành phố để đổ vào Dropdown
             ViewBag.Cities = await _locationService.GetCitiesAsync();
+            ViewBag.GoogleMapsApiKey = _configuration[AppConstants.ConfigurationKeys.GoogleMapsApiKey];
 
             return View(model);
         }
@@ -76,6 +80,7 @@ namespace SWP391_Project.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Cities = await _locationService.GetCitiesAsync();
+                ViewBag.GoogleMapsApiKey = _configuration[AppConstants.ConfigurationKeys.GoogleMapsApiKey];
                 return View(model);
             }
 
@@ -132,6 +137,91 @@ namespace SWP391_Project.Controllers
 
             return RedirectToAction("Profile");
 
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Detail(int id)
+        {
+            var vm = await _companyService.GetCompanyDetailAsync(id);
+            if (vm == null) return NotFound();
+            ViewBag.GoogleMapsApiKey = _configuration[AppConstants.ConfigurationKeys.GoogleMapsApiKey];
+            return View(vm);
+        }
+
+        [RoleAuthorize(Role.COMPANY)]
+        [HttpPost]
+        public async Task<IActionResult> UpdateBasicProfile(CompanyProfileVM model)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+            int userId = int.Parse(userIdStr);
+
+            // Bỏ qua validate các trường không thuộc basic
+            ModelState.Remove(nameof(CompanyProfileVM.City));
+            ModelState.Remove(nameof(CompanyProfileVM.Ward));
+            ModelState.Remove(nameof(CompanyProfileVM.Address));
+            ModelState.Remove(nameof(CompanyProfileVM.Latitude));
+            ModelState.Remove(nameof(CompanyProfileVM.Longitude));
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Dữ liệu không hợp lệ, vui lòng kiểm tra lại.";
+                return RedirectToAction("Profile");
+            }
+
+            var result = await _companyService.UpdateBasicProfileAsync(userId, model);
+            if (result)
+            {
+                TempData["Success"] = "Cập nhật thông tin công ty thành công!";
+                var updatedCompany = await _companyService.GetCompanyByUserIdAsync(userId);
+                if (updatedCompany != null)
+                {
+                    HttpContext.Session.SetString("Name", updatedCompany.Name);
+                    if (!string.IsNullOrEmpty(updatedCompany.ImageUrl))
+                        HttpContext.Session.SetString("ImageUrl", updatedCompany.ImageUrl);
+                }
+            }
+            else
+            {
+                TempData["Error"] = "Có lỗi xảy ra khi lưu thông tin công ty.";
+            }
+
+            return RedirectToAction("Profile");
+        }
+
+        [RoleAuthorize(Role.COMPANY)]
+        [HttpPost]
+        public async Task<IActionResult> UpdateAddressProfile(CompanyProfileVM model)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+            int userId = int.Parse(userIdStr);
+
+            // Bỏ qua validate các trường không thuộc address
+            ModelState.Remove(nameof(CompanyProfileVM.Name));
+            ModelState.Remove(nameof(CompanyProfileVM.PhoneNumber));
+            ModelState.Remove(nameof(CompanyProfileVM.Website));
+            ModelState.Remove(nameof(CompanyProfileVM.Description));
+            ModelState.Remove(nameof(CompanyProfileVM.AvatarFile));
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Dữ liệu địa chỉ không hợp lệ, vui lòng kiểm tra lại.";
+                return RedirectToAction("Profile");
+            }
+
+            var result = await _companyService.UpdateAddressProfileAsync(userId, model);
+            if (result)
+            {
+                TempData["Success"] = "Cập nhật địa chỉ & tọa độ thành công!";
+            }
+            else
+            {
+                TempData["Error"] = "Có lỗi xảy ra khi lưu địa chỉ.";
+            }
+
+            return RedirectToAction("Profile");
         }
     }
 }

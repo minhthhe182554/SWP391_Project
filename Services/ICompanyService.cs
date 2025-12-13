@@ -10,5 +10,8 @@ namespace SWP391_Project.Services
         Task<CompanyDashboardVM> GetCompanyDashboardViewAsync(int companyId);
         Task<CompanyProfileVM?> GetProfileForEditAsync(int userId);
         Task<bool> UpdateProfileAsync(int userId, CompanyProfileVM model);
+        Task<CompanyDetailVM?> GetCompanyDetailAsync(int companyId);
+        Task<bool> UpdateBasicProfileAsync(int userId, CompanyProfileVM model);
+        Task<bool> UpdateAddressProfileAsync(int userId, CompanyProfileVM model);
     }
 }
