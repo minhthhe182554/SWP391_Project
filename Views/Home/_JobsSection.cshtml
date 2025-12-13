@@ -178,12 +178,12 @@
                         @foreach (var card in Model.JobCards)
                         {
                             var job = card.Job;
-                            <div class="job-card-grid" onclick="handleJobClick(@job.Id)">
+                            <a class="job-card-grid text-decoration-none text-dark" asp-controller="Job" asp-action="Detail" asp-route-id="@job.Id">
                                 <img class="job-card-grid__logo" src="@card.CompanyImageUrl" alt="@job.Company?.Name" />
                                 <div style="flex:1; min-width: 0;">
                                     <h3 class="job-card-grid__title">@job.Title</h3>
                                     <div class="job-card-grid__company">@job.Company?.Name</div>
-
+                                    
                                     <div class="job-card-grid__meta">
                                         @{
                                             string salaryText = "Thỏa thuận";
@@ -222,7 +222,7 @@
                                         }
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         }
                     </div>
                 }
