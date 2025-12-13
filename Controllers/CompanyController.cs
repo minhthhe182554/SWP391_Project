@@ -19,7 +19,7 @@ namespace SWP391_Project.Controllers
             _locationService = locationService; 
             _accountService = accountService;
         }
-
+        
         [RoleAuthorize(Role.COMPANY)]
         public async Task<IActionResult> Index()
         {

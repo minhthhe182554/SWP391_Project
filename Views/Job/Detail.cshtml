@@ -1,0 +1,188 @@
+@model SWP391_Project.ViewModels.Jobs.JobDetailVM
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<section class="job-detail-section py-5">
+    <div class="container">
+        <div class="mb-3">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+        </div>
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4 border">
+                    <div class="card-body">
+                        <div class="d-flex flex-column gap-3">
+                            <h1 class="h3 fw-bold">@Model.Title</h1>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-2 bg-white border rounded-3 px-3 py-2 shadow-sm">
+                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Thu nhập</div>
+                                        <div class="fw-semibold">@Model.SalaryText</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 bg-white border rounded-3 px-3 py-2 shadow-sm">
+                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Địa điểm</div>
+                                        <div class="fw-semibold">@Model.Location</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 bg-white border rounded-3 px-3 py-2 shadow-sm">
+                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                        <i class="fas fa-hourglass-half"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Kinh nghiệm</div>
+                                        <div class="fw-semibold">@Model.Experience</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 bg-white border rounded-3 px-3 py-2 shadow-sm">
+                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Hạn nộp hồ sơ</div>
+                                        <div class="fw-semibold">@Model.Deadline</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-2 mt-1">
+                                <div class="col-12 col-md-9">
+                                    <a href="#" class="btn btn-success w-100 d-flex justify-content-center align-items-center py-3 fw-semibold">
+                                        <i class="fas fa-paper-plane me-2"></i>Ứng tuyển ngay
+                                    </a>
+                                </div>
+                                <div class="col-12 col-md-3">
+                                    <button class="btn btn-outline-success w-100 d-flex justify-content-center align-items-center py-3">
+                                        <i class="fas fa-bookmark me-2"></i>Lưu
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4 shadow-sm border">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-semibold mb-0">Chi tiết tin tuyển dụng</h5>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Yêu cầu kỹ năng:</strong>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                @foreach (var skill in Model.Skills)
+                                {
+                                    <span class="badge bg-light text-success border border-success">@skill</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Ngành nghề:</strong>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                @foreach (var domain in Model.Domains)
+                                {
+                                    <span class="badge bg-light text-success border border-success">@domain</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="job-detail-description mt-4 text-muted">
+                            <h6 class="fw-semibold">Mô tả công việc</h6>
+                            <div class="mb-0">@Html.Raw(Model.Description)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card mb-4 shadow-sm border">
+                    <div class="card-body">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div style="width: 96px; height: 96px;" class="flex-shrink-0">
+                                <img src="@Model.CompanyImageUrl" alt="@Model.CompanyName" class="img-fluid rounded border w-100 h-100" style="object-fit: cover;" />
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-semibold mb-1">@Model.CompanyName</h6>
+                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                    @foreach (var domain in Model.CompanyDomains.Take(2))
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success">@domain</span>
+                                    }
+                                </div>
+                                <p class="small text-muted mb-2">@Model.CompanyAddress</p>
+                                <a href="#" class="text-success text-decoration-none fw-semibold">Xem trang công ty</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border">
+                    <div class="card-body">
+                        <h6 class="fw-semibold mb-3">Thông tin chung</h6>
+                        <ul class="list-unstyled small text-muted mb-0">
+                            <li class="mb-2">
+                                <i class="fas fa-users text-success me-2"></i>
+                                Số lượng tuyển: @Model.VacancyCount
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-clock text-success me-2"></i>
+                                Hình thức: @Model.JobType
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-map-marker-alt text-success me-2"></i>
+                                Địa điểm: @Model.Location
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                @if (Model.SimilarJobs != null && Model.SimilarJobs.Any())
+                {
+                    <div class="card shadow-sm border mt-3">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-3">Việc làm tương tự</h6>
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var sj in Model.SimilarJobs)
+                                {
+                                    <a class="job-card-grid text-decoration-none text-dark border rounded-3 p-3" asp-controller="Job" asp-action="Detail" asp-route-id="@sj.Id">
+                                        <div class="d-flex gap-3 align-items-start">
+                                            <img class="job-card-grid__logo border rounded" src="@sj.CompanyImageUrl" alt="@sj.CompanyName" style="width: 56px; height: 56px; object-fit: cover;" />
+                                            <div style="flex:1; min-width:0;">
+                                                <h6 class="mb-1 fw-semibold">@sj.Title</h6>
+                                                <div class="text-muted small">@sj.CompanyName</div>
+                                                <div class="d-flex flex-wrap gap-2 mt-2 text-muted small">
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <i class="fas fa-money-bill-wave text-success"></i>
+                                                        <span>@sj.SalaryText</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <i class="fas fa-map-marker-alt text-success"></i>
+                                                        <span>@sj.Location</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <i class="fas fa-briefcase text-success"></i>
+                                                        <span>@sj.Experience</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
