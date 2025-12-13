@@ -4,6 +4,7 @@ using SWP391_Project.Services;
 using SWP391_Project.Repositories;
 using SWP391_Project.Helpers;
 using SWP391_Project.Repositories.Storage;
+using SWP391_Project.Services.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +33,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IJobService, JobService>();
 
 // Register Storage Service (no Infrastructure layer)
-builder.Services.AddScoped<SWP391_Project.Services.Storage.IStorageService, SWP391_Project.Services.Storage.StorageService>();
+builder.Services.AddScoped<IStorageService, StorageService>();
 
 // Use repository-based storage abstraction only
 builder.Services.AddScoped<IStorageRepository, CloudinaryStorageRepository>();
