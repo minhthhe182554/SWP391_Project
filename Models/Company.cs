@@ -13,6 +13,8 @@ public class Company
     public int LocationId { get; set; }
     public required string Address { get; set; }
     public Location Location { get; set; } = null!;
+    public double? Latitude { get; set; } 
+    public double? Longitude { get; set; }
     public string? ImageUrl { get; set; }
     public string? Website { get; set; }
     public List<Job> Jobs { get; set; } = new();

@@ -179,6 +179,14 @@ public class EzJobDbContext : DbContext
             .Property(c => c.Website)
             .HasMaxLength(255);
 
+        modelBuilder.Entity<Company>()
+            .Property(c => c.Latitude)
+            .HasPrecision(9, 6);
+
+        modelBuilder.Entity<Company>()
+            .Property(c => c.Longitude)
+            .HasPrecision(9, 6);
+
         // Job
         modelBuilder.Entity<Job>()
             .Property(j => j.Title)
