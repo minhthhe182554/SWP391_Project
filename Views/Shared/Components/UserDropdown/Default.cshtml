@@ -40,11 +40,12 @@
                     <i class="fa fa-chevron-down section-arrow"></i>
                 </div>
                 <div class="collapse dropdown-section-content" id="jobManagementSection">
-                    <a class="dropdown-item" href="#">
+                    <a class="dropdown-item" asp-controller="Candidate" asp-action="SavedJobs">
                         <i class="fa fa-bookmark"></i>
                         Việc làm đã lưu
                     </a>
-                    <a class="dropdown-item" href="#">
+
+                    <a class="dropdown-item" asp-controller="Candidate" asp-action="AppliedJobs">
                         <i class="fa fa-file-alt"></i>
                         Việc làm đã ứng tuyển
                     </a>
@@ -95,6 +96,10 @@
                     <a class="dropdown-item" asp-controller="Company" asp-action="Index">
                         <i class="fa fa-file-alt me-2"></i>
                         Quản lý tin tuyển dụng
+                    </a>
+                    <a class="dropdown-item" asp-controller="Company" asp-action="PostJob">
+                        <i class="fa fa-file-alt me-2"></i>
+                        Tạo mới tin tuyển dụng
                     </a>
                 </div>
             </li>

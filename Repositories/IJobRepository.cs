@@ -7,6 +7,8 @@ namespace SWP391_Project.Repositories
     {
         Task<Job?> GetJobWithDetailsAsync(int jobId);
         Task<List<Job>> GetActiveJobsWithDetailsAsync();
+        Task<Job?> GetByIdAsync(int id);
+        Task AddAsync(Job job);
     }
 }
 

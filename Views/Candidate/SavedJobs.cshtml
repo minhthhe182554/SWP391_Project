@@ -1,0 +1,109 @@
+﻿@model List<SWP391_Project.ViewModels.Job.SavedJobVM>
+
+@{
+    ViewData["Title"] = "Việc làm đã lưu";
+    Layout = "_Layout"; 
+}
+
+<div class="container py-5">
+    <h2 class="mb-4 fw-bold text-success">
+        <i class="fas fa-heart me-2"></i> Việc làm đã lưu (@Model.Count)
+    </h2>
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-info text-center py-5">
+            <img src="https://cdn-icons-png.flaticon.com/512/4076/4076432.png" alt="Empty" style="width: 80px; opacity: 0.6" class="mb-3">
+            <p class="mb-0">Bạn chưa lưu công việc nào.</p>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">Tìm việc ngay</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var job in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4" id="job-card-@job.JobId">
+                    <div class="card h-100 shadow-sm border-0 position-relative">
+
+                        @if (job.IsExpiringSoon)
+                        {
+                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2 shadow-sm">
+                                <i class="fas fa-clock me-1"></i> Sắp hết hạn
+                            </span>
+                        }
+                        else if (job.IsExpired)
+                        {
+                            <span class="position-absolute top-0 end-0 badge bg-secondary m-2 shadow-sm">
+                                <i class="fas fa-times-circle me-1"></i> Đã hết hạn
+                            </span>
+                        }
+
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="@job.CompanyLogo" alt="Logo" class="rounded border p-1" style="width: 50px; height: 50px; object-fit: cover;">
+                                <div class="ms-3">
+                                    <h6 class="card-title mb-0 text-truncate" style="max-width: 200px;" title="@job.Title">
+                                        <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobId" class="text-decoration-none text-dark fw-bold">
+                                            @job.Title
+                                        </a>
+                                    </h6>
+                                    <small class="text-muted">@job.CompanyName</small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2 small">
+                                <span><i class="fas fa-map-marker-alt text-success me-1"></i> @job.Location</span>
+                                <span class="fw-bold text-success">@job.SalaryRange</span>
+                            </div>
+
+                            <div class="small text-muted mb-3">
+                                <i class="far fa-calendar-alt me-1"></i> Hạn nộp: @job.Deadline.ToString("dd/MM/yyyy")
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                                @if (!job.IsExpired)
+                                {
+                                    <a asp-controller="Job" asp-action="Detail" asp-route-id="@job.JobId" class="btn btn-sm btn-success flex-grow-1">
+                                        Ứng tuyển ngay
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-secondary flex-grow-1" disabled>Hết hạn</button>
+                                }
+
+                                <button onclick="removeFromSaved(@job.JobId)" class="btn btn-sm btn-outline-danger" title="Bỏ lưu">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function removeFromSaved(jobId) {
+            if (!confirm("Bạn có chắc muốn bỏ lưu công việc này?")) return;
+
+            $.ajax({
+                url: '/Candidate/ToggleSaveJob',
+                type: 'POST',
+                data: { jobId: jobId },
+                success: function (response) {
+                    if (response.success && !response.isSaved) {
+                        // Xóa card khỏi giao diện
+                        $('#job-card-' + jobId).fadeOut(300, function () { $(this).remove(); });
+
+                        // Cập nhật lại số lượng (Optional)
+                        // Reload trang nếu muốn đơn giản
+                    }
+                }
+            });
+        }
+    </script>
+}

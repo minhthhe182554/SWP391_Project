@@ -21,6 +21,8 @@ namespace SWP391_Project.ViewModels.Jobs
         public int VacancyCount { get; set; }
         public string JobType { get; set; } = string.Empty;
         public List<SimilarJobCardVM> SimilarJobs { get; set; } = new();
+        public bool IsSaved { get; set; }
+        public bool HasApplied { get; set; }
     }
 }
 

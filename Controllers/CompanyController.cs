@@ -14,13 +14,15 @@ namespace SWP391_Project.Controllers
         private readonly ILocationService _locationService;
         private readonly IAccountService _accountService;
         private readonly IConfiguration _configuration;
+        private readonly IJobService _jobService;
 
-        public CompanyController(ICompanyService companyService, ILocationService locationService, IAccountService accountService, IConfiguration configuration)
+        public CompanyController(ICompanyService companyService, ILocationService locationService, IAccountService accountService, IConfiguration configuration, IJobService jobService)
         {
             _companyService = companyService;
             _locationService = locationService; 
             _accountService = accountService;
             _configuration = configuration;
+            _jobService = jobService;
         }
         
         [RoleAuthorize(Role.COMPANY)]
@@ -63,7 +65,6 @@ namespace SWP391_Project.Controllers
 
             if (model == null) return RedirectToAction("Index");
 
-            // Load lại danh sách Thành phố để đổ vào Dropdown
             ViewBag.Cities = await _locationService.GetCitiesAsync();
             ViewBag.GoogleMapsApiKey = _configuration[AppConstants.ConfigurationKeys.GoogleMapsApiKey];
 
@@ -89,7 +90,6 @@ namespace SWP391_Project.Controllers
             if (result)
             {
                 TempData["Success"] = "Cập nhật hồ sơ thành công!";
-                // Cập nhật lại Session tên và ảnh mới (nếu có)
                 var updatedCompany = await _companyService.GetCompanyByUserIdAsync(userId);
                 if (updatedCompany != null)
                 {
@@ -157,7 +157,6 @@ namespace SWP391_Project.Controllers
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
             int userId = int.Parse(userIdStr);
 
-            // Bỏ qua validate các trường không thuộc basic
             ModelState.Remove(nameof(CompanyProfileVM.City));
             ModelState.Remove(nameof(CompanyProfileVM.Ward));
             ModelState.Remove(nameof(CompanyProfileVM.Address));
@@ -198,7 +197,6 @@ namespace SWP391_Project.Controllers
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
             int userId = int.Parse(userIdStr);
 
-            // Bỏ qua validate các trường không thuộc address
             ModelState.Remove(nameof(CompanyProfileVM.Name));
             ModelState.Remove(nameof(CompanyProfileVM.PhoneNumber));
             ModelState.Remove(nameof(CompanyProfileVM.Website));
@@ -222,6 +220,47 @@ namespace SWP391_Project.Controllers
             }
 
             return RedirectToAction("Profile");
+        }
+        [RoleAuthorize(Role.COMPANY)]
+        [HttpGet]
+        public async Task<IActionResult> PostJob()
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+
+            var model = await _jobService.GetPostJobModelAsync();
+
+            return View(model);
+        }
+        [RoleAuthorize(Role.COMPANY)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PostJob(PostJobVM model)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await _jobService.AddJobAsync(int.Parse(userIdStr), model);
+
+                    TempData["Success"] = "Đăng tin tuyển dụng thành công!";
+                    return RedirectToAction("Index", "Company"); 
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Đã xảy ra lỗi: " + ex.Message);
+                }
+            }
+
+            var dropdownData = await _jobService.GetPostJobModelAsync();
+            model.Locations = dropdownData.Locations;
+            model.Skills = dropdownData.Skills;
+            model.Domains = dropdownData.Domains;
+
+            return View(model);
         }
     }
 }

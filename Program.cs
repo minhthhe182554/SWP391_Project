@@ -20,9 +20,11 @@ builder.Services.AddScoped<ICandidateRepository, CandidateRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();         
+builder.Services.AddScoped<ILocationRepository, LocationRepository>(); 
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();       
+builder.Services.AddScoped<IDomainRepository, DomainRepository>();
 
-// Register Repositories
-builder.Services.AddScoped<IJobRepository, JobRepository>();
 
 // Register Services
 builder.Services.AddScoped<ICandidateService, CandidateService>();
@@ -31,6 +33,10 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IJobService, JobService>();
+builder.Services.AddScoped<ISavedJobRepository, SavedJobRepository>();
+builder.Services.AddScoped<ISavedJobService, SavedJobService>();
+builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
+builder.Services.AddScoped<IApplicationService, ApplicationService>();
 
 // Register Storage Service (no Infrastructure layer)
 builder.Services.AddScoped<IStorageService, StorageService>();
