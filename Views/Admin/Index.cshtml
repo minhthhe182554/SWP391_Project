@@ -1,3 +1,4 @@
+@using System.Text.Json
 @model SWP391_Project.ViewModels.AdminDashboardVM
 @{
     Layout = "_LayoutAdmin";
@@ -6,64 +7,61 @@
 }
 
 <div class="container mt-4">
-    <h1 class="mb-4" style="color: @primaryColor; font-size: 2rem; font-weight: bold;">Dashboard Quản trị</h1>
-    
+    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between mb-3 gap-2">
+        <h1 class="mb-0" style="color: @primaryColor; font-size: 2rem; font-weight: bold;">Dashboard Quản trị</h1>
+        <div class="btn-group" role="group" aria-label="Chọn phạm vi">
+            <button type="button" class="btn btn-outline-primary active" data-days="7">7 ngày</button>
+            <button type="button" class="btn btn-outline-primary" data-days="30">30 ngày</button>
+        </div>
+    </div>
+
     <div class="row">
-        <div class="col-md-3 mb-3">
-            <div class="card" style="border-radius: 10px; border: 1px solid #ced4da;">
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm">
                 <div class="card-body">
-                    <h5 class="card-title">Tổng số người dùng</h5>
-                    <h2 class="card-text">@Model.TotalUsers</h2>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Xu hướng theo ngày</h5>
+                        <small class="text-muted">Người dùng mới, Công việc, Ứng tuyển, Công ty</small>
+                    </div>
+                    <div style="height: 360px;">
+                        <canvas id="metricsChart" height="320"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card" style="border-radius: 10px; border: 1px solid #ced4da;">
+
+        <div class="col-12 col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Ứng viên</h5>
-                    <h2 class="card-text">@Model.TotalCandidates</h2>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Top danh mục công việc (ứng tuyển)</h5>
+                        <small class="text-muted">Top 5</small>
+                    </div>
+                    <div style="height: 320px;">
+                        <canvas id="categoriesChart" height="280"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card" style="border-radius: 10px; border: 1px solid #ced4da;">
+
+        <div class="col-12 col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Công ty</h5>
-                    <h2 class="card-text">@Model.TotalCompanies</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card" style="border-radius: 10px; border: 1px solid #ced4da;">
-                <div class="card-body">
-                    <h5 class="card-title">Công việc</h5>
-                    <h2 class="card-text">@Model.TotalJobs</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card" style="border-radius: 10px; border: 1px solid #ced4da;">
-                <div class="card-body">
-                    <h5 class="card-title">Ứng tuyển</h5>
-                    <h2 class="card-text">@Model.TotalApplications</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card" style="border-radius: 10px; border: 1px solid #ced4da;">
-                <div class="card-body">
-                    <h5 class="card-title">Báo cáo</h5>
-                    <h2 class="card-text">@Model.TotalReports</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="card" style="border-radius: 10px; border: 1px solid #dc3545;">
-                <div class="card-body">
-                    <h5 class="card-title" style="color: #dc3545;">Báo cáo chờ xử lý</h5>
-                    <h2 class="card-text" style="color: #dc3545;">@Model.PendingReports</h2>
+                    <h5 class="card-title mb-3">Tóm tắt nhanh</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">Người dùng mới (ngày gần nhất): <strong data-stat="newUsers">-</strong></li>
+                        <li class="mb-2">Công việc đang hoạt động: <strong data-stat="activeJobs">-</strong></li>
+                        <li class="mb-2">Ứng tuyển mới: <strong data-stat="newApplications">-</strong></li>
+                        <li class="mb-2">Công ty hoạt động: <strong data-stat="activeCompanies">-</strong></li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    window.initialDashboardData = @Html.Raw(JsonSerializer.Serialize(Model));
+</script>
+<script src="~/js/admin-dashboard-chart.js"></script>

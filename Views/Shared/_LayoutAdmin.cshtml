@@ -22,7 +22,7 @@
     @if (ViewData["HideLayoutChrome"] == null)
     {
         <header>
-            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-0">
                 <div class="container-fluid">
                     <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
                         <img src="~/imgs/ic_ezjob.png" alt="EZJob" style="height: 60px; margin-right: 8px;" />
@@ -39,10 +39,54 @@
             </nav>
         </header>
     }
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 col-md-3 col-lg-2 bg-light border-end min-vh-100 py-3">
+                <style>
+                    .admin-sidebar .nav-link {
+                        border-radius: 10px;
+                        padding: 0.65rem 0.85rem;
+                        margin-bottom: 0.35rem;
+                        color: #495057;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        transition: all 0.15s ease-in-out;
+                        font-weight: 500;
+                    }
+                    .admin-sidebar .nav-link:hover {
+                        background-color: #e9f7ef;
+                        color: #28a745;
+                    }
+                    .admin-sidebar .nav-link.active {
+                        background-color: #28a745;
+                        color: #ffffff;
+                        box-shadow: 0 8px 20px rgba(40, 167, 69, 0.25);
+                    }
+                    .admin-sidebar .nav-link i {
+                        width: 18px;
+                        text-align: center;
+                    }
+                </style>
+                <nav class="nav flex-column admin-sidebar">
+                    @{
+                        var currentAction = ViewContext.RouteData.Values["Action"]?.ToString() ?? string.Empty;
+                        Func<string, string> activeClass = (action) => string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+                    }
+                    <a class="nav-link @activeClass("ManageUsers")" asp-controller="Admin" asp-action="ManageUsers">
+                        <i class="fa fa-users"></i> Manage Users
+                    </a>
+                    <a class="nav-link @activeClass("ManageReports")" asp-controller="Admin" asp-action="ManageReports">
+                        <i class="fa fa-flag"></i> Quản lý Reports
+                    </a>
+                </nav>
+            </div>
+            <div class="col-12 col-md-9 col-lg-10 py-4">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
