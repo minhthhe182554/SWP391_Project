@@ -29,7 +29,20 @@
             </div>
         </li>
 
-        @if (role == "CANDIDATE")
+        @if (role == "ADMIN")
+        {
+            <li class="dropdown-section">
+                <a class="dropdown-item d-flex align-items-center" asp-controller="Admin" asp-action="ManageUsers">
+                    <i class="fa fa-users me-2 text-success"></i>
+                    Manage Users
+                </a>
+                <a class="dropdown-item d-flex align-items-center" asp-controller="Admin" asp-action="ManageReports">
+                    <i class="fa fa-flag me-2 text-success"></i>
+                    Quản lý Reports
+                </a>
+            </li>
+        }
+        else if (role == "CANDIDATE")
         {
             <li class="dropdown-section">
                 <div class="dropdown-section-header" data-bs-toggle="collapse" data-bs-target="#jobManagementSection" aria-expanded="false" onclick="event.stopPropagation();">
