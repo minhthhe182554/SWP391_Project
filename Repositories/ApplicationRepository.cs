@@ -46,5 +46,16 @@ namespace SWP391_Project.Repositories
             _context.Applications.Update(application);
             await _context.SaveChangesAsync();
         }
+        public async Task<List<Application>> GetApplicationsByCandidateIdAsync(int candidateId)
+        {
+            return await _context.Applications
+                .Where(a => a.CandidateId == candidateId)
+                .Include(a => a.Job)                
+                    .ThenInclude(j => j.Company)    
+                .Include(a => a.Job)
+                    .ThenInclude(j => j.Location)   
+                .OrderByDescending(a => a.SentDate) 
+                .ToListAsync();
+        }
     }
 }

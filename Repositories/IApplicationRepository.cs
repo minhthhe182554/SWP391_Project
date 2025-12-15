@@ -11,5 +11,6 @@ namespace SWP391_Project.Repositories
         Task<List<Resume>> GetResumesByCandidateIdAsync(int candidateId);
         Task<Application?> GetApplicationAsync(int candidateId, int jobId); 
         Task UpdateAsync(Application application);
+        Task<List<Application>> GetApplicationsByCandidateIdAsync(int candidateId);
     }
 }

@@ -87,5 +87,28 @@ namespace SWP391_Project.Services
                 return (true, "Ứng tuyển thành công!");
             }
         }
+        public async Task<List<AppliedJobVM>> GetAppliedJobsAsync(int userId)
+        {
+            var candidate = await _candidateRepository.GetByUserIdAsync(userId);
+            if (candidate == null) return new List<AppliedJobVM>();
+
+            var applications = await _applicationRepository.GetApplicationsByCandidateIdAsync(candidate.Id);
+
+            return applications.Select(a => new AppliedJobVM
+            {
+                JobId = a.JobId,
+                JobTitle = a.Job.Title,
+                CompanyName = a.Job.Company?.Name ?? "Công ty ẩn danh",
+                CompanyLogo = a.Job.Company?.ImageUrl ?? "/imgs/ic_default_avatar.png", 
+                Location = a.Job.Location?.City ?? "Chưa cập nhật",
+
+                SalaryText = (a.Job.LowerSalaryRange.HasValue || a.Job.HigherSalaryRange.HasValue)
+                             ? "Có lương" : "Thỏa thuận",
+
+                AppliedDate = a.SentDate,
+                ResumeUrl = a.ResumeUrl,
+                CoverLetter = a.CoverLetter
+            }).ToList();
+        }
     }
 }

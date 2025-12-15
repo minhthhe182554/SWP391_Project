@@ -635,5 +635,14 @@ namespace SWP391_Project.Controllers
             var result = await _applicationService.SubmitApplicationAsync(int.Parse(userIdStr), model);
             return Json(new { success = result.success, message = result.message });
         }
+        [HttpGet]
+        public async Task<IActionResult> AppliedJobs()
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+
+            var model = await _applicationService.GetAppliedJobsAsync(int.Parse(userIdStr));
+            return View(model);
+        }
     }
 }
