@@ -17,6 +17,8 @@ public class HomePageVM
     public int CurrentPage { get; set; } = 1;
     public int TotalPages { get; set; } = 1;
     public int TotalJobs { get; set; } = 0;
+    public int MarketActiveJobs { get; set; } = 0;
+    public int MarketNewJobsToday { get; set; } = 0;
     public int PageSize { get; set; } = 9;
     
     // Filter options
