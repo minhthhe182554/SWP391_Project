@@ -1,10 +1,11 @@
 using SWP391_Project.Models;
+using JobEntity = SWP391_Project.Models.Job;
 
 namespace SWP391_Project.ViewModels.Home;
 
 public class HomePageVM
 {
-    public List<Job> Jobs { get; set; } = new();
+    public List<JobEntity> Jobs { get; set; } = new();
     public List<JobCardVM> JobCards { get; set; } = new();
     public List<CompanyCardVM> CompanyCards { get; set; } = new();
     public List<Domain> CompanyDomainOptions { get; set; } = new();
@@ -35,7 +36,7 @@ public class HomePageVM
 
 public class JobCardVM
 {
-    public Job Job { get; set; } = null!;
+    public JobEntity Job { get; set; } = null!;
     public string CompanyImageUrl { get; set; } = string.Empty;
 }
 

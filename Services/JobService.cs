@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using SWP391_Project.Models;
 
 namespace SWP391_Project.Services
 {
@@ -14,15 +15,20 @@ namespace SWP391_Project.Services
         private readonly IJobRepository _jobRepository;
         private readonly IStorageService _storageService;
         private readonly ILogger<JobService> _logger;
+        private readonly ISavedJobRepository _savedJobRepository; 
+        private readonly ICandidateRepository _candidateRepository;
 
-        public JobService(IJobRepository jobRepository, IStorageService storageService, ILogger<JobService> logger)
+        public JobService(ISavedJobRepository savedJobRepository,
+        ICandidateRepository candidateRepository, IJobRepository jobRepository, IStorageService storageService, ILogger<JobService> logger)
         {
             _jobRepository = jobRepository;
             _storageService = storageService;
             _logger = logger;
+            _savedJobRepository = savedJobRepository;
+            _candidateRepository = candidateRepository;
         }
 
-        public async Task<JobDetailVM?> GetJobDetailAsync(int jobId)
+        public async Task<JobDetailVM?> GetJobDetailAsync(int jobId, int? userId = null)
         {
             var job = await _jobRepository.GetJobWithDetailsAsync(jobId);
             if (job == null) return null;
@@ -84,6 +90,15 @@ namespace SWP391_Project.Services
             }).ToList();
 
             _logger.LogInformation("Similar jobs for {JobId}: {Count}", jobId, vm.SimilarJobs.Count);
+
+            if (userId.HasValue)
+            {
+                var candidate = await _candidateRepository.GetByUserIdAsync(userId.Value);
+                if (candidate != null)
+                {
+                    vm.IsSaved = await _savedJobRepository.IsSavedAsync(candidate.Id, jobId);
+                }
+            }
 
             return vm;
         }

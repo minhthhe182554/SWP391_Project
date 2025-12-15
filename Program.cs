@@ -31,6 +31,8 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IJobService, JobService>();
+builder.Services.AddScoped<ISavedJobRepository, SavedJobRepository>();
+builder.Services.AddScoped<ISavedJobService, SavedJobService>();
 
 // Register Storage Service (no Infrastructure layer)
 builder.Services.AddScoped<IStorageService, StorageService>();

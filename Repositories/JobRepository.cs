@@ -34,6 +34,16 @@ namespace SWP391_Project.Repositories
                 .Include(j => j.Domains)
                 .ToListAsync();
         }
+
+        public async Task<Job?> GetByIdAsync(int id)
+        {
+            return await _context.Jobs
+                .Include(j => j.Company)
+                .Include(j => j.Location)
+                .Include(j => j.RequiredSkills)
+                .Include(j => j.Domains)
+                .FirstOrDefaultAsync(j => j.Id == id);
+        }
     }
 }
 

@@ -63,8 +63,11 @@
                                     </a>
                                 </div>
                                 <div class="col-12 col-md-3">
-                                    <button class="btn btn-outline-success w-100 d-flex justify-content-center align-items-center py-3">
-                                        <i class="fas fa-bookmark me-2"></i>Lưu
+                                    <button id="btnSaveJob"
+                                            onclick="toggleSaveJob(@Model.Id)"
+                                            class="btn @(Model.IsSaved ? "btn-success" : "btn-outline-success") w-100 d-flex justify-content-center align-items-center py-3">
+                                        <i class="fas @(Model.IsSaved ? "fa-check" : "fa-bookmark") me-2" id="iconSaveJob"></i>
+                                        <span id="textSaveJob">@(Model.IsSaved ? "Đã lưu" : "Lưu tin")</span>
                                     </button>
                                 </div>
                             </div>
@@ -190,3 +193,43 @@
     </div>
 </section>
 
+@section Scripts {
+    <script>
+        function toggleSaveJob(jobId) {
+            $.ajax({
+                url: '/Candidate/ToggleSaveJob', 
+                type: 'POST',
+                data: { jobId: jobId },
+                success: function (response) {
+                    if (response.success) {
+                        var btn = $('#btnSaveJob');
+                        var icon = $('#iconSaveJob');
+                        var text = $('#textSaveJob');
+
+                        if (response.isSaved) {
+                            // Chuyển sang trạng thái ĐÃ LƯU
+                            btn.removeClass('btn-outline-success').addClass('btn-success');
+                            icon.removeClass('fa-bookmark').addClass('fa-check');
+                            text.text('Đã lưu');
+                        } else {
+                            // Chuyển sang trạng thái LƯU TIN
+                            btn.removeClass('btn-success').addClass('btn-outline-success');
+                            icon.removeClass('fa-check').addClass('fa-bookmark');
+                            text.text('Lưu tin');
+                        }
+                    } else {
+                        if (response.message === "Unauthorized") {
+                            alert("Vui lòng đăng nhập để lưu công việc!");
+                            window.location.href = "/Account/Login";
+                        } else {
+                            alert("Có lỗi xảy ra: " + response.message);
+                        }
+                    }
+                },
+                error: function () {
+                    alert("Lỗi kết nối đến server.");
+                }
+            });
+        }
+    </script>
+}

@@ -14,11 +14,13 @@ namespace SWP391_Project.Controllers
     {
         private readonly ICandidateService _candidateService;
         private readonly IStorageService _storageService;
+        private readonly ISavedJobService _savedJobService;
 
-        public CandidateController(ICandidateService candidateService, IStorageService storageService)
+        public CandidateController(ISavedJobService savedJobService, ICandidateService candidateService, IStorageService storageService)
         {
             _candidateService = candidateService;
             _storageService = storageService;
+            _savedJobService = savedJobService;
         }
 
         public async Task<IActionResult> Index()
@@ -558,6 +560,35 @@ namespace SWP391_Project.Controllers
             {
                 return Json(new { success = false, message = "Có lỗi xảy ra khi upload ảnh" });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleSaveJob(int jobId)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return Json(new { success = false, message = "Unauthorized" });
+            int userId = int.Parse(userIdStr);
+
+            try
+            {
+                bool isSaved = await _savedJobService.ToggleSaveJobAsync(userId, jobId);
+                return Json(new { success = true, isSaved = isSaved });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SavedJobs()
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+            int userId = int.Parse(userIdStr);
+
+            var model = await _savedJobService.GetSavedJobsAsync(userId);
+            return View(model);
         }
     }
 }

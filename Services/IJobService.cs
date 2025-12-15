@@ -5,7 +5,7 @@ namespace SWP391_Project.Services
 {
     public interface IJobService
     {
-        Task<JobDetailVM?> GetJobDetailAsync(int jobId);
+        Task<JobDetailVM> GetJobDetailAsync(int jobId, int? userId = null);
     }
 }
 

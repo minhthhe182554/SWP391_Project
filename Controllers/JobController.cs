@@ -16,7 +16,16 @@ namespace SWP391_Project.Controllers
 
         public async Task<IActionResult> Detail(int id)
         {
-            var vm = await _jobService.GetJobDetailAsync(id);
+            int? userId = null;
+            var userIdStr = HttpContext.Session.GetString("UserID");
+
+            if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int parsedId))
+            {
+                userId = parsedId;
+            }
+
+            var vm = await _jobService.GetJobDetailAsync(id, userId);
+
             if (vm == null) return NotFound();
 
             return View(vm);
