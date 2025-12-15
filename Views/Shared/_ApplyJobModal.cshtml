@@ -1,0 +1,73 @@
+﻿@model SWP391_Project.ViewModels.ApplyJobVM
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold" id="applyModalLabel">Ứng tuyển công việc</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body">
+    <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-3">
+        <img src="@Model.CompanyLogo" alt="Logo" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+        <div>
+            <h6 class="mb-0 fw-bold text-success">@Model.JobTitle</h6>
+            <small class="text-muted">Đang chờ bạn ứng tuyển</small>
+        </div>
+    </div>
+
+    <form id="applyJobForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="JobId" />
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold small">Họ và tên <span class="text-danger">*</span></label>
+            <input asp-for="FullName" class="form-control" placeholder="Nhập họ tên của bạn" required />
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold small">Email <span class="text-danger">*</span></label>
+                <input asp-for="Email" class="form-control" type="email" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold small">Số điện thoại <span class="text-danger">*</span></label>
+                <input asp-for="PhoneNumber" class="form-control" required />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold small">Chọn CV ứng tuyển <span class="text-danger">*</span></label>
+            @if (Model.ExistingResumes != null && Model.ExistingResumes.Any())
+            {
+                <select asp-for="SelectedResumeId" class="form-select" required>
+                    <option value="">-- Chọn CV đã tải lên --</option>
+                    @foreach (var cv in Model.ExistingResumes)
+                    {
+                        <option value="@cv.Id">@cv.Name (Đã tải lên)</option>
+                    }
+                </select>
+                <div class="form-text text-end mt-1">
+                    <a href="#" class="text-success text-decoration-none small"><i class="fas fa-plus-circle"></i> Tải lên CV mới</a>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning small">
+                    <i class="fas fa-exclamation-circle"></i> Bạn chưa có CV nào.
+                    <a href="/Candidate/Profile" class="fw-bold text-dark">Vui lòng tải lên CV trước.</a>
+                </div>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold small">Thư giới thiệu (Cover Letter)</label>
+            <textarea asp-for="CoverLetter" class="form-control" rows="4" placeholder="Viết đôi lời giới thiệu về bản thân và lý do bạn phù hợp với vị trí này..."></textarea>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer border-0 pt-0">
+    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy bỏ</button>
+    <button type="button" class="btn btn-success px-4" onclick="submitApplication()">
+        <i class="fas fa-paper-plane me-2"></i> Gửi hồ sơ
+    </button>
+</div>

@@ -17,15 +17,16 @@ namespace SWP391_Project.Services
         private readonly ILogger<JobService> _logger;
         private readonly ISavedJobRepository _savedJobRepository; 
         private readonly ICandidateRepository _candidateRepository;
-
+        private readonly IApplicationRepository _applicationRepository; 
         public JobService(ISavedJobRepository savedJobRepository,
-        ICandidateRepository candidateRepository, IJobRepository jobRepository, IStorageService storageService, ILogger<JobService> logger)
+        ICandidateRepository candidateRepository, IJobRepository jobRepository, IStorageService storageService, ILogger<JobService> logger, IApplicationRepository applicationRepository)
         {
             _jobRepository = jobRepository;
             _storageService = storageService;
             _logger = logger;
             _savedJobRepository = savedJobRepository;
             _candidateRepository = candidateRepository;
+            _applicationRepository = applicationRepository;
         }
 
         public async Task<JobDetailVM?> GetJobDetailAsync(int jobId, int? userId = null)
@@ -56,7 +57,9 @@ namespace SWP391_Project.Services
                 CompanyAddress = job.Company?.Address ?? job.Address ?? "Địa điểm chưa rõ",
                 CompanyDomains = job.Domains.Select(d => d.Name).Take(2).ToList(),
                 VacancyCount = job.VacancyCount,
-                JobType = FormatJobType(job.Type)
+                JobType = FormatJobType(job.Type),
+                IsSaved = false,
+                HasApplied = false
             };
 
             // Similar jobs
@@ -97,6 +100,7 @@ namespace SWP391_Project.Services
                 if (candidate != null)
                 {
                     vm.IsSaved = await _savedJobRepository.IsSavedAsync(candidate.Id, jobId);
+                    vm.HasApplied = await _applicationRepository.HasAppliedAsync(candidate.Id, jobId);
                 }
             }
 

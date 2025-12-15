@@ -6,6 +6,8 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 using SWP391_Project.Services.Storage;
 using SWP391_Project.Helpers;
+using Microsoft.AspNetCore.Authorization;
+using SWP391_Project.ViewModels;
 
 namespace SWP391_Project.Controllers
 {
@@ -15,12 +17,14 @@ namespace SWP391_Project.Controllers
         private readonly ICandidateService _candidateService;
         private readonly IStorageService _storageService;
         private readonly ISavedJobService _savedJobService;
+        private readonly IApplicationService _applicationService;
 
-        public CandidateController(ISavedJobService savedJobService, ICandidateService candidateService, IStorageService storageService)
+        public CandidateController(ISavedJobService savedJobService, ICandidateService candidateService, IStorageService storageService, IApplicationService applicationService)
         {
             _candidateService = candidateService;
             _storageService = storageService;
             _savedJobService = savedJobService;
+            _applicationService = applicationService;   
         }
 
         public async Task<IActionResult> Index()
@@ -563,15 +567,15 @@ namespace SWP391_Project.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> ToggleSaveJob(int jobId)
         {
             var userIdStr = HttpContext.Session.GetString("UserID");
-            if (string.IsNullOrEmpty(userIdStr)) return Json(new { success = false, message = "Unauthorized" });
+            if (string.IsNullOrEmpty(userIdStr)) return Json(new { success = false, requireLogin = true, message = "Vui lòng đăng nhập" });
             int userId = int.Parse(userIdStr);
-
             try
             {
-                bool isSaved = await _savedJobService.ToggleSaveJobAsync(userId, jobId);
+                bool isSaved = await _savedJobService.ToggleSaveJobAsync(int.Parse(userIdStr), jobId);
                 return Json(new { success = true, isSaved = isSaved });
             }
             catch (Exception ex)
@@ -589,6 +593,47 @@ namespace SWP391_Project.Controllers
 
             var model = await _savedJobService.GetSavedJobsAsync(userId);
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetApplyModal(int jobId)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr))
+            {
+                return Unauthorized();
+            }
+            try
+            {
+                var model = await _applicationService.GetApplyFormAsync(int.Parse(userIdStr), jobId);
+                return PartialView("_ApplyJobModal", model);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitApplication(ApplyJobVM model)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+            .Where(x => x.Value.Errors.Count > 0)
+            .Select(x => $"{x.Key}: {x.Value.Errors.First().ErrorMessage}")
+            .ToList();
+
+                string errorMessage = string.Join("\n", errors);
+
+                return Json(new { success = false, message = "Lỗi dữ liệu:\n" + errorMessage });
+            }
+
+            var result = await _applicationService.SubmitApplicationAsync(int.Parse(userIdStr), model);
+            return Json(new { success = result.success, message = result.message });
         }
     }
 }
