@@ -105,10 +105,11 @@ public class HomeController : Controller
 
         var query = _context.Jobs
             .Include(j => j.Company)
+                .ThenInclude(c => c.User)
             .Include(j => j.Location)
             .Include(j => j.RequiredSkills)
             .Include(j => j.Domains)
-            .Where(j => j.EndDate >= now && !j.IsDelete);
+            .Where(j => j.EndDate >= now && !j.IsDelete && j.Company != null && j.Company.User.Active);
 
         // Apply filters
         if (!string.IsNullOrEmpty(location) && location != "Ngẫu nhiên")
@@ -174,8 +175,11 @@ public class HomeController : Controller
             _ => query.OrderByDescending(j => j.StartDate)
         };
 
-        // Get total count
+        // Get total count + market stats
         viewModel.TotalJobs = query.Count();
+        var today = DateTime.Today;
+        viewModel.MarketActiveJobs = viewModel.TotalJobs;
+        viewModel.MarketNewJobsToday = query.Count(j => j.StartDate.Date == today);
         viewModel.TotalPages = (int)Math.Ceiling(viewModel.TotalJobs / (double)viewModel.PageSize);
         if (viewModel.TotalPages < 1) viewModel.TotalPages = 1;
         if (viewModel.CurrentPage > viewModel.TotalPages) viewModel.CurrentPage = viewModel.TotalPages;
@@ -257,11 +261,11 @@ public class HomeController : Controller
         // Domain options for company section (top by active job count)
         viewModel.CompanyDomainOptions = _context.Domains
             .Include(d => d.Jobs)
-            .Where(d => d.Jobs.Any(j => j.EndDate >= now && !j.IsDelete))
+            .Where(d => d.Jobs.Any(j => j.EndDate >= now && !j.IsDelete && j.Company != null && j.Company.User.Active))
             .Select(d => new
             {
                 Domain = d,
-                ActiveJobCount = d.Jobs.Count(j => j.EndDate >= now && !j.IsDelete)
+                ActiveJobCount = d.Jobs.Count(j => j.EndDate >= now && !j.IsDelete && j.Company != null && j.Company.User.Active)
             })
             .OrderByDescending(x => x.ActiveJobCount)
             .Take(12)
@@ -270,13 +274,13 @@ public class HomeController : Controller
 
         // Companies that are actively recruiting (optionally filter by selected company domain)
         var companyBaseQuery = _context.Companies
-            .Where(c => c.Jobs.Any(j => j.EndDate >= now && !j.IsDelete));
+            .Where(c => c.User.Active && c.Jobs.Any(j => j.EndDate >= now && !j.IsDelete && j.Company != null && j.Company.User.Active));
 
         if (viewModel.SelectedCompanyDomainId.HasValue)
         {
             var selectedId = viewModel.SelectedCompanyDomainId.Value;
             companyBaseQuery = companyBaseQuery.Where(c =>
-                c.Jobs.Any(j => j.EndDate >= now && !j.IsDelete && j.Domains.Any(d => d.Id == selectedId)));
+                c.Jobs.Any(j => j.EndDate >= now && !j.IsDelete && j.Company != null && j.Company.User.Active && j.Domains.Any(d => d.Id == selectedId)));
         }
 
         // Company pagination
@@ -291,7 +295,7 @@ public class HomeController : Controller
             .Select(c => new
             {
                 c.Id,
-                ActiveJobCount = c.Jobs.Count(j => j.EndDate >= now && !j.IsDelete)
+                ActiveJobCount = c.Jobs.Count(j => j.EndDate >= now && !j.IsDelete && j.Company != null && j.Company.User.Active)
             })
             .OrderByDescending(x => x.ActiveJobCount)
             .ThenBy(x => x.Id)
