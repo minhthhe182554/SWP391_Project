@@ -20,9 +20,11 @@ builder.Services.AddScoped<ICandidateRepository, CandidateRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();         
+builder.Services.AddScoped<ILocationRepository, LocationRepository>(); 
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();       
+builder.Services.AddScoped<IDomainRepository, DomainRepository>();
 
-// Register Repositories
-builder.Services.AddScoped<IJobRepository, JobRepository>();
 
 // Register Services
 builder.Services.AddScoped<ICandidateService, CandidateService>();

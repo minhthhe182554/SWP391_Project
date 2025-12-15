@@ -1,0 +1,166 @@
+﻿@model SWP391_Project.ViewModels.Company.PostJobVM
+@using SWP391_Project.Models
+
+@{
+    ViewData["Title"] = "Đăng tin tuyển dụng";
+    Layout = "_LayoutCompany"; // Layout dành cho doanh nghiệp
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-briefcase me-2"></i> Đăng tin tuyển dụng mới
+                    </h5>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="PostJob" method="post">
+                        @Html.AntiForgeryToken()
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger mb-4">
+                                <i class="fas fa-exclamation-triangle me-2"></i> Vui lòng kiểm tra lại các thông tin bên dưới.
+                                @Html.ValidationSummary(false, "", new { @class = "mb-0 mt-2" })
+                            </div>
+                        }
+
+                        <h6 class="text-success fw-bold mb-3 border-bottom pb-2">1. Thông tin chung</h6>
+
+                        <div class="mb-4">
+                            <label asp-for="Title" class="form-label fw-bold">Tiêu đề công việc <span class="text-danger">*</span></label>
+                            <input asp-for="Title" class="form-control form-control-lg" placeholder="VD: Senior Java Backend Developer..." />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LocationId" class="form-label fw-bold">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                <select asp-for="LocationId" class="form-select"
+                                        asp-items="@(new SelectList(Model.Locations, "Id", "City"))">
+                                    <option value="">-- Chọn địa điểm làm việc --</option>
+                                </select>
+                                <span asp-validation-for="LocationId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Address" class="form-label fw-bold">Địa chỉ chi tiết</label>
+                                <input asp-for="Address" class="form-control" placeholder="Số nhà, tên đường, tòa nhà..." />
+                                <span asp-validation-for="Address" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LowerSalary" class="form-label fw-bold">Mức lương tối thiểu <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input asp-for="LowerSalary" class="form-control" type="number" min="0" placeholder="0" />
+                                    <span class="input-group-text fw-bold text-muted">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="LowerSalary" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="HigherSalary" class="form-label fw-bold">Mức lương tối đa (Tùy chọn)</label>
+                                <div class="input-group">
+                                    <input asp-for="HigherSalary" class="form-control" type="number" min="0" placeholder="Để trống nếu thỏa thuận" />
+                                    <span class="input-group-text fw-bold text-muted">VNĐ</span>
+                                </div>
+                                <span asp-validation-for="HigherSalary" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <h6 class="text-success fw-bold mb-3 mt-4 border-bottom pb-2">2. Yêu cầu chi tiết</h6>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="YearsOfExperience" class="form-label fw-bold">Kinh nghiệm (Năm) <span class="text-danger">*</span></label>
+                                <input asp-for="YearsOfExperience" class="form-control" type="number" min="0" />
+                                <span asp-validation-for="YearsOfExperience" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="VacancyCount" class="form-label fw-bold">Số lượng tuyển <span class="text-danger">*</span></label>
+                                <input asp-for="VacancyCount" class="form-control" type="number" min="1" value="1" />
+                                <span asp-validation-for="VacancyCount" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="JobType" class="form-label fw-bold">Loại hình công việc <span class="text-danger">*</span></label>
+                                <select asp-for="JobType" class="form-select" asp-items="Html.GetEnumSelectList<JobType>()"></select>
+                                <span asp-validation-for="JobType" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="EndDate" class="form-label fw-bold">Hạn nộp hồ sơ <span class="text-danger">*</span></label>
+                            <input asp-for="EndDate" class="form-control w-50" type="date" />
+                            <span asp-validation-for="EndDate" class="text-danger small"></span>
+                        </div>
+
+                        <h6 class="text-success fw-bold mb-3 mt-4 border-bottom pb-2">3. Phân loại & Mô tả</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SelectedDomainIds" class="form-label fw-bold">Lĩnh vực chuyên môn <span class="text-danger">*</span></label>
+                                <select asp-for="SelectedDomainIds" class="form-select" multiple style="height: 160px; background-color: #f8f9fa;">
+                                    @foreach (var domain in Model.Domains)
+                                    {
+                                        <option value="@domain.Id">@domain.Name</option>
+                                    }
+                                </select>
+                                <div class="form-text text-muted small"><i class="fas fa-info-circle"></i> Giữ phím <strong>Ctrl</strong> (Windows) hoặc <strong>Command</strong> (Mac) để chọn nhiều mục.</div>
+                                <span asp-validation-for="SelectedDomainIds" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SelectedSkillIds" class="form-label fw-bold">Kỹ năng yêu cầu <span class="text-danger">*</span></label>
+                                <select asp-for="SelectedSkillIds" class="form-select" multiple style="height: 160px; background-color: #f8f9fa;">
+                                    @foreach (var skill in Model.Skills)
+                                    {
+                                        <option value="@skill.Id">@skill.Name</option>
+                                    }
+                                </select>
+                                <div class="form-text text-muted small"><i class="fas fa-info-circle"></i> Giữ phím <strong>Ctrl</strong> để chọn nhiều kỹ năng.</div>
+                                <span asp-validation-for="SelectedSkillIds" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Description" class="form-label fw-bold">Mô tả công việc chi tiết <span class="text-danger">*</span></label>
+                            <textarea asp-for="Description" class="form-control" rows="8" placeholder="Mô tả trách nhiệm, quyền lợi, yêu cầu khác..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                            <a asp-controller="Company" asp-action="ManageJobs" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-arrow-left me-2"></i> Hủy bỏ
+                            </a>
+                            <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm">
+                                <i class="fas fa-paper-plane me-2"></i> Đăng Tin Ngay
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Tự động set Min Date cho EndDate là ngày hôm nay
+        document.addEventListener('DOMContentLoaded', function () {
+            var today = new Date().toISOString().split('T')[0];
+            document.getElementById("EndDate").setAttribute('min', today);
+        });
+    </script>
+}

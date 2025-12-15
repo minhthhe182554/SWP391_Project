@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SWP391_Project.Models;
+using SWP391_Project.ViewModels.Company;
 
 namespace SWP391_Project.Services
 {
@@ -17,9 +18,16 @@ namespace SWP391_Project.Services
         private readonly ILogger<JobService> _logger;
         private readonly ISavedJobRepository _savedJobRepository; 
         private readonly ICandidateRepository _candidateRepository;
-        private readonly IApplicationRepository _applicationRepository; 
+        private readonly IApplicationRepository _applicationRepository;
+        private readonly ICompanyRepository _companyRepository;
+        private readonly ILocationRepository _locationRepository;
+        private readonly ISkillRepository _skillRepository;
+        private readonly IDomainRepository _domainRepository;
         public JobService(ISavedJobRepository savedJobRepository,
-        ICandidateRepository candidateRepository, IJobRepository jobRepository, IStorageService storageService, ILogger<JobService> logger, IApplicationRepository applicationRepository)
+        ICandidateRepository candidateRepository, IJobRepository jobRepository, IStorageService storageService, ILogger<JobService> logger, IApplicationRepository applicationRepository, ICompanyRepository companyRepository,
+        ILocationRepository locationRepository,
+        ISkillRepository skillRepository,
+        IDomainRepository domainRepository)
         {
             _jobRepository = jobRepository;
             _storageService = storageService;
@@ -27,6 +35,10 @@ namespace SWP391_Project.Services
             _savedJobRepository = savedJobRepository;
             _candidateRepository = candidateRepository;
             _applicationRepository = applicationRepository;
+            _companyRepository = companyRepository;
+            _locationRepository = locationRepository;
+            _skillRepository = skillRepository;
+            _domainRepository = domainRepository;
         }
 
         public async Task<JobDetailVM?> GetJobDetailAsync(int jobId, int? userId = null)
@@ -155,6 +167,51 @@ namespace SWP391_Project.Services
                 Models.JobType.HYBRID => "Hybrid",
                 _ => type.ToString()
             };
+        }
+        public async Task<PostJobVM> GetPostJobModelAsync()
+        {
+            return new PostJobVM
+            {
+                Locations = await _locationRepository.GetAllAsync(),
+                Domains = await _domainRepository.GetAllAsync(),
+                Skills = await _skillRepository.GetAllAsync(),
+                EndDate = DateTime.Now.AddMonths(1)
+            };
+        }
+
+        public async Task AddJobAsync(int userId, PostJobVM model)
+        {
+            var company = await _companyRepository.GetByUserIdAsync(userId);
+            if (company == null) throw new Exception("Không tìm thấy thông tin công ty.");
+
+            var job = new Job
+            {
+                CompanyId = company.Id,
+                Title = model.Title,
+                LocationId = model.LocationId,
+                Address = model.Address,
+                LowerSalaryRange = model.LowerSalary,
+                HigherSalaryRange = model.HigherSalary,
+                YearsOfExperience = model.YearsOfExperience,
+                VacancyCount = model.VacancyCount, 
+                Description = model.Description,
+                StartDate = DateTime.Now,
+                EndDate = model.EndDate,
+                Type = model.JobType,
+                IsDelete = false
+            };
+
+            if (model.SelectedSkillIds.Any())
+            {
+                job.RequiredSkills = await _skillRepository.GetSkillsByIdsAsync(model.SelectedSkillIds);
+            }
+
+            if (model.SelectedDomainIds.Any())
+            {
+                job.Domains = await _domainRepository.GetDomainsByIdsAsync(model.SelectedDomainIds);
+            }
+
+            await _jobRepository.AddAsync(job);
         }
     }
 }
