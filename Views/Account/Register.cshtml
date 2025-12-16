@@ -468,9 +468,10 @@
 </script>
 
 @section Scripts {
-    @* <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 
     <script>
+        // Kiểm tra xem có cái textarea đó không (vì nếu chọn Role Candidate thì ô này bị ẩn hoặc không render)
         var textarea = document.querySelector('#companyDescription');
 
         if (textarea) {
@@ -480,13 +481,15 @@
                     placeholder: 'Nhập mô tả chi tiết về công ty...'
                 })
                 .then(editor => {
+                    // Fix lỗi chiều cao: Mặc định nó hơi thấp, set cho nó cao lên tí cho đẹp
                     editor.ui.view.editable.element.style.minHeight = '150px';
                 })
                 .catch(error => {
                     console.error(error);
                 });
         }
-    </script> *@
+    </script>
+
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
