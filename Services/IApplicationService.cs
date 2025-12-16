@@ -1,4 +1,4 @@
-﻿using SWP391_Project.ViewModels;
+﻿using SWP391_Project.ViewModels.Candidate;
 
 namespace SWP391_Project.Services
 {
