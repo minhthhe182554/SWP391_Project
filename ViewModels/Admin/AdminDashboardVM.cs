@@ -1,13 +1,19 @@
-namespace SWP391_Project.ViewModels
+using System.Collections.Generic;
+
+namespace SWP391_Project.ViewModels;
+
+public class AdminDashboardVM
 {
-    public class AdminDashboardVM
-    {
-        public int TotalUsers { get; set; }
-        public int TotalCandidates { get; set; }
-        public int TotalCompanies { get; set; }
-        public int TotalJobs { get; set; }
-        public int TotalApplications { get; set; }
-        public int TotalReports { get; set; }
-        public int PendingReports { get; set; }
-    }
+    public List<string> Labels { get; set; } = new();
+    public List<int> NewUsers { get; set; } = new();
+    public List<int> ActiveJobs { get; set; } = new();
+    public List<int> NewApplications { get; set; } = new();
+    public List<int> ActiveCompanies { get; set; } = new();
+    public List<TopJobCategoryVM> TopJobCategories { get; set; } = new();
+}
+
+public class TopJobCategoryVM
+{
+    public string Category { get; set; } = string.Empty;
+    public int Applications { get; set; }
 }

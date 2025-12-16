@@ -5,9 +5,6 @@
 @{
     ViewData["Title"] = "Tìm việc làm - EZJob";
     var currentDate = DateTime.Now.ToString("dd/MM/yyyy");
-    // fixed
-    var totalJobs = 49562;
-    var newJobsToday = 1855;
 }
 
 @section Styles {
@@ -45,11 +42,11 @@
             <div class="market-stats-items">
                 <div class="market-stat-item">
                     <div class="label">Việc làm đang tuyển</div>
-                    <div class="value">@totalJobs.ToString("N0")</div>
+                    <div class="value">@Model.MarketActiveJobs.ToString("N0")</div>
                 </div>
                 <div class="market-stat-item">
                     <div class="label">Việc làm mới hôm nay</div>
-                    <div class="value">@newJobsToday.ToString("N0")</div>
+                    <div class="value">@Model.MarketNewJobsToday.ToString("N0")</div>
                 </div>
             </div>
         </div>

@@ -1,0 +1,456 @@
+@using System.Text.Json
+@model SWP391_Project.ViewModels.Admin.ManageUsersVM
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Manage Users";
+}
+
+<style>
+    .pill-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.32rem 0.75rem;
+        border-radius: 10px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        color: #495057;
+        font-weight: 600;
+        font-size: 0.92rem;
+        white-space: nowrap;
+    }
+    .pill-soft.success { color: #1f7a3d; border-color: #cce5d5; background: #eaf7f0; }
+    .pill-soft.primary { color: #28a745; border-color: #cce5d5; background: #eaf7f0; }
+    .pill-soft.muted { color: #6c757d; }
+    .pill-soft.locked { color: #b02a37; border-color: #f5c2c7; background: #fce8e8; }
+    .table thead th {
+        font-weight: 600;
+        color: #495057;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .table tbody td { vertical-align: middle; }
+    .arrow-btn {
+        border-radius: 10px;
+        padding: 0.4rem 0.75rem;
+    }
+</style>
+
+<div class="row mb-3">
+    <div class="col-12 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <div>
+            <h2 class="mb-1">Quản lý người dùng</h2>
+            <small class="text-muted">Thông tin người dùng hệ thống</small>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4 g-3">
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">Tương quan người dùng</h6>
+                    <small class="text-muted">Tổng người dùng: @(Model.TotalCandidatesCount + Model.TotalCompaniesCount)</small>
+                </div>
+                <div style="height: 260px;">
+                    <canvas id="userMixChart" height="240"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">Trạng thái công việc</h6>
+                    <small class="text-muted">Tổng công việc: @Model.TotalJobs</small>
+                </div>
+                <div style="height: 260px;">
+                    <canvas id="jobsChart" height="240"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-1">Danh sách Công ty</h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="pill-soft success">Hoạt động: @Model.ActiveCompaniesCount</span>
+                            <span class="pill-soft locked">Bị khóa: @Model.BannedCompaniesCount</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="@(Model.BannedCompaniesCount > 0 ? "col-12 col-xl-6" : "col-12")">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">Đang hoạt động</h6>
+                            <small class="text-muted">Trang @Model.CompanyActivePage / @Model.CompanyActiveTotalPages</small>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                <tr>
+                                    <th style="width: 80px;">ID</th>
+                                    <th>Email</th>
+                                    <th style="width: 140px;">Trạng thái</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach (var user in Model.ActiveCompanies)
+                                {
+                                    <tr class="user-row" data-user-id="@user.Id">
+                                        <td>@user.Id</td>
+                                        <td>@user.Email</td>
+                                        <td>
+                                            <span class="pill-soft success" style="font-size: 0.85rem; padding: 0.25rem 0.6rem;">
+                                                Hoạt động
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-end align-items-center gap-2">
+                            <a class="btn btn-outline-secondary arrow-btn @(Model.CompanyActivePage <= 1 ? "disabled" : "")"
+                               asp-action="ManageUsers"
+                               asp-route-companyActivePage="@(Model.CompanyActivePage - 1)"
+                               asp-route-companyBannedPage="@Model.CompanyBannedPage"
+                               asp-route-candidateActivePage="@Model.CandidateActivePage"
+                               asp-route-candidateBannedPage="@Model.CandidateBannedPage">
+                                <i class="fa fa-chevron-left"></i>
+                            </a>
+                            <a class="btn btn-outline-secondary arrow-btn @(Model.CompanyActivePage >= Model.CompanyActiveTotalPages ? "disabled" : "")"
+                               asp-action="ManageUsers"
+                               asp-route-companyActivePage="@(Model.CompanyActivePage + 1)"
+                               asp-route-companyBannedPage="@Model.CompanyBannedPage"
+                               asp-route-candidateActivePage="@Model.CandidateActivePage"
+                               asp-route-candidateBannedPage="@Model.CandidateBannedPage">
+                                <i class="fa fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    @if (Model.BannedCompaniesCount > 0)
+                    {
+                        <div class="col-12 col-xl-6">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Bị khóa</h6>
+                                <small class="text-muted">Trang @Model.CompanyBannedPage / @Model.CompanyBannedTotalPages</small>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 80px;">ID</th>
+                                        <th>Email</th>
+                                        <th style="width: 140px;">Trạng thái</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach (var user in Model.BannedCompanies)
+                                    {
+                                        <tr class="user-row" data-user-id="@user.Id">
+                                            <td>@user.Id</td>
+                                            <td>@user.Email</td>
+                                            <td>
+                                                <span class="pill-soft locked" style="font-size: 0.85rem; padding: 0.25rem 0.6rem;">
+                                                    Bị khóa
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-end align-items-center gap-2">
+                                <a class="btn btn-outline-secondary arrow-btn @(Model.CompanyBannedPage <= 1 ? "disabled" : "")"
+                                   asp-action="ManageUsers"
+                                   asp-route-companyBannedPage="@(Model.CompanyBannedPage - 1)"
+                                   asp-route-companyActivePage="@Model.CompanyActivePage"
+                                   asp-route-candidateActivePage="@Model.CandidateActivePage"
+                                   asp-route-candidateBannedPage="@Model.CandidateBannedPage">
+                                    <i class="fa fa-chevron-left"></i>
+                                </a>
+                                <a class="btn btn-outline-secondary arrow-btn @(Model.CompanyBannedPage >= Model.CompanyBannedTotalPages ? "disabled" : "")"
+                                   asp-action="ManageUsers"
+                                   asp-route-companyBannedPage="@(Model.CompanyBannedPage + 1)"
+                                   asp-route-companyActivePage="@Model.CompanyActivePage"
+                                   asp-route-candidateActivePage="@Model.CandidateActivePage"
+                                   asp-route-candidateBannedPage="@Model.CandidateBannedPage">
+                                    <i class="fa fa-chevron-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-1">Danh sách Ứng viên</h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <span class="pill-soft success">Hoạt động: @Model.ActiveCandidatesCount</span>
+                            <span class="pill-soft locked">Bị khóa: @Model.BannedCandidatesCount</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="@(Model.BannedCandidatesCount > 0 ? "col-12 col-xl-6" : "col-12")">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0">Đang hoạt động</h6>
+                            <small class="text-muted">Trang @Model.CandidateActivePage / @Model.CandidateActiveTotalPages</small>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                <tr>
+                                    <th style="width: 80px;">ID</th>
+                                    <th>Email</th>
+                                    <th style="width: 140px;">Trạng thái</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach (var user in Model.ActiveCandidates)
+                                {
+                                    <tr class="user-row" data-user-id="@user.Id">
+                                        <td>@user.Id</td>
+                                        <td>@user.Email</td>
+                                        <td>
+                                            <span class="pill-soft success" style="font-size: 0.85rem; padding: 0.25rem 0.6rem;">
+                                                Hoạt động
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-end align-items-center gap-2">
+                            <a class="btn btn-outline-secondary arrow-btn @(Model.CandidateActivePage <= 1 ? "disabled" : "")"
+                               asp-action="ManageUsers"
+                               asp-route-candidateActivePage="@(Model.CandidateActivePage - 1)"
+                               asp-route-candidateBannedPage="@Model.CandidateBannedPage"
+                               asp-route-companyActivePage="@Model.CompanyActivePage"
+                               asp-route-companyBannedPage="@Model.CompanyBannedPage">
+                                <i class="fa fa-chevron-left"></i>
+                            </a>
+                            <a class="btn btn-outline-secondary arrow-btn @(Model.CandidateActivePage >= Model.CandidateActiveTotalPages ? "disabled" : "")"
+                               asp-action="ManageUsers"
+                               asp-route-candidateActivePage="@(Model.CandidateActivePage + 1)"
+                               asp-route-candidateBannedPage="@Model.CandidateBannedPage"
+                               asp-route-companyActivePage="@Model.CompanyActivePage"
+                               asp-route-companyBannedPage="@Model.CompanyBannedPage">
+                                <i class="fa fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    @if (Model.BannedCandidatesCount > 0)
+                    {
+                        <div class="col-12 col-xl-6">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">Bị khóa</h6>
+                                <small class="text-muted">Trang @Model.CandidateBannedPage / @Model.CandidateBannedTotalPages</small>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 80px;">ID</th>
+                                        <th>Email</th>
+                                        <th style="width: 140px;">Trạng thái</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach (var user in Model.BannedCandidates)
+                                    {
+                                        <tr class="user-row" data-user-id="@user.Id">
+                                            <td>@user.Id</td>
+                                            <td>@user.Email</td>
+                                            <td>
+                                                <span class="pill-soft locked" style="font-size: 0.85rem; padding: 0.25rem 0.6rem;">
+                                                    Bị khóa
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-end align-items-center gap-2">
+                                <a class="btn btn-outline-secondary arrow-btn @(Model.CandidateBannedPage <= 1 ? "disabled" : "")"
+                                   asp-action="ManageUsers"
+                                   asp-route-candidateBannedPage="@(Model.CandidateBannedPage - 1)"
+                                   asp-route-candidateActivePage="@Model.CandidateActivePage"
+                                   asp-route-companyActivePage="@Model.CompanyActivePage"
+                                   asp-route-companyBannedPage="@Model.CompanyBannedPage">
+                                    <i class="fa fa-chevron-left"></i>
+                                </a>
+                                <a class="btn btn-outline-secondary arrow-btn @(Model.CandidateBannedPage >= Model.CandidateBannedTotalPages ? "disabled" : "")"
+                                   asp-action="ManageUsers"
+                                   asp-route-candidateBannedPage="@(Model.CandidateBannedPage + 1)"
+                                   asp-route-candidateActivePage="@Model.CandidateActivePage"
+                                   asp-route-companyActivePage="@Model.CompanyActivePage"
+                                   asp-route-companyBannedPage="@Model.CompanyBannedPage">
+                                    <i class="fa fa-chevron-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="userDetailModal" tabindex="-1" aria-labelledby="userDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userDetailModalLabel">Thông tin người dùng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2"><strong>ID:</strong> <span data-detail="id">-</span></div>
+                <div class="mb-2"><strong>Email:</strong> <span data-detail="email">-</span></div>
+                <div class="mb-2"><strong>Tên:</strong> <span data-detail="name">-</span></div>
+                <div class="mb-2"><strong>Role:</strong> <span data-detail="role">-</span></div>
+                <div class="mb-2"><strong>Trạng thái:</strong> <span class="pill-soft muted" data-detail="status">-</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-success" id="toggleUserStatusBtn">Khóa / Mở</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function () {
+            const userMixEl = document.getElementById("userMixChart");
+            const jobsEl = document.getElementById("jobsChart");
+            const data = @Html.Raw(JsonSerializer.Serialize(new {
+                candidates = Model.TotalCandidatesCount,
+                companies = Model.TotalCompaniesCount,
+                jobs = new { total = Model.TotalJobs, active = Model.ActiveJobs }
+            }));
+
+            if (userMixEl && window.Chart) {
+                new Chart(userMixEl, {
+                    type: "doughnut",
+                    data: {
+                        labels: ["Công ty", "Ứng viên"],
+                        datasets: [{
+                            data: [data.companies, data.candidates],
+                            backgroundColor: ["#2f80ed", "#28a745"],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: "bottom" } }
+                    }
+                });
+            }
+
+            if (jobsEl && window.Chart) {
+                new Chart(jobsEl, {
+                    type: "bar",
+                    data: {
+                        labels: ["Hoạt động", "Không hoạt động"],
+                        datasets: [{
+                            label: "Công việc",
+                            data: [data.jobs.active, Math.max(0, data.jobs.total - data.jobs.active)],
+                            backgroundColor: ["#28a745", "#adb5bd"]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, ticks: { precision: 0 } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            const detailModalEl = document.getElementById("userDetailModal");
+            const detailModal = detailModalEl ? new bootstrap.Modal(detailModalEl) : null;
+            const detailFields = {
+                id: detailModalEl?.querySelector('[data-detail="id"]'),
+                email: detailModalEl?.querySelector('[data-detail="email"]'),
+                name: detailModalEl?.querySelector('[data-detail="name"]'),
+                role: detailModalEl?.querySelector('[data-detail="role"]'),
+                status: detailModalEl?.querySelector('[data-detail="status"]')
+            };
+            const toggleBtn = document.getElementById("toggleUserStatusBtn");
+            let currentUser = null;
+
+            const setDetail = (detail) => {
+                if (!detailModalEl) return;
+                currentUser = detail;
+                detailFields.id.textContent = detail.id;
+                detailFields.email.textContent = detail.email;
+                detailFields.name.textContent = detail.name || "(Chưa có)";
+                detailFields.role.textContent = detail.roleName || detail.role;
+                detailFields.status.textContent = detail.active ? "Hoạt động" : "Bị khóa";
+                detailFields.status.className = "pill-soft " + (detail.active ? "success" : "locked");
+                toggleBtn.classList.toggle("btn-success", !detail.active);
+                toggleBtn.classList.toggle("btn-danger", detail.active);
+                toggleBtn.textContent = detail.active ? "Khóa tài khoản" : "Mở khóa tài khoản";
+            };
+
+            const fetchDetail = async (userId) => {
+                const resp = await fetch(`/Admin/UserDetail?id=${userId}`);
+                if (!resp.ok) throw new Error("Không tải được thông tin người dùng");
+                return await resp.json();
+            };
+
+            const toggleStatus = async () => {
+                if (!currentUser) return;
+                const nextActive = !currentUser.active;
+                const confirmMsg = nextActive ? "Mở khóa tài khoản?" : "Khóa tài khoản?";
+                if (!window.confirm(confirmMsg)) return;
+                const resp = await fetch(`/Admin/ToggleUserStatus?id=${currentUser.id}&active=${nextActive}`, { method: "POST" });
+                if (!resp.ok) throw new Error("Không cập nhật được trạng thái");
+                currentUser.active = nextActive;
+                setDetail(currentUser);
+                window.location.reload();
+            };
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener("click", () => {
+                    toggleStatus().catch(err => alert(err.message));
+                });
+            }
+
+            document.querySelectorAll(".user-row").forEach(row => {
+                row.style.cursor = "pointer";
+                row.addEventListener("click", () => {
+                    const userId = row.getAttribute("data-user-id");
+                    if (!userId) return;
+                    fetchDetail(userId)
+                        .then(detail => {
+                            setDetail(detail);
+                            detailModal?.show();
+                        })
+                        .catch(err => alert(err.message));
+                });
+            });
+        })();
+    </script>
+}
+
