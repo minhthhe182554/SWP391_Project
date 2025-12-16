@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using SWP391_Project.Services.Storage;
 using SWP391_Project.Helpers;
 using Microsoft.AspNetCore.Authorization;
+using SWP391_Project.ViewModels;
 
 namespace SWP391_Project.Controllers
 {
@@ -566,21 +567,15 @@ namespace SWP391_Project.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public async Task<IActionResult> ToggleSaveJob(int jobId)
         {
             var userIdStr = HttpContext.Session.GetString("UserID");
-
-            if (string.IsNullOrEmpty(userIdStr))
-            {
-                return Unauthorized();
-            }
-
+            if (string.IsNullOrEmpty(userIdStr)) return Json(new { success = false, requireLogin = true, message = "Vui lòng đăng nhập" });
+            int userId = int.Parse(userIdStr);
             try
             {
-                int userId = int.Parse(userIdStr);
-                bool isSaved = await _savedJobService.ToggleSaveJobAsync(userId, jobId);
-
+                bool isSaved = await _savedJobService.ToggleSaveJobAsync(int.Parse(userIdStr), jobId);
                 return Json(new { success = true, isSaved = isSaved });
             }
             catch (Exception ex)

@@ -221,48 +221,49 @@
                 type: 'POST',
                 data: { jobId: jobId },
                 success: function (response) {
-                    // TRƯỜNG HỢP 1: Server trả về HTML trang đăng nhập (Do bị Redirect)
-                    // -> Hiển thị Modal đăng nhập giống nút "Ứng tuyển ngay"
-                    if (typeof response === 'string' && (response.includes("<!DOCTYPE html>") || response.includes("<html"))) {
-                        $('#applyModalContent').html(response);
-                        var modal = new bootstrap.Modal(document.getElementById('applyModalContainer'));
-                        modal.show();
+                    console.log("Server response:", response);
+
+                    if (typeof response === 'string' && response.includes("<!DOCTYPE html>")) {
+                        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+                        window.location.href = "/Account/Login?returnUrl=" + encodeURIComponent(window.location.pathname);
                         return;
                     }
 
-                    // TRƯỜNG HỢP 2: Server trả về JSON (Đã đăng nhập)
-                    if (response.success) {
+                    var isSuccess = response.success || response.Success;
+                    var requireLogin = response.requireLogin || response.RequireLogin;
+                    var msg = response.message || response.Message;
+                    var isSaved = response.isSaved || response.IsSaved;
+
+                    if (isSuccess) {
                         var btn = $('#btnSaveJob');
                         var icon = $('#iconSaveJob');
                         var text = $('#textSaveJob');
 
-                        if (response.isSaved) {
+                        if (isSaved) {
                             btn.removeClass('btn-outline-success').addClass('btn-success');
-                            icon.removeClass('fa-check').addClass('fa-bookmark');
+                            icon.removeClass('fa-bookmark').addClass('fa-check');
                             text.text('Đã lưu');
                         } else {
                             btn.removeClass('btn-success').addClass('btn-outline-success');
-                            icon.removeClass('fa-bookmark').addClass('fa-check');
+                            icon.removeClass('fa-check').addClass('fa-bookmark');
                             text.text('Lưu tin');
                         }
-                    } else {
-                        alert("Có lỗi: " + (response.message || "Lỗi không xác định"));
+                    }
+                    else {
+                        if (requireLogin === true) {
+                            if (confirm("Bạn cần đăng nhập để lưu công việc này. Chuyển đến trang đăng nhập ngay?")) {
+                                var returnUrl = encodeURIComponent(window.location.pathname);
+                                window.location.href = "/Account/Login?returnUrl=" + returnUrl;
+                            }
+                        }
+                        else {
+                            alert("Có lỗi xảy ra: " + (msg || "Phản hồi từ server không đúng định dạng"));
+                        }
                     }
                 },
-                error: function (xhr) {
-                    // TRƯỜNG HỢP 3: Server trả về đúng mã 401 (Nếu config API chuẩn)
-                    if (xhr.status === 401) {
-                        // Gọi lại endpoint lấy form đăng nhập để hiện modal
-                        // (Giả sử bạn dùng chung cơ chế load modal của nút Apply)
-                        $.get('@Url.Action("GetApplyModal", "Candidate")', { jobId: jobId }, function (html) {
-                            $('#applyModalContent').html(html);
-                            var modal = new bootstrap.Modal(document.getElementById('applyModalContainer'));
-                            modal.show();
-                        });
-                    } else {
-                        console.log(xhr.responseText);
-                        alert("Lỗi kết nối server.");
-                    }
+                error: function (xhr, status, error) {
+                    console.error("Lỗi AJAX:", xhr.responseText);
+                    alert("Lỗi kết nối đến server (" + status + "). Vui lòng thử lại sau.");
                 }
             });
         }
