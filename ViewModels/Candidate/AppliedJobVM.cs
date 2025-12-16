@@ -1,4 +1,4 @@
-﻿namespace SWP391_Project.ViewModels
+﻿namespace SWP391_Project.ViewModels.Candidate
 {
     public class AppliedJobVM
     {
