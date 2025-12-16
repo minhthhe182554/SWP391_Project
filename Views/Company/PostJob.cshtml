@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Đăng tin tuyển dụng";
-    Layout = "_LayoutCompany"; // Layout dành cho doanh nghiệp
+    Layout = "_LayoutCompany";
 }
 
 <div class="container py-4">
@@ -39,17 +39,35 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="LocationId" class="form-label fw-bold">Tỉnh/Thành phố <span class="text-danger">*</span></label>
-                                <select asp-for="LocationId" class="form-select"
-                                        asp-items="@(new SelectList(Model.Locations, "Id", "City"))">
-                                    <option value="">-- Chọn địa điểm làm việc --</option>
+                                <label class="form-label fw-bold">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                <select id="citySelect" asp-for="CityCode" class="form-select">
+                                    <option value="">-- Chọn Tỉnh/Thành --</option>
+                                    @if (Model.Cities != null)
+                                    {
+                                        foreach (var city in Model.Cities)
+                                        {
+                                        // Lưu ý: data-name dùng để lấy tên hiển thị lưu vào DB
+                                            // Value là Code dùng để gọi API lấy Phường
+                                            <option value="@city.Code" data-name="@city.Name">@city.Name</option>
+                                        }
+                                    }
                                 </select>
-                                <span asp-validation-for="LocationId" class="text-danger small"></span>
+                                <input type="hidden" asp-for="CityName" id="CityNameInput" />
+                                <span asp-validation-for="CityName" class="text-danger small"></span>
                             </div>
 
                             <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Phường/Xã <span class="text-danger">*</span></label>
+                                <select id="wardSelect" class="form-select" disabled>
+                                    <option value="">-- Chọn Tỉnh/Thành trước --</option>
+                                </select>
+                                <input type="hidden" asp-for="WardName" id="WardNameInput" />
+                                <span asp-validation-for="WardName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12 mb-3">
                                 <label asp-for="Address" class="form-label fw-bold">Địa chỉ chi tiết</label>
-                                <input asp-for="Address" class="form-control" placeholder="Số nhà, tên đường, tòa nhà..." />
+                                <input asp-for="Address" class="form-control" placeholder="VD: Số 10, Tòa nhà FPT, Khu công nghệ cao..." />
                                 <span asp-validation-for="Address" class="text-danger small"></span>
                             </div>
                         </div>
@@ -132,7 +150,7 @@
 
                         <div class="mb-4">
                             <label asp-for="Description" class="form-label fw-bold">Mô tả công việc chi tiết <span class="text-danger">*</span></label>
-                            <textarea asp-for="Description" class="form-control" rows="8" placeholder="Mô tả trách nhiệm, quyền lợi, yêu cầu khác..."></textarea>
+                            <textarea asp-for="Description" id="companyDescription" class="form-control" rows="8" placeholder="Mô tả trách nhiệm, quyền lợi, yêu cầu khác..."></textarea>
                             <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
 
@@ -156,11 +174,68 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+
     <script>
-        // Tự động set Min Date cho EndDate là ngày hôm nay
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
+            // 1. Tự động set Min Date cho EndDate
             var today = new Date().toISOString().split('T')[0];
-            document.getElementById("EndDate").setAttribute('min', today);
+            $("#EndDate").attr('min', today);
+
+            // 2. Xử lý sự kiện khi chọn Tỉnh/Thành phố
+            $("#citySelect").change(function () {
+                var cityCode = $(this).val(); // Mã tỉnh (để gọi API)
+                var cityName = $(this).find(':selected').data('name'); // Tên tỉnh (để lưu DB)
+
+                // Cập nhật tên Tỉnh vào input hidden
+                $("#CityNameInput").val(cityName || "");
+                // Reset Phường/Xã
+                $("#WardNameInput").val("");
+                $("#wardSelect").html('<option value="">-- Đang tải... --</option>').prop('disabled', true);
+
+                if (cityCode) {
+                    // Gọi AJAX về Controller để lấy danh sách Phường
+                    $.getJSON('/Company/GetWards?cityCode=' + cityCode, function (data) {
+                        var options = '<option value="">-- Chọn Phường/Xã --</option>';
+                        // data là List<WardDto>, cần check xem property là 'code'/'name' hay 'Code'/'Name' (Js thường tự lowercase chữ cái đầu)
+                        $.each(data, function (key, val) {
+                            // Lưu ý: Kiểm tra DTO trả về, ở đây giả định là code và name
+                            options += `<option value="${val.code}" data-name="${val.name}">${val.name}</option>`;
+                        });
+                        $("#wardSelect").html(options).prop('disabled', false);
+                    }).fail(function () {
+                        alert("Không tải được danh sách Phường/Xã. Vui lòng thử lại.");
+                        $("#wardSelect").html('<option value="">-- Lỗi tải dữ liệu --</option>');
+                    });
+                } else {
+                    $("#wardSelect").html('<option value="">-- Chọn Tỉnh/Thành trước --</option>').prop('disabled', true);
+                }
+            });
+
+            // 3. Xử lý sự kiện khi chọn Phường/Xã
+            $("#wardSelect").change(function () {
+                var wardName = $(this).find(':selected').data('name');
+                // Cập nhật tên Phường vào input hidden
+                $("#WardNameInput").val(wardName || "");
+            });
         });
+    </script>
+    <script>
+        var textarea = document.querySelector('#companyDescription');
+
+        if (textarea) {
+            ClassicEditor
+                .create(textarea, {
+                    toolbar: ['bold', 'italic', 'bulletedList', 'numberedList', 'undo', 'redo'],
+                    placeholder: 'Nhập mô tả chi tiết về công ty...'
+                })
+                .then(editor => {
+                    editor.ui.view.editable.element.style.minHeight = '150px';
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
     </script>
 }

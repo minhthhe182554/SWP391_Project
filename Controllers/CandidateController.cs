@@ -566,15 +566,21 @@ namespace SWP391_Project.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous]
+        [AllowAnonymous] 
         public async Task<IActionResult> ToggleSaveJob(int jobId)
         {
             var userIdStr = HttpContext.Session.GetString("UserID");
-            if (string.IsNullOrEmpty(userIdStr)) return Json(new { success = false, requireLogin = true, message = "Vui lòng đăng nhập" });
-            int userId = int.Parse(userIdStr);
+
+            if (string.IsNullOrEmpty(userIdStr))
+            {
+                return Unauthorized();
+            }
+
             try
             {
-                bool isSaved = await _savedJobService.ToggleSaveJobAsync(int.Parse(userIdStr), jobId);
+                int userId = int.Parse(userIdStr);
+                bool isSaved = await _savedJobService.ToggleSaveJobAsync(userId, jobId);
+
                 return Json(new { success = true, isSaved = isSaved });
             }
             catch (Exception ex)

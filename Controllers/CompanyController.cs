@@ -230,8 +230,20 @@ namespace SWP391_Project.Controllers
 
             var model = await _jobService.GetPostJobModelAsync();
 
+            model.Cities = await _locationService.GetCitiesAsync();
+
             return View(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetWards(string cityCode)
+        {
+            if (string.IsNullOrEmpty(cityCode)) return Json(new List<object>());
+
+            var wards = await _locationService.GetWardsByCityCodeAsync(cityCode);
+            return Json(wards);
+        }
+
         [RoleAuthorize(Role.COMPANY)]
         [HttpPost]
         [ValidateAntiForgeryToken]

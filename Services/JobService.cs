@@ -184,16 +184,18 @@ namespace SWP391_Project.Services
             var company = await _companyRepository.GetByUserIdAsync(userId);
             if (company == null) throw new Exception("Không tìm thấy thông tin công ty.");
 
+            var location = await _locationRepository.GetOrCreateLocationAsync(model.CityName, model.WardName);
+
             var job = new Job
             {
                 CompanyId = company.Id,
                 Title = model.Title,
-                LocationId = model.LocationId,
+                LocationId = location.Id,
                 Address = model.Address,
                 LowerSalaryRange = model.LowerSalary,
                 HigherSalaryRange = model.HigherSalary,
                 YearsOfExperience = model.YearsOfExperience,
-                VacancyCount = model.VacancyCount, 
+                VacancyCount = model.VacancyCount,
                 Description = model.Description,
                 StartDate = DateTime.Now,
                 EndDate = model.EndDate,
