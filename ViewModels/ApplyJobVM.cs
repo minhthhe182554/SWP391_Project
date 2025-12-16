@@ -2,7 +2,7 @@
 using SWP391_Project.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace SWP391_Project.ViewModels.Candidate
+namespace SWP391_Project.ViewModels
 {
     public class ApplyJobVM
     {
