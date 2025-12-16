@@ -1,6 +1,6 @@
 ﻿using SWP391_Project.Models;
 using SWP391_Project.Repositories;
-using SWP391_Project.ViewModels;
+using SWP391_Project.ViewModels.Candidate;
 
 namespace SWP391_Project.Services
 {
