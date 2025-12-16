@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SWP391_Project.Models;
 using SWP391_Project.ViewModels.Company;
+using System.Text.Json;
 
 namespace SWP391_Project.Services
 {
@@ -179,6 +180,11 @@ namespace SWP391_Project.Services
             };
         }
 
+        public class TagItem
+        {
+            public string value { get; set; } 
+        }
+
         public async Task AddJobAsync(int userId, PostJobVM model)
         {
             var company = await _companyRepository.GetByUserIdAsync(userId);
@@ -203,14 +209,44 @@ namespace SWP391_Project.Services
                 IsDelete = false
             };
 
-            if (model.SelectedSkillIds.Any())
+            if (!string.IsNullOrEmpty(model.SelectedSkills))
             {
-                job.RequiredSkills = await _skillRepository.GetSkillsByIdsAsync(model.SelectedSkillIds);
+                try
+                {
+                    var tags = JsonSerializer.Deserialize<List<TagItem>>(model.SelectedSkills);
+                    if (tags != null)
+                    {
+                        foreach (var tag in tags)
+                        {
+                            var skill = await _skillRepository.GetOrCreateAsync(tag.value);
+                            job.RequiredSkills.Add(skill);
+                        }
+                    }
+                }
+                catch
+                {
+                    throw new Exception("Lỗi định dạng kỹ năng.");
+                }
             }
 
-            if (model.SelectedDomainIds.Any())
+            if (!string.IsNullOrEmpty(model.SelectedDomains))
             {
-                job.Domains = await _domainRepository.GetDomainsByIdsAsync(model.SelectedDomainIds);
+                try
+                {
+                    var tags = JsonSerializer.Deserialize<List<TagItem>>(model.SelectedDomains);
+                    if (tags != null)
+                    {
+                        foreach (var tag in tags)
+                        {
+                            var domain = await _domainRepository.GetOrCreateAsync(tag.value);
+                            job.Domains.Add(domain);
+                        }
+                    }
+                }
+                catch
+                {
+                    throw new Exception("Lỗi định dạng lĩnh vực.");
+                }
             }
 
             await _jobRepository.AddAsync(job);

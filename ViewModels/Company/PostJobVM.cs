@@ -20,9 +20,7 @@ namespace SWP391_Project.ViewModels.Company
         public string WardName { get; set; } = null!;
 
         public string? Address { get; set; }
-
-        [Required(ErrorMessage = "Nhập mức lương tối thiểu")]
-        public decimal LowerSalary { get; set; }
+        public decimal? LowerSalary { get; set; }
         public decimal? HigherSalary { get; set; }
 
         [Required(ErrorMessage = "Nhập số năm kinh nghiệm")]
@@ -37,11 +35,11 @@ namespace SWP391_Project.ViewModels.Company
         [Required(ErrorMessage = "Chọn loại hình công việc")]
         public JobType JobType { get; set; }
 
-        [Required(ErrorMessage = "Chọn ít nhất 1 kỹ năng")]
-        public List<int> SelectedSkillIds { get; set; } = new();
+        [Required(ErrorMessage = "Vui lòng nhập ít nhất 1 kỹ năng")]
+        public string SelectedSkills { get; set; } = null!;
 
-        [Required(ErrorMessage = "Chọn ít nhất 1 lĩnh vực")]
-        public List<int> SelectedDomainIds { get; set; } = new();
+        [Required(ErrorMessage = "Vui lòng nhập ít nhất 1 lĩnh vực")]
+        public string SelectedDomains { get; set; } = null!;
 
         [Required(ErrorMessage = "Nhập số lượng tuyển")]
         [Range(1, 100, ErrorMessage = "Số lượng phải từ 1 đến 100")]

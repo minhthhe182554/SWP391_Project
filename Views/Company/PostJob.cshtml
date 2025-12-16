@@ -6,6 +6,8 @@
     Layout = "_LayoutCompany";
 }
 
+<link href="https://cdn.jsdelivr.net/npm/@@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
+
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-10">
@@ -46,8 +48,7 @@
                                     {
                                         foreach (var city in Model.Cities)
                                         {
-                                        // Lưu ý: data-name dùng để lấy tên hiển thị lưu vào DB
-                                            // Value là Code dùng để gọi API lấy Phường
+                                        // Value là Code (để gọi API), data-name là Tên (để lưu DB)
                                             <option value="@city.Code" data-name="@city.Name">@city.Name</option>
                                         }
                                     }
@@ -74,9 +75,10 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="LowerSalary" class="form-label fw-bold">Mức lương tối thiểu <span class="text-danger">*</span></label>
+                                <label asp-for="LowerSalary" class="form-label fw-bold">Mức lương tối thiểu</label>
+
                                 <div class="input-group">
-                                    <input asp-for="LowerSalary" class="form-control" type="number" min="0" placeholder="0" />
+                                    <input asp-for="LowerSalary" class="form-control" type="number" min="0" placeholder="Bỏ trống nếu thỏa thuận" />
                                     <span class="input-group-text fw-bold text-muted">VNĐ</span>
                                 </div>
                                 <span asp-validation-for="LowerSalary" class="text-danger small"></span>
@@ -124,27 +126,21 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label asp-for="SelectedDomainIds" class="form-label fw-bold">Lĩnh vực chuyên môn <span class="text-danger">*</span></label>
-                                <select asp-for="SelectedDomainIds" class="form-select" multiple style="height: 160px; background-color: #f8f9fa;">
-                                    @foreach (var domain in Model.Domains)
-                                    {
-                                        <option value="@domain.Id">@domain.Name</option>
-                                    }
-                                </select>
-                                <div class="form-text text-muted small"><i class="fas fa-info-circle"></i> Giữ phím <strong>Ctrl</strong> (Windows) hoặc <strong>Command</strong> (Mac) để chọn nhiều mục.</div>
-                                <span asp-validation-for="SelectedDomainIds" class="text-danger small"></span>
+                                <label asp-for="SelectedDomains" class="form-label fw-bold">Lĩnh vực chuyên môn <span class="text-danger">*</span></label>
+
+                                <input asp-for="SelectedDomains" id="domainsInput" class="form-control" placeholder="Nhập lĩnh vực và nhấn Enter..." />
+
+                                <small class="text-muted"><i class="fas fa-info-circle"></i> Nhập tên lĩnh vực rồi nhấn <strong>Enter</strong> để thêm.</small>
+                                <span asp-validation-for="SelectedDomains" class="text-danger small"></span>
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label asp-for="SelectedSkillIds" class="form-label fw-bold">Kỹ năng yêu cầu <span class="text-danger">*</span></label>
-                                <select asp-for="SelectedSkillIds" class="form-select" multiple style="height: 160px; background-color: #f8f9fa;">
-                                    @foreach (var skill in Model.Skills)
-                                    {
-                                        <option value="@skill.Id">@skill.Name</option>
-                                    }
-                                </select>
-                                <div class="form-text text-muted small"><i class="fas fa-info-circle"></i> Giữ phím <strong>Ctrl</strong> để chọn nhiều kỹ năng.</div>
-                                <span asp-validation-for="SelectedSkillIds" class="text-danger small"></span>
+                                <label asp-for="SelectedSkills" class="form-label fw-bold">Kỹ năng yêu cầu <span class="text-danger">*</span></label>
+
+                                <input asp-for="SelectedSkills" id="skillsInput" class="form-control" placeholder="Nhập kỹ năng và nhấn Enter..." />
+
+                                <small class="text-muted"><i class="fas fa-info-circle"></i> Nhập tên kỹ năng (VD: C#, Java) rồi nhấn <strong>Enter</strong>.</small>
+                                <span asp-validation-for="SelectedSkills" class="text-danger small"></span>
                             </div>
                         </div>
 
@@ -176,36 +172,32 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@yaireo/tagify"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
 
     <script>
         $(document).ready(function () {
-            // 1. Tự động set Min Date cho EndDate
+            // ================= LOGIC 1: ĐỊA ĐIỂM (LOCATION) =================
             var today = new Date().toISOString().split('T')[0];
             $("#EndDate").attr('min', today);
 
-            // 2. Xử lý sự kiện khi chọn Tỉnh/Thành phố
             $("#citySelect").change(function () {
-                var cityCode = $(this).val(); // Mã tỉnh (để gọi API)
-                var cityName = $(this).find(':selected').data('name'); // Tên tỉnh (để lưu DB)
+                var cityCode = $(this).val();
+                var cityName = $(this).find(':selected').data('name');
 
-                // Cập nhật tên Tỉnh vào input hidden
                 $("#CityNameInput").val(cityName || "");
-                // Reset Phường/Xã
                 $("#WardNameInput").val("");
                 $("#wardSelect").html('<option value="">-- Đang tải... --</option>').prop('disabled', true);
 
                 if (cityCode) {
-                    // Gọi AJAX về Controller để lấy danh sách Phường
                     $.getJSON('/Company/GetWards?cityCode=' + cityCode, function (data) {
                         var options = '<option value="">-- Chọn Phường/Xã --</option>';
-                        // data là List<WardDto>, cần check xem property là 'code'/'name' hay 'Code'/'Name' (Js thường tự lowercase chữ cái đầu)
                         $.each(data, function (key, val) {
-                            // Lưu ý: Kiểm tra DTO trả về, ở đây giả định là code và name
                             options += `<option value="${val.code}" data-name="${val.name}">${val.name}</option>`;
                         });
                         $("#wardSelect").html(options).prop('disabled', false);
                     }).fail(function () {
-                        alert("Không tải được danh sách Phường/Xã. Vui lòng thử lại.");
+                        alert("Không tải được danh sách Phường/Xã.");
                         $("#wardSelect").html('<option value="">-- Lỗi tải dữ liệu --</option>');
                     });
                 } else {
@@ -213,29 +205,56 @@
                 }
             });
 
-            // 3. Xử lý sự kiện khi chọn Phường/Xã
             $("#wardSelect").change(function () {
                 var wardName = $(this).find(':selected').data('name');
-                // Cập nhật tên Phường vào input hidden
                 $("#WardNameInput").val(wardName || "");
             });
         });
-    </script>
-    <script>
-        var textarea = document.querySelector('#companyDescription');
 
+        // ================= LOGIC 2: CKEDITOR =================
+        var textarea = document.querySelector('#companyDescription');
         if (textarea) {
             ClassicEditor
                 .create(textarea, {
                     toolbar: ['bold', 'italic', 'bulletedList', 'numberedList', 'undo', 'redo'],
-                    placeholder: 'Nhập mô tả chi tiết về công ty...'
+                    placeholder: 'Nhập mô tả chi tiết về công việc...'
                 })
                 .then(editor => {
                     editor.ui.view.editable.element.style.minHeight = '150px';
                 })
-                .catch(error => {
-                    console.error(error);
-                });
+                .catch(error => { console.error(error); });
         }
+
+        // ================= LOGIC 3: TAGIFY (SKILLS & DOMAINS) =================
+
+        // Lấy danh sách gợi ý từ Server (Whitelist)
+        var skillsWhitelist = @Html.Raw(Json.Serialize(Model.Skills.Select(s => s.Name)));
+        var domainsWhitelist = @Html.Raw(Json.Serialize(Model.Domains.Select(d => d.Name)));
+
+        // Cấu hình cho Skills
+        var skillInput = document.querySelector('#skillsInput');
+        new Tagify(skillInput, {
+            whitelist: skillsWhitelist,
+            maxTags: 20,
+            dropdown: {
+                maxItems: 20,
+                classname: "tags-look",
+                enabled: 0,
+                closeOnSelect: false
+            }
+        });
+
+        // Cấu hình cho Domains
+        var domainInput = document.querySelector('#domainsInput');
+        new Tagify(domainInput, {
+            whitelist: domainsWhitelist,
+            maxTags: 5,
+            dropdown: {
+                maxItems: 20,
+                classname: "tags-look",
+                enabled: 0,
+                closeOnSelect: false
+            }
+        });
     </script>
 }
