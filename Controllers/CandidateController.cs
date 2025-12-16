@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Http;
 using SWP391_Project.Services.Storage;
 using SWP391_Project.Helpers;
 using Microsoft.AspNetCore.Authorization;
-using SWP391_Project.ViewModels;
 
 namespace SWP391_Project.Controllers
 {

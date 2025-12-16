@@ -150,7 +150,7 @@
 
                         <div class="mb-4">
                             <label asp-for="Description" class="form-label fw-bold">Mô tả công việc chi tiết <span class="text-danger">*</span></label>
-                            <textarea asp-for="Description" class="form-control" rows="8" placeholder="Mô tả trách nhiệm, quyền lợi, yêu cầu khác..."></textarea>
+                            <textarea asp-for="Description" id="companyDescription" class="form-control" rows="8" placeholder="Mô tả trách nhiệm, quyền lợi, yêu cầu khác..."></textarea>
                             <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
 
@@ -175,6 +175,7 @@
     }
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 
     <script>
         $(document).ready(function () {
@@ -219,5 +220,22 @@
                 $("#WardNameInput").val(wardName || "");
             });
         });
+    </script>
+    <script>
+        var textarea = document.querySelector('#companyDescription');
+
+        if (textarea) {
+            ClassicEditor
+                .create(textarea, {
+                    toolbar: ['bold', 'italic', 'bulletedList', 'numberedList', 'undo', 'redo'],
+                    placeholder: 'Nhập mô tả chi tiết về công ty...'
+                })
+                .then(editor => {
+                    editor.ui.view.editable.element.style.minHeight = '150px';
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
     </script>
 }
