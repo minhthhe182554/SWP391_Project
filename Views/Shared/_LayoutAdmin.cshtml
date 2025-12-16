@@ -3,7 +3,7 @@
 @{
     var userId = HttpContextAccessor.HttpContext.Session.GetString("UserID");
     var email = HttpContextAccessor.HttpContext.Session.GetString("Email");
-    var userName = HttpContextAccessor.HttpContext.Session.GetString("Name") ?? "Admin";chhọ
+    var userName = HttpContextAccessor.HttpContext.Session.GetString("Name") ?? "Admin";
     var userDisplayId = userId ?? "N/A";
 }
 <!DOCTYPE html>
