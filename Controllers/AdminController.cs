@@ -54,7 +54,7 @@ namespace SWP391_Project.Controllers
 
             var vm = await _adminService.GetManageReportsAsync(page, pageSize);
             return View("ManageReports", vm);
-        }
+            }
 
         [HttpGet]
         [RoleAuthorize(Role.ADMIN)]
