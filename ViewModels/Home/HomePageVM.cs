@@ -7,6 +7,7 @@ public class HomePageVM
 {
     public List<JobEntity> Jobs { get; set; } = new();
     public List<JobCardVM> JobCards { get; set; } = new();
+    public List<JobCardVM> RecommendedJobCards { get; set; } = new();
     public List<CompanyCardVM> CompanyCards { get; set; } = new();
     public List<Domain> CompanyDomainOptions { get; set; } = new();
     public int? SelectedCompanyDomainId { get; set; }
@@ -34,38 +35,4 @@ public class HomePageVM
     public List<ExperienceOption> ExperienceOptions { get; set; } = new();
     public List<Domain> TopDomains { get; set; } = new();
     public List<SortOption> SortOptions { get; set; } = new();
-}
-
-public class JobCardVM
-{
-    public JobEntity Job { get; set; } = null!;
-    public string CompanyImageUrl { get; set; } = string.Empty;
-}
-
-public class CompanyCardVM
-{
-    public Models.Company Company { get; set; } = null!;
-    public string CompanyImageUrl { get; set; } = string.Empty;
-    public string? DomainName { get; set; }
-    public int ActiveJobCount { get; set; }
-}
-
-public class SalaryRangeOption
-{
-    public string Label { get; set; } = string.Empty;
-    public decimal? MinSalary { get; set; }
-    public decimal? MaxSalary { get; set; }
-}
-
-public class ExperienceOption
-{
-    public string Label { get; set; } = string.Empty;
-    public int? MinYears { get; set; }
-    public int? MaxYears { get; set; }
-}
-
-public class SortOption
-{
-    public string Value { get; set; } = string.Empty;
-    public string Label { get; set; } = string.Empty;
 }
