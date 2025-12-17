@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SWP391_Project.Models;
+using SWP391_Project.Constants;
 using SWP391_Project.ViewModels.Company;
 using System.Text.Json;
 using SWP391_Project.ViewModels.Job;
@@ -27,11 +28,13 @@ namespace SWP391_Project.Services
         private readonly ILocationRepository _locationRepository;
         private readonly ISkillRepository _skillRepository;
         private readonly IDomainRepository _domainRepository;
+        private readonly IReportRepository _reportRepository;
         public JobService(ISavedJobRepository savedJobRepository,
         ICandidateRepository candidateRepository, IJobRepository jobRepository, IStorageService storageService, ILogger<JobService> logger, IApplicationRepository applicationRepository, ICompanyRepository companyRepository,
         ILocationRepository locationRepository,
         ISkillRepository skillRepository,
-        IDomainRepository domainRepository)
+        IDomainRepository domainRepository,
+        IReportRepository reportRepository)
         {
             _jobRepository = jobRepository;
             _storageService = storageService;
@@ -43,6 +46,7 @@ namespace SWP391_Project.Services
             _locationRepository = locationRepository;
             _skillRepository = skillRepository;
             _domainRepository = domainRepository;
+            _reportRepository = reportRepository;
         }
 
         public async Task<JobDetailVM?> GetJobDetailAsync(int jobId, int? userId = null)
@@ -73,7 +77,7 @@ namespace SWP391_Project.Services
                 CompanyAddress = job.Company?.Address ?? job.Address ?? "Địa điểm chưa rõ",
                 CompanyDomains = job.Domains.Select(d => d.Name).Take(2).ToList(),
                 VacancyCount = job.VacancyCount,
-                JobType = FormatJobType(job.Type),
+                JobType = EnumText.ToVietnamese(job.Type),
                 IsSaved = false,
                 HasApplied = false
             };
@@ -115,8 +119,13 @@ namespace SWP391_Project.Services
                 var candidate = await _candidateRepository.GetByUserIdAsync(userId.Value);
                 if (candidate != null)
                 {
+                    vm.IsCandidate = true;
                     vm.IsSaved = await _savedJobRepository.IsSavedAsync(candidate.Id, jobId);
                     vm.HasApplied = await _applicationRepository.HasAppliedAsync(candidate.Id, jobId);
+
+                    vm.RemainingReport = candidate.RemainingReport;
+                    vm.AlreadyReported = await _reportRepository.HasCandidateReportedAsync(candidate.Id, jobId);
+                    vm.CanReport = !vm.AlreadyReported && candidate.RemainingReport > 0;
                 }
             }
 
@@ -162,16 +171,6 @@ namespace SWP391_Project.Services
             }
         }
 
-        private static string FormatJobType(Models.JobType type)
-        {
-            return type switch
-            {
-                Models.JobType.FULLTIME => "Toàn thời gian",
-                Models.JobType.PARTTIME => "Bán thời gian",
-                Models.JobType.HYBRID => "Hybrid",
-                _ => type.ToString()
-            };
-        }
         public async Task<PostJobVM> GetPostJobModelAsync()
         {
             return new PostJobVM
@@ -333,6 +332,53 @@ namespace SWP391_Project.Services
 
             // Nếu số lượng Application > 0 thì KHÔNG ĐƯỢC SỬA
             return job.Applications.Count == 0;
+        }
+        public async Task<(bool Success, string Message)> CreateJobReportAsync(int jobId, int candidateUserId, string reason)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(reason))
+                {
+                    return (false, "Lý do không được để trống");
+                }
+
+                var job = await _jobRepository.GetJobWithDetailsAsync(jobId);
+                if (job == null) return (false, "Không tìm thấy công việc");
+
+                var candidate = await _candidateRepository.GetByUserIdAsync(candidateUserId);
+                if (candidate == null) return (false, "Bạn cần đăng nhập bằng tài khoản ứng viên");
+
+                if (candidate.RemainingReport <= 0)
+                {
+                    return (false, "Bạn đã hết lượt báo cáo");
+                }
+
+                var already = await _reportRepository.HasCandidateReportedAsync(candidate.Id, jobId);
+                if (already)
+                {
+                    return (false, "Bạn đã báo cáo tin này trước đó");
+                }
+
+                var report = new Report
+                {
+                    JobId = jobId,
+                    CandidateId = candidate.Id,
+                    Reason = reason.Trim(),
+                    Status = ReportStatus.PENDING
+                };
+
+                await _reportRepository.AddAsync(report);
+
+                candidate.RemainingReport -= 1;
+                await _candidateRepository.UpdateCandidateAsync(candidate);
+
+                return (true, "Gửi báo cáo thành công");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating report for job {JobId}", jobId);
+                return (false, "Có lỗi xảy ra, vui lòng thử lại");
+            }
         }
             public async Task<SearchPageVM> SearchJobsAsync(SearchFilter filter)
             {

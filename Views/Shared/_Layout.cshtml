@@ -47,11 +47,13 @@
                         }
                         else
                         {
-                            <ul class="navbar-nav d-flex align-items-center">
-                                <li class="nav-item dropdown">
-                                    @await Component.InvokeAsync("UserDropdown")
-                                </li>
-                            </ul>
+                            <div class="d-flex align-items-center gap-3">
+                                @if (string.Equals(HttpContextAccessor.HttpContext.Session.GetString("Role"), "CANDIDATE", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    @await Component.InvokeAsync("NotificationDropdown")
+                                }
+                                @await Component.InvokeAsync("UserDropdown")
+                            </div>
                         }
                     </div>
                 </div>

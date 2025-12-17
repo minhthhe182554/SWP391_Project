@@ -13,8 +13,12 @@ namespace SWP391_Project.Services
             int candidateBannedPage,
             int companyActivePage,
             int companyBannedPage,
-            int pageSize);
-        Task<ManageReportsVM> GetManageReportsAsync(int page, int pageSize);
+            int pageSize,
+            int? focusUserId = null);
+        Task<ManageReportsVM> GetManageReportsAsync(int page, int pageSize, int? focusReportId = null);
+        Task<ManageJobsAdminVM> GetManageJobsAsync(int page, int pageSize, string statusFilter, int? focusJobId);
+        Task<AdminJobDetailVM?> GetJobDetailForAdminAsync(int jobId);
+        Task UpdateReportStatusAsync(int reportId, ReportStatus status, string? adminNote = null);
         Task<UserDetailVM?> GetUserDetailAsync(int userId);
         Task ToggleUserActiveAsync(int userId, bool active);
     }
