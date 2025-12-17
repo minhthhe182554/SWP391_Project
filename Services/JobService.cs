@@ -1,6 +1,5 @@
 using SWP391_Project.Repositories;
 using SWP391_Project.Services.Storage;
-using SWP391_Project.ViewModels.Jobs;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -10,6 +9,9 @@ using SWP391_Project.Models;
 using SWP391_Project.ViewModels.Company;
 using System.Text.Json;
 using SWP391_Project.ViewModels.Job;
+using SWP391_Project.ViewModels.Jobs;
+using SWP391_Project.ViewModels.Search;
+using SWP391_Project.ViewModels.Home;
 
 namespace SWP391_Project.Services
 {
@@ -18,7 +20,7 @@ namespace SWP391_Project.Services
         private readonly IJobRepository _jobRepository;
         private readonly IStorageService _storageService;
         private readonly ILogger<JobService> _logger;
-        private readonly ISavedJobRepository _savedJobRepository; 
+        private readonly ISavedJobRepository _savedJobRepository;
         private readonly ICandidateRepository _candidateRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ICompanyRepository _companyRepository;
@@ -183,7 +185,7 @@ namespace SWP391_Project.Services
 
         public class TagItem
         {
-            public string value { get; set; } 
+            public string value { get; set; }
         }
 
         public async Task AddJobAsync(int userId, PostJobVM model)
@@ -280,12 +282,12 @@ namespace SWP391_Project.Services
             var oldJob = await _jobRepository.GetJobWithDetailsAsync(jobId);
 
             if (oldJob == null) throw new Exception("Job not found");
-            if (oldJob.CompanyId != company.Id) throw new Exception("Unauthorized access"); 
+            if (oldJob.CompanyId != company.Id) throw new Exception("Unauthorized access");
 
             var newJob = new Job
             {
                 CompanyId = company.Id,
-                Title = oldJob.Title + " (Repost)", 
+                Title = oldJob.Title + " (Repost)",
                 Description = oldJob.Description,
                 Type = oldJob.Type,
                 YearsOfExperience = oldJob.YearsOfExperience,
@@ -293,10 +295,10 @@ namespace SWP391_Project.Services
                 LowerSalaryRange = oldJob.LowerSalaryRange,
                 HigherSalaryRange = oldJob.HigherSalaryRange,
                 Address = oldJob.Address,
-                LocationId = oldJob.LocationId, 
+                LocationId = oldJob.LocationId,
 
                 StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddDays(30), 
+                EndDate = DateTime.Now.AddDays(30),
 
                 IsDelete = false,
 
@@ -318,7 +320,7 @@ namespace SWP391_Project.Services
             var company = await _companyRepository.GetByUserIdAsync(userId);
             if (company == null || job.CompanyId != company.Id) throw new Exception("Unauthorized");
 
-            job.EndDate = DateTime.Now.AddMinutes(-1); 
+            job.EndDate = DateTime.Now.AddMinutes(-1);
 
             // Nếu Repo chưa có Update, bạn thêm vào Repo: _context.Jobs.Update(job); await _context.SaveChangesAsync();
             await _jobRepository.UpdateAsync(job);
@@ -332,6 +334,95 @@ namespace SWP391_Project.Services
             // Nếu số lượng Application > 0 thì KHÔNG ĐƯỢC SỬA
             return job.Applications.Count == 0;
         }
-    }
-}
+            public async Task<SearchPageVM> SearchJobsAsync(SearchFilter filter)
+            {
+                try
+                {
+                    var page = filter.Page > 0 ? filter.Page : 1;
+                    var pageSize = filter.PageSize > 0 ? filter.PageSize : 10;
 
+                    var (minExp, maxExp) = MapExperienceBucket(filter.ExperienceBucket);
+                    var (minSalary, maxSalary) = MapSalaryBucket(filter.SalaryBucket);
+
+                    var query = new JobSearchQuery
+                    {
+                        Keyword = filter.Keyword,
+                        KeywordType = string.IsNullOrWhiteSpace(filter.KeywordType) ? "job" : filter.KeywordType,
+                        City = filter.CityName,
+                        Ward = filter.WardName,
+                        DomainIds = filter.DomainIds ?? new System.Collections.Generic.List<int>(),
+                        MinExperience = minExp,
+                        MaxExperience = maxExp,
+                        MinSalary = minSalary,
+                        MaxSalary = maxSalary,
+                        JobType = filter.JobType,
+                        Sort = string.IsNullOrWhiteSpace(filter.Sort) ? "date_desc" : filter.Sort,
+                        Page = page,
+                        PageSize = pageSize
+                    };
+
+                    var now = DateTime.Now;
+                    var (jobs, total) = await _jobRepository.SearchAsync(query, now);
+                    var totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+                    var currentPage = Math.Min(page, totalPages);
+
+                    var cards = jobs.Select(j => new JobCardVM
+                    {
+                        Job = j,
+                        CompanyImageUrl = _storageService.BuildImageUrl(
+                            !string.IsNullOrEmpty(j.Company?.ImageUrl) ? j.Company!.ImageUrl : "default_yvl9oh")
+                    }).ToList();
+
+                    filter.Page = currentPage;
+                    filter.PageSize = pageSize;
+
+                    return new SearchPageVM
+                    {
+                        Filter = filter,
+                        JobCards = cards,
+                        TotalResults = total,
+                        TotalPages = totalPages,
+                        CurrentPage = currentPage,
+                        PageSize = pageSize
+                    };
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error searching jobs");
+                    throw;
+                }
+            }
+
+            private static (int? min, int? max) MapExperienceBucket(string? bucket)
+            {
+                return bucket switch
+                {
+                    "0-1" => (0, 1),
+                    "1-2" => (1, 2),
+                    "2-3" => (2, 3),
+                    "3-4" => (3, 4),
+                    "4-5" => (4, 5),
+                    "5-6" => (5, 6),
+                    "6-7" => (6, 7),
+                    "7-8" => (7, 8),
+                    "8-9" => (8, 9),
+                    "9+" => (9, null),
+                    _ => (null, null)
+                };
+            }
+
+            private static (decimal? min, decimal? max) MapSalaryBucket(string? bucket)
+            {
+                return bucket switch
+                {
+                    "<1" => (0, 1_000_000),
+                    "1-5" => (1_000_000, 5_000_000),
+                    "5-10" => (5_000_000, 10_000_000),
+                    "10-20" => (10_000_000, 20_000_000),
+                    "20-50" => (20_000_000, 50_000_000),
+                    "50+" => (50_000_000, null),
+                    _ => (null, null)
+                };
+            }
+        }
+    }

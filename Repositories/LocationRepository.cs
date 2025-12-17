@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SWP391_Project.Models;
 
 namespace SWP391_Project.Repositories
@@ -26,7 +26,7 @@ namespace SWP391_Project.Repositories
                 location = new Location
                 {
                     City = city,
-                    Ward = ward 
+                    Ward = ward ?? string.Empty 
                 };
                 _context.Locations.Add(location);
                 await _context.SaveChangesAsync();

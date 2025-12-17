@@ -2,8 +2,8 @@ using System.Collections.Generic;
 
 namespace SWP391_Project.ViewModels;
 
-public class AdminDashboardVM
-{
+    public class AdminDashboardVM
+    {
     public List<string> Labels { get; set; } = new();
     public List<int> NewUsers { get; set; } = new();
     public List<int> ActiveJobs { get; set; } = new();
