@@ -1,6 +1,5 @@
 using SWP391_Project.Repositories;
 using SWP391_Project.Services.Storage;
-using SWP391_Project.ViewModels.Jobs;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -9,6 +8,9 @@ using Microsoft.Extensions.Logging;
 using SWP391_Project.Models;
 using SWP391_Project.ViewModels.Company;
 using System.Text.Json;
+using SWP391_Project.ViewModels.Jobs;
+using SWP391_Project.ViewModels.Search;
+using SWP391_Project.ViewModels.Home;
 
 namespace SWP391_Project.Services
 {
@@ -250,6 +252,97 @@ namespace SWP391_Project.Services
             }
 
             await _jobRepository.AddAsync(job);
+        }
+
+        public async Task<SearchPageVM> SearchJobsAsync(SearchFilter filter)
+        {
+            try
+            {
+                var page = filter.Page > 0 ? filter.Page : 1;
+                var pageSize = filter.PageSize > 0 ? filter.PageSize : 10;
+
+                var (minExp, maxExp) = MapExperienceBucket(filter.ExperienceBucket);
+                var (minSalary, maxSalary) = MapSalaryBucket(filter.SalaryBucket);
+
+                var query = new JobSearchQuery
+                {
+                    Keyword = filter.Keyword,
+                    KeywordType = string.IsNullOrWhiteSpace(filter.KeywordType) ? "job" : filter.KeywordType,
+                    City = filter.CityName,
+                    Ward = filter.WardName,
+                    DomainIds = filter.DomainIds ?? new System.Collections.Generic.List<int>(),
+                    MinExperience = minExp,
+                    MaxExperience = maxExp,
+                    MinSalary = minSalary,
+                    MaxSalary = maxSalary,
+                    JobType = filter.JobType,
+                    Sort = string.IsNullOrWhiteSpace(filter.Sort) ? "date_desc" : filter.Sort,
+                    Page = page,
+                    PageSize = pageSize
+                };
+
+                var now = DateTime.Now;
+                var (jobs, total) = await _jobRepository.SearchAsync(query, now);
+                var totalPages = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+                var currentPage = Math.Min(page, totalPages);
+
+                var cards = jobs.Select(j => new JobCardVM
+                {
+                    Job = j,
+                    CompanyImageUrl = _storageService.BuildImageUrl(
+                        !string.IsNullOrEmpty(j.Company?.ImageUrl) ? j.Company!.ImageUrl : "default_yvl9oh")
+                }).ToList();
+
+                filter.Page = currentPage;
+                filter.PageSize = pageSize;
+
+                return new SearchPageVM
+                {
+                    Filter = filter,
+                    JobCards = cards,
+                    TotalResults = total,
+                    TotalPages = totalPages,
+                    CurrentPage = currentPage,
+                    PageSize = pageSize
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching jobs");
+                throw;
+            }
+        }
+
+        private static (int? min, int? max) MapExperienceBucket(string? bucket)
+        {
+            return bucket switch
+            {
+                "0-1" => (0, 1),
+                "1-2" => (1, 2),
+                "2-3" => (2, 3),
+                "3-4" => (3, 4),
+                "4-5" => (4, 5),
+                "5-6" => (5, 6),
+                "6-7" => (6, 7),
+                "7-8" => (7, 8),
+                "8-9" => (8, 9),
+                "9+" => (9, null),
+                _ => (null, null)
+            };
+        }
+
+        private static (decimal? min, decimal? max) MapSalaryBucket(string? bucket)
+        {
+            return bucket switch
+            {
+                "<1" => (0, 1_000_000),
+                "1-5" => (1_000_000, 5_000_000),
+                "5-10" => (5_000_000, 10_000_000),
+                "10-20" => (10_000_000, 20_000_000),
+                "20-50" => (20_000_000, 50_000_000),
+                "50+" => (50_000_000, null),
+                _ => (null, null)
+            };
         }
     }
 }

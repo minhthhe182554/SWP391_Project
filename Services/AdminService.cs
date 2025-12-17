@@ -9,34 +9,34 @@ using SWP391_Project.ViewModels.Admin;
 
 namespace SWP391_Project.Services;
 
-public class AdminService : IAdminService
-{
-    private readonly IAdminRepository _adminRepository;
-    private readonly ILogger<AdminService> _logger;
-
-    public AdminService(IAdminRepository adminRepository, ILogger<AdminService> logger)
+    public class AdminService : IAdminService
     {
-        _adminRepository = adminRepository;
-        _logger = logger;
-    }
+        private readonly IAdminRepository _adminRepository;
+        private readonly ILogger<AdminService> _logger;
 
-    public async Task<User?> GetAdminUserByIdAsync(int userId)
-    {
-        try
+        public AdminService(IAdminRepository adminRepository, ILogger<AdminService> logger)
         {
-            return await _adminRepository.GetUserByIdAsync(userId);
+            _adminRepository = adminRepository;
+            _logger = logger;
         }
-        catch (Exception ex)
+
+        public async Task<User?> GetAdminUserByIdAsync(int userId)
         {
-            _logger.LogError(ex, "Error getting admin user by id {UserId}", userId);
-            throw;
+            try
+            {
+                return await _adminRepository.GetUserByIdAsync(userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting admin user by id {UserId}", userId);
+                throw;
+            }
         }
-    }
 
     public async Task<AdminDashboardVM> GetDashboardMetricsAsync(int days)
-    {
-        try
         {
+            try
+            {
             var safeDays = Math.Clamp(days, 1, 30);
             var endDate = DateTime.UtcNow.Date;
             var startDate = endDate.AddDays(-(safeDays - 1));
@@ -51,8 +51,8 @@ public class AdminService : IAdminService
             var activeCompanies = await _adminRepository.GetActiveCompaniesByDateAsync(startDate, endDate);
             var topCategories = await _adminRepository.GetTopJobCategoriesAsync(startDate, endDate, 5);
 
-            return new AdminDashboardVM
-            {
+                return new AdminDashboardVM
+                {
                 Labels = labels,
                 NewUsers = MapSeries(labels, newUsers),
                 ActiveJobs = MapSeries(labels, activeJobs),
@@ -133,7 +133,7 @@ public class AdminService : IAdminService
                 TotalCompaniesCount = totalCompanies,
                 ActiveCompaniesCount = activeCompanies,
                 BannedCompaniesCount = totalCompanies - activeCompanies,
-                TotalJobs = totalJobs,
+                    TotalJobs = totalJobs,
                 ActiveJobs = activeJobs
             };
         }
@@ -220,13 +220,13 @@ public class AdminService : IAdminService
                 Role = user.Role,
                 RoleName = roleName,
                 Active = user.Active
-            };
-        }
-        catch (Exception ex)
-        {
+                };
+            }
+            catch (Exception ex)
+            {
             _logger.LogError(ex, "Error getting user detail for id {UserId}", userId);
-            throw;
-        }
+                throw;
+            }
     }
 
     public async Task ToggleUserActiveAsync(int userId, bool active)

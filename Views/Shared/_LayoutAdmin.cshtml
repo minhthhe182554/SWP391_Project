@@ -1,9 +1,10 @@
 @using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
 @{
-    var userId = HttpContextAccessor.HttpContext.Session.GetString("UserID");
-    var email = HttpContextAccessor.HttpContext.Session.GetString("Email");
-    var userName = HttpContextAccessor.HttpContext.Session.GetString("Name") ?? "Admin";
+    var session = HttpContextAccessor.HttpContext?.Session;
+    var userId = session?.GetString("UserID");
+    var email = session?.GetString("Email");
+    var userName = session?.GetString("Name") ?? "Admin";
     var userDisplayId = userId ?? "N/A";
 }
 <!DOCTYPE html>
@@ -82,9 +83,9 @@
                 </nav>
             </div>
             <div class="col-12 col-md-9 col-lg-10 py-4">
-                <main role="main" class="pb-3">
-                    @RenderBody()
-                </main>
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
             </div>
         </div>
     </div>

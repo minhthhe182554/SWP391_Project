@@ -17,13 +17,14 @@
     <div class="container">
         <div class="hero-content">
             <h1 class="hero-title">EZJob - Tìm việc làm, Tuyển dụng hiệu quả</h1>
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="Vị trí tuyển dụng, tên công ty" />
-                <button class="search-btn">
+            <form method="get" asp-controller="Search" asp-action="Jobs" class="search-container">
+                <input type="hidden" name="keywordType" value="job" />
+                <input type="text" name="keyword" class="search-input" placeholder="Tìm việc theo chức danh, công ty, kỹ năng" />
+                <button type="submit" class="search-btn">
                     <i class="fas fa-search"></i>
                     <span>Tìm kiếm</span>
                 </button>
-            </div>
+            </form>
         </div>
     </div>
 </div>
@@ -52,6 +53,87 @@
         </div>
     </div>
 </div>
+
+@if (Model.RecommendedJobCards != null && Model.RecommendedJobCards.Any())
+{
+    <section class="recommended-wrap" id="recommended-jobs">
+        <div class="container">
+            <div class="top-jobs-section recommended-section">
+                <div class="top-jobs-header recommended-hero">
+                    <div class="top-jobs-header-content">
+                        <div>
+                            <h2 class="top-jobs-title">Việc làm phù hợp cho bạn</h2>
+                            <p class="top-jobs-subtitle">Gợi ý dựa trên kỹ năng của bạn</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="top-jobs-body">
+                    <div class="jobs-grid">
+                        @foreach (var card in Model.RecommendedJobCards)
+                        {
+                            var job = card.Job;
+                            string salaryText = "Thỏa thuận";
+                            if (job.LowerSalaryRange.HasValue && job.HigherSalaryRange.HasValue)
+                            {
+                                salaryText = $"{job.LowerSalaryRange.Value:N0} - {job.HigherSalaryRange.Value:N0} VNĐ";
+                            }
+                            else if (job.LowerSalaryRange.HasValue)
+                            {
+                                salaryText = $"Từ {job.LowerSalaryRange.Value:N0} VNĐ";
+                            }
+                            else if (job.HigherSalaryRange.HasValue)
+                            {
+                                salaryText = $"Đến {job.HigherSalaryRange.Value:N0} VNĐ";
+                            }
+
+                            <a class="job-card-grid text-decoration-none text-dark" asp-controller="Job" asp-action="Detail" asp-route-id="@job.Id">
+                                <img class="job-card-grid__logo" src="@card.CompanyImageUrl" alt="@job.Company?.Name" />
+                                <div style="flex:1; min-width: 0;">
+                                    <h3 class="job-card-grid__title">@job.Title</h3>
+                                    <div class="job-card-grid__company">@job.Company?.Name</div>
+
+                                    <div class="job-card-grid__meta">
+                                        <span class="job-salary-chip">
+                                            <i class="fa fa-money-bill-wave"></i>
+                                            <span>@salaryText</span>
+                                        </span>
+
+                                        <span class="job-location-chip">
+                                            <i class="fa fa-map-marker-alt"></i>
+                                            <span>@job.Location?.City @job.Location?.Ward</span>
+                                        </span>
+
+                                        <span class="job-exp-chip">
+                                            <i class="fa fa-briefcase"></i>
+                                            <span>@job.YearsOfExperience năm</span>
+                                        </span>
+                                    </div>
+
+                                    @if (job.RequiredSkills != null && job.RequiredSkills.Any())
+                                    {
+                                        var shownSkills = job.RequiredSkills.Take(2).ToList();
+                                        var remaining = job.RequiredSkills.Count - shownSkills.Count;
+                                        <div class="job-skills">
+                                            @foreach (var skill in shownSkills)
+                                            {
+                                                <span class="skill-badge">@skill.Name</span>
+                                            }
+                                            @if (remaining > 0)
+                                            {
+                                                <span class="skill-badge">+@remaining</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+}
 
 <!-- Section Jobs -->
 <section class="section-jobs" id="top-jobs">

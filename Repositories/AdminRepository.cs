@@ -6,19 +6,19 @@ using SWP391_Project.Models;
 
 namespace SWP391_Project.Repositories;
 
-public class AdminRepository : IAdminRepository
-{
-    private readonly EzJobDbContext _context;
-
-    public AdminRepository(EzJobDbContext context)
+    public class AdminRepository : IAdminRepository
     {
-        _context = context;
-    }
+        private readonly EzJobDbContext _context;
 
-    public async Task<User?> GetUserByIdAsync(int userId)
-    {
-        return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-    }
+        public AdminRepository(EzJobDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<User?> GetUserByIdAsync(int userId)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        }
 
     public async Task<Dictionary<DateTime, int>> GetNewUsersByDateAsync(DateTime startDate, DateTime endDate)
     {
@@ -27,7 +27,7 @@ public class AdminRepository : IAdminRepository
     }
 
     public async Task<Dictionary<DateTime, int>> GetApplicationsByDateAsync(DateTime startDate, DateTime endDate)
-    {
+        {
         var start = startDate.Date;
         var end = endDate.Date;
 
@@ -36,7 +36,7 @@ public class AdminRepository : IAdminRepository
             .GroupBy(a => a.SentDate.Date)
             .Select(g => new { Date = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.Date, x => x.Count);
-    }
+        }
 
     public async Task<Dictionary<DateTime, int>> GetActiveJobsByDateAsync(DateTime startDate, DateTime endDate)
     {
@@ -110,7 +110,7 @@ public class AdminRepository : IAdminRepository
             .ToListAsync();
 
         return (users, total);
-    }
+        }
 
     public async Task<(List<User> Users, int Total)> GetUsersByRoleAndActivePagedAsync(Role role, bool active, int page, int pageSize)
     {
@@ -133,14 +133,14 @@ public class AdminRepository : IAdminRepository
     }
 
     public async Task<int> CountActiveUsersByRoleAsync(Role role)
-    {
+        {
         return await _context.Users.CountAsync(u => u.Role == role && u.Active);
     }
 
     public async Task<int> CountInactiveUsersByRoleAsync(Role role)
     {
         return await _context.Users.CountAsync(u => u.Role == role && !u.Active);
-    }
+        }
 
     public async Task<(List<Report> Reports, int Total)> GetJobReportsPagedAsync(int page, int pageSize)
     {
@@ -159,27 +159,27 @@ public class AdminRepository : IAdminRepository
     }
 
     public async Task<int> CountJobsAsync()
-    {
-        return await _context.Jobs.IgnoreQueryFilters().CountAsync();
-    }
+        {
+            return await _context.Jobs.IgnoreQueryFilters().CountAsync();
+        }
 
     public async Task<int> CountActiveJobsAsync()
-    {
+        {
         var today = DateTime.UtcNow.Date;
         return await _context.Jobs.IgnoreQueryFilters()
             .CountAsync(j => j.StartDate.Date <= today && j.EndDate.Date >= today && !j.IsDelete);
-    }
+        }
 
     public async Task<User?> GetUserWithProfileAsync(int userId)
-    {
+        {
         return await _context.Users
             .Include(u => u.Candidate)
             .Include(u => u.Company)
             .FirstOrDefaultAsync(u => u.Id == userId);
-    }
+        }
 
     public async Task UpdateUserActiveAsync(int userId, bool active)
-    {
+        {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) return;
         user.Active = active;

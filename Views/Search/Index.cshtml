@@ -1,0 +1,273 @@
+@model SWP391_Project.ViewModels.Search.SearchPageVM
+@using SWP391_Project.Models
+@using System.Linq
+
+@{
+    ViewData["Title"] = "Tìm kiếm việc làm";
+    var filter = Model.Filter;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
+
+<div class="container my-4">
+    <div class="d-flex flex-column flex-lg-row align-items-stretch gap-3">
+        <form method="get" asp-controller="Search" asp-action="Jobs" class="flex-grow-1">
+            <div class="card p-3 shadow-sm">
+                <div class="row g-2">
+                    <div class="col-lg-5 col-12">
+                        <label class="form-label mb-1">Từ khóa</label>
+                        <div class="input-group">
+                            <select class="form-select flex-grow-0" style="max-width:150px" name="keywordType">
+                                <option value="job" selected="@(filter.KeywordType == "job" ? "selected" : null)">Tên job</option>
+                                <option value="company" selected="@(filter.KeywordType == "company" ? "selected" : null)">Tên công ty</option>
+                            </select>
+                            <input type="text" class="form-control" name="keyword" placeholder="Nhập từ khóa" value="@filter.Keyword" />
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-12">
+                        <label class="form-label mb-1">Tỉnh/Thành phố</label>
+                        <select id="citySelect" class="form-select" name="cityCode">
+                            <option value="">Tất cả</option>
+                            @foreach (var city in Model.Cities)
+                            {
+                                <option value="@city.Code" selected="@(city.Code == filter.CityCode ? "selected" : null)">@city.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-12">
+                        <label class="form-label mb-1">Quận/Huyện</label>
+                        <select id="wardSelect" class="form-select" name="wardCode">
+                            <option value="">Tất cả</option>
+                            @foreach (var ward in Model.Wards)
+                            {
+                                <option value="@ward.Code" selected="@(ward.Code == filter.WardCode ? "selected" : null)">@ward.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-12 d-flex align-items-end">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-search me-1"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-lg-3">
+                    <div class="card p-3 shadow-sm">
+                        <h6 class="mb-3">Lọc nâng cao</h6>
+
+                        <div class="mb-3">
+                            <label class="form-label">Lĩnh vực</label>
+                            <input type="text" id="domainSearch" class="form-control form-control-sm mb-2" placeholder="Tìm domain" oninput="filterDomains()" />
+                            <div class="border rounded p-2" style="max-height: 220px; overflow:auto;">
+                                @foreach (var domain in Model.Domains)
+                                {
+                                    var checkedAttr = filter.DomainIds.Contains(domain.Id) ? "checked" : null;
+                                    <div class="form-check domain-item">
+                                        <input class="form-check-input" type="checkbox" value="@domain.Id" name="domainIds" id="domain-@domain.Id" @checkedAttr />
+                                        <label class="form-check-label" for="domain-@domain.Id">@domain.Name</label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Kinh nghiệm</label>
+                            <select class="form-select form-select-sm" name="experience">
+                                <option value="">Tất cả</option>
+                                @foreach (var bucket in Model.ExperienceBuckets)
+                                {
+                                    <option value="@bucket" selected="@(bucket == filter.ExperienceBucket ? "selected" : null)">@bucket năm</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mức lương (triệu)</label>
+                            <select class="form-select form-select-sm" name="salary">
+                                <option value="all" selected="@(filter.SalaryBucket == "all" || string.IsNullOrEmpty(filter.SalaryBucket) ? "selected" : null)">Tất cả</option>
+                                @foreach (var bucket in Model.SalaryBuckets.Where(b => b != "all"))
+                                {
+                                    var label = bucket == "thoa-thuan" ? "Thỏa thuận" : bucket.Replace("-", " - ") + (bucket.Contains("+") ? "" : " triệu");
+                                    <option value="@bucket" selected="@(bucket == filter.SalaryBucket ? "selected" : null)">@label</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Hình thức</label>
+                            <select class="form-select form-select-sm" name="jobType">
+                                <option value="">Tất cả</option>
+                                @foreach (var jt in Model.JobTypes)
+                                {
+                                    <option value="@jt" selected="@(filter.JobType == jt ? "selected" : null)">@jt.ToString()</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-9">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div class="text-muted">Tìm thấy @Model.TotalResults kết quả</div>
+                        <div class="d-flex align-items-center gap-2">
+                                <label class="mb-0 text-muted text-nowrap">Sắp xếp</label>
+                            <select class="form-select form-select-sm" name="sort" onchange="this.form.submit()">
+                                @foreach (var opt in Model.SortOptions)
+                                {
+                                    <option value="@opt.Value" selected="@(filter.Sort == opt.Value)">@opt.Label</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    @if (Model.JobCards.Any())
+                    {
+                        <div class="jobs-grid">
+                            @foreach (var card in Model.JobCards)
+                            {
+                                var job = card.Job;
+                                string salaryText = "Thỏa thuận";
+                                if (job.LowerSalaryRange.HasValue && job.HigherSalaryRange.HasValue)
+                                {
+                                    salaryText = $"{job.LowerSalaryRange.Value:N0} - {job.HigherSalaryRange.Value:N0} VNĐ";
+                                }
+                                else if (job.LowerSalaryRange.HasValue)
+                                {
+                                    salaryText = $"Từ {job.LowerSalaryRange.Value:N0} VNĐ";
+                                }
+                                else if (job.HigherSalaryRange.HasValue)
+                                {
+                                    salaryText = $"Đến {job.HigherSalaryRange.Value:N0} VNĐ";
+                                }
+
+                                <a class="job-card-grid text-decoration-none text-dark" asp-controller="Job" asp-action="Detail" asp-route-id="@job.Id">
+                                    <img class="job-card-grid__logo" src="@card.CompanyImageUrl" alt="@job.Company?.Name" />
+                                    <div style="flex:1; min-width: 0;">
+                                        <h3 class="job-card-grid__title">@job.Title</h3>
+                                        <div class="job-card-grid__company">@job.Company?.Name</div>
+                                        
+                                        <div class="job-card-grid__meta">
+                                            <span class="job-salary-chip">
+                                                <i class="fa fa-money-bill-wave"></i>
+                                                <span>@salaryText</span>
+                                            </span>
+
+                                            <span class="job-location-chip">
+                                                <i class="fa fa-map-marker-alt"></i>
+                                                <span>@job.Location?.City @job.Location?.Ward</span>
+                                            </span>
+
+                                            <span class="job-exp-chip">
+                                                <i class="fa fa-briefcase"></i>
+                                                <span>@job.YearsOfExperience năm</span>
+                                            </span>
+                                        </div>
+
+                                        @if (job.RequiredSkills != null && job.RequiredSkills.Any())
+                                        {
+                                            var shownSkills = job.RequiredSkills.Take(2).ToList();
+                                            var remaining = job.RequiredSkills.Count - shownSkills.Count;
+                                            <div class="job-skills">
+                                                @foreach (var skill in shownSkills)
+                                                {
+                                                    <span class="skill-badge">@skill.Name</span>
+                                                }
+                                                @if (remaining > 0)
+                                                {
+                                                    <span class="skill-badge">+@remaining</span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">Không tìm thấy kết quả phù hợp.</div>
+                    }
+
+                    @if (Model.TotalPages > 1)
+                    {
+                        <div class="top-jobs-pagination">
+                            <div class="pagination">
+                                <button class="pagination-btn @(Model.CurrentPage == 1 ? "disabled" : "")"
+                                        type="submit" name="page" value="@(Model.CurrentPage - 1)"
+                                        @(Model.CurrentPage == 1 ? "disabled" : "")>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+
+                                @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                                {
+                                    <button class="pagination-btn @(i == Model.CurrentPage ? "active" : "")"
+                                            type="submit" name="page" value="@i">
+                                        @i
+                                    </button>
+                                }
+
+                                <button class="pagination-btn @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")"
+                                        type="submit" name="page" value="@(Model.CurrentPage + 1)"
+                                        @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <div class="text-center mt-2">
+                                <span class="text-muted">Trang @Model.CurrentPage / @Model.TotalPages</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    async function loadCities() {
+        const res = await fetch('/api/locations/cities');
+        const data = await res.json();
+        const citySelect = document.getElementById('citySelect');
+        const current = citySelect.value;
+        citySelect.innerHTML = '<option value=\"\">Tất cả</option>';
+        data.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.code;
+            opt.textContent = c.name;
+            if (c.code === current) opt.selected = true;
+            citySelect.appendChild(opt);
+        });
+    }
+
+    async function loadWards(cityCode, currentWard) {
+        const wardSelect = document.getElementById('wardSelect');
+        wardSelect.innerHTML = '<option value=\"\">Tất cả</option>';
+        if (!cityCode) return;
+        const res = await fetch(`/api/locations/wards?cityCode=${cityCode}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        data.forEach(w => {
+            const opt = document.createElement('option');
+            opt.value = w.code;
+            opt.textContent = w.name;
+            if (w.code === currentWard) opt.selected = true;
+            wardSelect.appendChild(opt);
+        });
+    }
+
+    function filterDomains() {
+        const term = document.getElementById('domainSearch').value.toLowerCase();
+        document.querySelectorAll('.domain-item').forEach(item => {
+            const text = item.innerText.toLowerCase();
+            item.style.display = text.includes(term) ? '' : 'none';
+        });
+    }
+
+    document.getElementById('citySelect')?.addEventListener('change', async (e) => {
+        await loadWards(e.target.value, '');
+    });
+</script>

@@ -1,0 +1,103 @@
+@model SWP391_Project.ViewModels.Search.CompanySearchVM
+
+@{
+    ViewData["Title"] = "Tìm kiếm công ty";
+    var filter = Model.Filter;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
+
+<div class="container my-4">
+    <div class="d-flex flex-column flex-lg-row align-items-stretch gap-3">
+        <form method="get" asp-controller="Search" asp-action="Companies" class="flex-grow-1">
+            <div class="card p-3 shadow-sm">
+                <div class="row g-2">
+                    <div class="col-lg-6 col-12">
+                        <label class="form-label mb-1">Từ khóa công ty</label>
+                        <input type="text" class="form-control" name="keyword" placeholder="Nhập tên công ty" value="@filter.Keyword" />
+                    </div>
+                    <div class="col-lg-4 col-12">
+                        <label class="form-label mb-1">Lĩnh vực</label>
+                        <select class="form-select" name="domainId">
+                            <option value="">Tất cả</option>
+                            @foreach (var d in Model.DomainOptions)
+                            {
+                                <option value="@d.Id" selected="@(filter.DomainId == d.Id)">@d.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-12 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-3 shadow-sm mt-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-muted">Tìm thấy @Model.Total công ty</div>
+                </div>
+
+                @if (Model.CompanyCards.Any())
+                {
+                    <div class="row g-3">
+                        @foreach (var c in Model.CompanyCards)
+                        {
+                            <div class="col-12 col-md-6">
+                                <a class="company-compact-card text-decoration-none text-dark" asp-controller="Company" asp-action="Detail" asp-route-id="@c.Company.Id">
+                                    <div class="d-flex gap-3 align-items-center">
+                                        <img src="@c.CompanyImageUrl" alt="@c.Company.Name" class="company-compact-logo" />
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 fw-semibold">@c.Company.Name</h6>
+                                            <div class="text-muted small mb-2">@(!string.IsNullOrEmpty(c.DomainName) ? c.DomainName : "Khác")</div>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <span class="company-compact-pill"><i class="fa fa-briefcase"></i>@c.ActiveJobCount việc làm</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info mb-0">Không tìm thấy công ty phù hợp.</div>
+                }
+
+                @if (Model.TotalPages > 1)
+                {
+                    <div class="top-jobs-pagination mt-3">
+                        <div class="pagination">
+                            <button class="pagination-btn @(Model.CurrentPage == 1 ? "disabled" : "")"
+                                    type="submit" name="page" value="@(Model.CurrentPage - 1)"
+                                    @(Model.CurrentPage == 1 ? "disabled" : "")>
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+
+                            @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                            {
+                                <button class="pagination-btn @(i == Model.CurrentPage ? "active" : "")"
+                                        type="submit" name="page" value="@i">
+                                    @i
+                                </button>
+                            }
+
+                            <button class="pagination-btn @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")"
+                                    type="submit" name="page" value="@(Model.CurrentPage + 1)"
+                                    @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="text-center mt-2">
+                            <span class="text-muted">Trang @Model.CurrentPage / @Model.TotalPages</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </form>
+    </div>
+</div>
