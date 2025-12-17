@@ -1,0 +1,79 @@
+@model List<SWP391_Project.ViewModels.Notification.NotificationItemVM>
+@{
+    Layout = "_LayoutCandidate";
+    ViewData["Title"] = "Thông báo";
+}
+
+<style>
+    .noti-item {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+    .noti-text {
+        white-space: pre-line;
+        flex: 1;
+    }
+    .noti-action {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .noti-go {
+        border-radius: 10px;
+        padding: 0.35rem 0.65rem;
+        line-height: 1;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-1">Thông báo</h2>
+            <small class="text-muted">Danh sách thông báo của bạn</small>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="text-center text-muted py-5">
+                    <i class="fa fa-bell-slash" style="font-size: 2rem; color: #ced4da; margin-bottom: 0.5rem;"></i>
+                    <div>Chưa có thông báo nào</div>
+                </div>
+            }
+            else
+            {
+                <div class="list-group">
+                    @foreach (var n in Model)
+                    {
+                        var itemClass = n.Read ? "list-group-item" : "list-group-item list-group-item-success";
+                        <div class="@itemClass">
+                            <div class="noti-item">
+                                <div class="noti-text fw-semibold">@n.Title</div>
+                                <div class="noti-action">
+                                    @if (!n.Read)
+                                    {
+                                        <span class="badge bg-success">Mới</span>
+                                    }
+                                    @if (n.NavigationId.HasValue)
+                                    {
+                                        <a class="btn btn-outline-secondary noti-go"
+                                           asp-action="Open"
+                                           asp-route-id="@n.Id"
+                                           title="Đi tới công việc">
+                                            <i class="fa fa-arrow-right"></i>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

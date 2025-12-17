@@ -116,6 +116,16 @@
                             <h6 class="fw-semibold">Mô tả công việc</h6>
                             <div class="mb-0">@Html.Raw(Model.Description)</div>
                         </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="fas fa-exclamation-circle text-danger mt-1"></i>
+                                <div>
+                                    <div class="fw-semibold text-dark">Báo cáo tin tuyển dụng</div>
+                                    <div class="small text-muted">Nếu bạn thấy rằng tin tuyển dụng này không đúng hoặc có dấu hiệu lừa đảo, <a href="javascript:void(0)" class="text-danger fw-semibold" onclick="handleReportClick()">hãy phản ánh với chúng tôi.</a></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -211,10 +221,41 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Báo cáo tin tuyển dụng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="reportForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="reportJobId" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label class="form-label">Lý do</label>
+                            <textarea id="reportReason" class="form-control" rows="4" placeholder="Nhập lý do báo cáo" required></textarea>
+                        </div>
+                        <div class="alert alert-info d-none" id="reportInfo"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-danger" onclick="submitReport()">Gửi báo cáo</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
 @section Scripts {
     <script>
+        const isCandidate = @(Model.IsCandidate.ToString().ToLower());
+        let remainingReport = @Model.RemainingReport;
+        let alreadyReported = @(Model.AlreadyReported.ToString().ToLower());
+        const canReport = @(Model.CanReport.ToString().ToLower());
+
         function toggleSaveJob(jobId) {
             $.ajax({
                 url: '@Url.Action("ToggleSaveJob", "Candidate")',
@@ -315,6 +356,62 @@
                 },
                 error: function () {
                     alert("Lỗi kết nối đến server.");
+                }
+            });
+        }
+
+        function handleReportClick() {
+            if (!isCandidate) {
+                window.location.href = '@Url.Action("Login", "Account")?returnUrl=' + encodeURIComponent(window.location.href);
+                return;
+            }
+            if (alreadyReported) {
+                alert("Bạn đã báo cáo tin này trước đó.");
+                return;
+            }
+            if (remainingReport <= 0) {
+                alert("Bạn đã hết lượt báo cáo.");
+                return;
+            }
+            $('#reportReason').val('');
+            $('#reportInfo').addClass('d-none');
+            const modal = new bootstrap.Modal(document.getElementById('reportModal'));
+            modal.show();
+        }
+
+        function submitReport() {
+            const reason = $('#reportReason').val().trim();
+            if (!reason) {
+                alert("Vui lòng nhập lý do.");
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("CreateReport", "Job")',
+                type: 'POST',
+                data: {
+                    jobId: $('#reportJobId').val(),
+                    reason: reason,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (res) {
+                    if (res.requiresLogin) {
+                        window.location.href = '@Url.Action("Login", "Account")?returnUrl=' + encodeURIComponent(window.location.href);
+                        return;
+                    }
+                    if (res.success) {
+                        alreadyReported = true;
+                        remainingReport = Math.max(0, remainingReport - 1);
+                        const modalEl = document.getElementById('reportModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        modal.hide();
+                        alert(res.message || "Gửi báo cáo thành công");
+                    } else {
+                        $('#reportInfo').removeClass('d-none').text(res.message || "Không thể gửi báo cáo");
+                    }
+                },
+                error: function () {
+                    $('#reportInfo').removeClass('d-none').text("Có lỗi xảy ra, vui lòng thử lại");
                 }
             });
         }

@@ -2,7 +2,7 @@
 @model SWP391_Project.ViewModels.Admin.ManageUsersVM
 @{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "Manage Users";
+    ViewData["Title"] = "Quản lý người dùng";
 }
 
 <style>
@@ -33,6 +33,10 @@
     .arrow-btn {
         border-radius: 10px;
         padding: 0.4rem 0.75rem;
+    }
+    .focused-row {
+        outline: 2px solid rgba(40, 167, 69, 0.55);
+        background: #eaf7f0 !important;
     }
 </style>
 
@@ -105,7 +109,7 @@
                                 <tbody>
                                 @foreach (var user in Model.ActiveCompanies)
                                 {
-                                    <tr class="user-row" data-user-id="@user.Id">
+                                    <tr id="user-row-@user.Id" class="user-row" data-user-id="@user.Id">
                                         <td>@user.Id</td>
                                         <td>@user.Email</td>
                                         <td>
@@ -156,7 +160,7 @@
                                     <tbody>
                                     @foreach (var user in Model.BannedCompanies)
                                     {
-                                        <tr class="user-row" data-user-id="@user.Id">
+                                            <tr id="user-row-@user.Id" class="user-row" data-user-id="@user.Id">
                                             <td>@user.Id</td>
                                             <td>@user.Email</td>
                                             <td>
@@ -222,7 +226,7 @@
                                 <tbody>
                                 @foreach (var user in Model.ActiveCandidates)
                                 {
-                                    <tr class="user-row" data-user-id="@user.Id">
+                                    <tr id="user-row-@user.Id" class="user-row" data-user-id="@user.Id">
                                         <td>@user.Id</td>
                                         <td>@user.Email</td>
                                         <td>
@@ -273,7 +277,7 @@
                                     <tbody>
                                     @foreach (var user in Model.BannedCandidates)
                                     {
-                                        <tr class="user-row" data-user-id="@user.Id">
+                                        <tr id="user-row-@user.Id" class="user-row" data-user-id="@user.Id">
                                             <td>@user.Id</td>
                                             <td>@user.Email</td>
                                             <td>
@@ -325,6 +329,18 @@
                 <div class="mb-2"><strong>Tên:</strong> <span data-detail="name">-</span></div>
                 <div class="mb-2"><strong>Role:</strong> <span data-detail="role">-</span></div>
                 <div class="mb-2"><strong>Trạng thái:</strong> <span class="pill-soft muted" data-detail="status">-</span></div>
+
+                <div class="mt-3 d-none" data-detail-section="company">
+                    <hr />
+                    <div class="mb-2"><strong>Số lượng công việc:</strong> <span data-detail="jobsCount">-</span></div>
+                    <div class="mb-2"><strong>Số lượng báo cáo bị báo cáo:</strong> <span data-detail="reportedCount">-</span></div>
+                </div>
+
+                <div class="mt-3 d-none" data-detail-section="candidate">
+                    <hr />
+                    <div class="mb-2"><strong>Số lượng báo cáo đã gửi:</strong> <span data-detail="firedReportsCount">-</span></div>
+                    <div class="mb-2"><strong>Số lượt báo cáo còn lại:</strong> <span data-detail="remainingReport">-</span></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -338,6 +354,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         (function () {
+            const focusId = '@(Model.FocusUserId?.ToString() ?? "")';
             const userMixEl = document.getElementById("userMixChart");
             const jobsEl = document.getElementById("jobsChart");
             const data = @Html.Raw(JsonSerializer.Serialize(new {
@@ -394,8 +411,14 @@
                 email: detailModalEl?.querySelector('[data-detail="email"]'),
                 name: detailModalEl?.querySelector('[data-detail="name"]'),
                 role: detailModalEl?.querySelector('[data-detail="role"]'),
-                status: detailModalEl?.querySelector('[data-detail="status"]')
+                status: detailModalEl?.querySelector('[data-detail="status"]'),
+                jobsCount: detailModalEl?.querySelector('[data-detail="jobsCount"]'),
+                reportedCount: detailModalEl?.querySelector('[data-detail="reportedCount"]'),
+                firedReportsCount: detailModalEl?.querySelector('[data-detail="firedReportsCount"]'),
+                remainingReport: detailModalEl?.querySelector('[data-detail="remainingReport"]')
             };
+            const companySection = detailModalEl?.querySelector('[data-detail-section="company"]');
+            const candidateSection = detailModalEl?.querySelector('[data-detail-section="candidate"]');
             const toggleBtn = document.getElementById("toggleUserStatusBtn");
             let currentUser = null;
 
@@ -411,6 +434,22 @@
                 toggleBtn.classList.toggle("btn-success", !detail.active);
                 toggleBtn.classList.toggle("btn-danger", detail.active);
                 toggleBtn.textContent = detail.active ? "Khóa tài khoản" : "Mở khóa tài khoản";
+
+                const role = (detail.roleCode || detail.role || "").toString();
+                const isCompany = role === "COMPANY";
+                const isCandidate = role === "CANDIDATE";
+
+                if (companySection) companySection.classList.toggle("d-none", !isCompany);
+                if (candidateSection) candidateSection.classList.toggle("d-none", !isCandidate);
+
+                if (isCompany) {
+                    if (detailFields.jobsCount) detailFields.jobsCount.textContent = detail.jobsCount ?? 0;
+                    if (detailFields.reportedCount) detailFields.reportedCount.textContent = detail.reportedCount ?? 0;
+                }
+                if (isCandidate) {
+                    if (detailFields.firedReportsCount) detailFields.firedReportsCount.textContent = detail.firedReportsCount ?? 0;
+                    if (detailFields.remainingReport) detailFields.remainingReport.textContent = detail.remainingReport ?? 0;
+                }
             };
 
             const fetchDetail = async (userId) => {
@@ -450,6 +489,14 @@
                         .catch(err => alert(err.message));
                 });
             });
+
+            if (focusId) {
+                const focusRow = document.getElementById(`user-row-${focusId}`);
+                if (focusRow) {
+                    focusRow.classList.add("focused-row");
+                    focusRow.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            }
         })();
     </script>
 }

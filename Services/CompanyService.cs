@@ -6,6 +6,7 @@ using SWP391_Project.ViewModels;
 using SWP391_Project.Services.Storage;
 using System.Globalization;
 using System.Linq;
+using SWP391_Project.Constants;
 
 namespace SWP391_Project.Services
 {
@@ -195,7 +196,7 @@ namespace SWP391_Project.Services
                 SalaryText = FormatSalary(j.LowerSalaryRange, j.HigherSalaryRange),
                 Location = j.Location?.City ?? company.Location?.City ?? "N/A",
                 Experience = j.YearsOfExperience > 0 ? $"{j.YearsOfExperience} năm kinh nghiệm" : "Không yêu cầu",
-                JobType = FormatJobType(j.Type),
+                JobType = EnumText.ToVietnamese(j.Type),
                 CompanyImageUrl = BuildImageUrl(company.ImageUrl)
             }).ToList();
 
@@ -257,15 +258,5 @@ namespace SWP391_Project.Services
             return "Thoả thuận";
         }
 
-        private static string FormatJobType(JobType type)
-        {
-            return type switch
-            {
-                JobType.FULLTIME => "Toàn thời gian",
-                JobType.PARTTIME => "Bán thời gian",
-                JobType.HYBRID => "Hybrid",
-                _ => type.ToString()
-            };
-        }
     }
 }

@@ -34,24 +34,7 @@
                     </button>
                     <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="dropdown">
-                                <a class="nav-link d-flex align-items-center" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; padding: 0.25rem 0.5rem; text-decoration: none;">
-                                    <img src="~/imgs/ic_notification.png" alt="Thông báo" style="width: 24px; height: 24px; object-fit: contain;" />
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="border-radius: 10px; border: 1px solid #ced4da; margin-top: 0.5rem; min-width: 320px; max-width: 400px; max-height: 500px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                                    <li class="dropdown-header" style="padding: 1rem; border-bottom: 1px solid #e9ecef; font-weight: 600; color: #495057;">
-                                        Thông báo
-                                    </li>
-                                    <li>
-                                        <div class="p-3 text-center text-muted" style="min-height: 100px; display: flex; align-items: center; justify-content: center;">
-                                            <div>
-                                                <i class="fa fa-bell-slash" style="font-size: 2rem; color: #ced4da; margin-bottom: 0.5rem;"></i>
-                                                <p style="margin: 0;">Chưa có thông báo nào</p>
-                                            </div>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
+                            @await Component.InvokeAsync("NotificationDropdown")
                             @await Component.InvokeAsync("UserDropdown")
                         </div>
                     </div>

@@ -23,6 +23,10 @@ namespace SWP391_Project.ViewModels.Jobs
         public List<SimilarJobCardVM> SimilarJobs { get; set; } = new();
         public bool IsSaved { get; set; }
         public bool HasApplied { get; set; }
+        public bool IsCandidate { get; set; }
+        public bool AlreadyReported { get; set; }
+        public bool CanReport { get; set; }
+        public int RemainingReport { get; set; }
     }
 }
 
