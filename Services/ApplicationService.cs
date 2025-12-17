@@ -1,6 +1,9 @@
-﻿using SWP391_Project.Models;
+﻿using OfficeOpenXml.Style;
+using OfficeOpenXml;
+using SWP391_Project.Models;
 using SWP391_Project.Repositories;
 using SWP391_Project.ViewModels.Candidate;
+using SWP391_Project.ViewModels.Company;
 
 namespace SWP391_Project.Services
 {
@@ -109,6 +112,83 @@ namespace SWP391_Project.Services
                 ResumeUrl = a.ResumeUrl,
                 CoverLetter = a.CoverLetter
             }).ToList();
+        }
+        public async Task<JobApplicantsVM> GetApplicantsForJobAsync(int companyId, int jobId)
+        {
+            var job = await _jobRepository.GetByIdAsync(jobId);
+            if (job == null || job.CompanyId != companyId) throw new Exception("Job not found or unauthorized");
+
+            var applications = await _applicationRepository.GetApplicationsByJobIdAsync(jobId);
+
+            return new JobApplicantsVM
+            {
+                JobId = job.Id,
+                JobTitle = job.Title,
+                Applicants = applications.Select(a => new ApplicantDto
+                {
+                    ApplicationId = a.Id,
+                    CandidateId = a.CandidateId,
+                    FullName = a.FullName,
+                    Email = a.Email,
+                    PhoneNumber = a.PhoneNumber,
+                    ResumeUrl = a.ResumeUrl,
+                    CoverLetter = a.CoverLetter,
+                    AvatarUrl = a.Candidate?.ImageUrl, // Lấy ảnh từ Candidate
+                    ApplyDate = a.SentDate
+                }).ToList()
+            };
+        }
+
+        public async Task<byte[]> ExportApplicantsToExcelAsync(int companyId, int jobId)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            var vm = await GetApplicantsForJobAsync(companyId, jobId);
+
+            // Cấu hình License cho EPPlus (Bắt buộc với bản mới)
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Applicants");
+
+                // 1. Tạo Header
+                worksheet.Cells[1, 1].Value = "STT";
+                worksheet.Cells[1, 2].Value = "Họ và Tên";
+                worksheet.Cells[1, 3].Value = "Email";
+                worksheet.Cells[1, 4].Value = "Số điện thoại";
+                worksheet.Cells[1, 5].Value = "Ngày nộp";
+                worksheet.Cells[1, 6].Value = "Link CV";
+                worksheet.Cells[1, 7].Value = "Thư giới thiệu";
+
+                // Style Header
+                using (var range = worksheet.Cells[1, 1, 1, 7])
+                {
+                    range.Style.Font.Bold = true;
+                    range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                    range.Style.Border.Bottom.Style = ExcelBorderStyle.Thick;
+                }
+
+                // 2. Đổ dữ liệu
+                int row = 2;
+                int stt = 1;
+                foreach (var app in vm.Applicants)
+                {
+                    worksheet.Cells[row, 1].Value = stt++;
+                    worksheet.Cells[row, 2].Value = app.FullName;
+                    worksheet.Cells[row, 3].Value = app.Email;
+                    worksheet.Cells[row, 4].Value = app.PhoneNumber;
+                    worksheet.Cells[row, 5].Value = app.ApplyDate.ToString("dd/MM/yyyy HH:mm");
+                    worksheet.Cells[row, 6].Value = app.ResumeUrl;
+                    worksheet.Cells[row, 7].Value = app.CoverLetter;
+                    row++;
+                }
+
+                // 3. Auto fit cột cho đẹp
+                worksheet.Cells.AutoFitColumns();
+
+                return package.GetAsByteArray();
+            }
         }
     }
 }

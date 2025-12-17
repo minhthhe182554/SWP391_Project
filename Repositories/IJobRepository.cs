@@ -11,6 +11,8 @@ namespace SWP391_Project.Repositories
         Task<List<Job>> GetActiveJobsWithDetailsAsync();
         Task<Job?> GetByIdAsync(int id);
         Task AddAsync(Job job);
+        Task<List<Job>> GetJobsByCompanyIdAsync(int companyId);
+        Task UpdateAsync(Job job);
         Task<(List<Job> Jobs, int Total)> SearchAsync(JobSearchQuery query, DateTime now);
         Task<List<Job>> GetRecommendedBySkillsAsync(List<int> skillIds, int minMatchedSkills, int take, DateTime now);
     }

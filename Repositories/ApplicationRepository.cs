@@ -57,5 +57,14 @@ namespace SWP391_Project.Repositories
                 .OrderByDescending(a => a.SentDate) 
                 .ToListAsync();
         }
+
+        public async Task<List<Application>> GetApplicationsByJobIdAsync(int jobId)
+        {
+            return await _context.Applications
+        .Where(a => a.JobId == jobId)
+        .Include(a => a.Candidate)
+        .OrderByDescending(a => a.SentDate)
+        .ToListAsync();
+        }
     }
 }

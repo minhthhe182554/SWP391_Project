@@ -12,5 +12,6 @@ namespace SWP391_Project.Repositories
         Task<Application?> GetApplicationAsync(int candidateId, int jobId); 
         Task UpdateAsync(Application application);
         Task<List<Application>> GetApplicationsByCandidateIdAsync(int candidateId);
+        Task<List<Application>> GetApplicationsByJobIdAsync(int jobId);
     }
 }
