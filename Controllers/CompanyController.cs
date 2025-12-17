@@ -15,16 +15,18 @@ namespace SWP391_Project.Controllers
         private readonly IAccountService _accountService;
         private readonly IConfiguration _configuration;
         private readonly IJobService _jobService;
+        private readonly IApplicationService _applicationService;
 
-        public CompanyController(ICompanyService companyService, ILocationService locationService, IAccountService accountService, IConfiguration configuration, IJobService jobService)
+        public CompanyController(ICompanyService companyService, ILocationService locationService, IAccountService accountService, IConfiguration configuration, IJobService jobService, IApplicationService applicationService)
         {
             _companyService = companyService;
-            _locationService = locationService; 
+            _locationService = locationService;
             _accountService = accountService;
             _configuration = configuration;
             _jobService = jobService;
+            _applicationService = applicationService;
         }
-        
+
         [RoleAuthorize(Role.COMPANY)]
         public async Task<IActionResult> Index()
         {
@@ -273,6 +275,139 @@ namespace SWP391_Project.Controllers
             model.Domains = dropdownData.Domains;
 
             return View(model);
+        }
+        [RoleAuthorize(Role.COMPANY)]
+        [HttpGet]
+        public async Task<IActionResult> ManageJobs()
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+
+            var list = await _jobService.GetCompanyJobsAsync(int.Parse(userIdStr));
+            return View(list);
+        }
+
+        [RoleAuthorize(Role.COMPANY)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RepostJob(int id)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+
+            try
+            {
+                await _jobService.RepostJobAsync(int.Parse(userIdStr), id);
+                TempData["Success"] = "Đăng lại tin thành công!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi: " + ex.Message;
+            }
+
+            return RedirectToAction("ManageJobs");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StopRecruitment(int id)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+
+            try
+            {
+                await _jobService.StopRecruitmentAsync(int.Parse(userIdStr), id);
+                TempData["Success"] = "Đã dừng tuyển dụng tin này.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi: " + ex.Message;
+            }
+
+            return RedirectToAction("ManageJobs");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditJob(int id)
+        {
+            bool canEdit = await _jobService.CanEditJobAsync(id);
+
+            if (!canEdit)
+            {
+                TempData["Error"] = "Không thể sửa tin tuyển dụng khi đã có ứng viên nộp hồ sơ!";
+                return RedirectToAction("ManageJobs");
+            }
+
+            return Content("Form sửa tin sẽ hiện ở đây"); // Tạm thời
+        }
+        [RoleAuthorize(Role.COMPANY)]
+        [HttpGet]
+        public async Task<IActionResult> JobApplicants(int id)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+            int userId = int.Parse(userIdStr);
+
+            try
+            {
+                // 1. Lấy thông tin Company từ UserId
+                // (Bạn đã có _companyService trong Controller này rồi)
+                var company = await _companyService.GetCompanyByUserIdAsync(userId);
+                if (company == null)
+                {
+                    TempData["Error"] = "Vui lòng cập nhật hồ sơ công ty trước.";
+                    return RedirectToAction("Profile");
+                }
+
+                // 2. Gọi Service: TRUYỀN company.Id (Thay vì userId)
+                var vm = await _applicationService.GetApplicantsForJobAsync(company.Id, id);
+
+                // 3. Truyền tiêu đề job sang View (lấy từ VM trả về)
+                ViewBag.JobTitle = vm.JobTitle;
+
+                return View(vm);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("ManageJobs");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportApplicants(int id)
+        {
+            // 1. Lấy User đang đăng nhập
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+            int userId = int.Parse(userIdStr);
+
+            try
+            {
+                // 2. Lấy CompanyId từ UserId (Quan trọng!)
+                var company = await _companyService.GetCompanyByUserIdAsync(userId);
+                if (company == null)
+                {
+                    TempData["Error"] = "Không tìm thấy thông tin công ty.";
+                    return RedirectToAction("JobApplicants", new { id = id });
+                }
+
+                // 3. Gọi Service để lấy file Excel (byte array)
+                // Lưu ý: Truyền company.Id chứ không phải userId
+                var fileContent = await _applicationService.ExportApplicantsToExcelAsync(company.Id, id);
+
+                // 4. Tạo tên file duy nhất (kèm ngày giờ)
+                string fileName = $"DanhSachUngVien_Job_{id}_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+
+                // 5. Trả về file cho trình duyệt tải xuống
+                return File(fileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Lỗi xuất file: " + ex.Message;
+                return RedirectToAction("JobApplicants", new { id = id });
+            }
         }
     }
 }

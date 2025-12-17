@@ -5,11 +5,11 @@ using SWP391_Project.Repositories;
 using SWP391_Project.Helpers;
 using SWP391_Project.Repositories.Storage;
 using SWP391_Project.Services.Storage;
+using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+
 
 // Regist EzJobDbContext 
 builder.Services.AddDbContext<EzJobDbContext>(options =>

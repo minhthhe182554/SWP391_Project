@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using SWP391_Project.Models;
 using SWP391_Project.ViewModels.Company;
 using System.Text.Json;
+using SWP391_Project.ViewModels.Job;
 
 namespace SWP391_Project.Services
 {
@@ -250,6 +251,86 @@ namespace SWP391_Project.Services
             }
 
             await _jobRepository.AddAsync(job);
+        }
+
+        public async Task<List<ManageJobsVM>> GetCompanyJobsAsync(int userId)
+        {
+            var company = await _companyRepository.GetByUserIdAsync(userId);
+            if (company == null) return new List<ManageJobsVM>();
+
+            var jobs = await _jobRepository.GetJobsByCompanyIdAsync(company.Id);
+
+            return jobs.Select(j => new ManageJobsVM
+            {
+                Id = j.Id,
+                Title = j.Title,
+                CityName = j.Location?.City ?? "N/A",
+                StartDate = j.StartDate,
+                EndDate = j.EndDate,
+                JobType = j.Type,
+                ApplicationCount = j.Applications.Count
+            }).ToList();
+        }
+
+        public async Task RepostJobAsync(int userId, int jobId)
+        {
+            var company = await _companyRepository.GetByUserIdAsync(userId);
+            if (company == null) throw new Exception("Company not found");
+
+            var oldJob = await _jobRepository.GetJobWithDetailsAsync(jobId);
+
+            if (oldJob == null) throw new Exception("Job not found");
+            if (oldJob.CompanyId != company.Id) throw new Exception("Unauthorized access"); 
+
+            var newJob = new Job
+            {
+                CompanyId = company.Id,
+                Title = oldJob.Title + " (Repost)", 
+                Description = oldJob.Description,
+                Type = oldJob.Type,
+                YearsOfExperience = oldJob.YearsOfExperience,
+                VacancyCount = oldJob.VacancyCount,
+                LowerSalaryRange = oldJob.LowerSalaryRange,
+                HigherSalaryRange = oldJob.HigherSalaryRange,
+                Address = oldJob.Address,
+                LocationId = oldJob.LocationId, 
+
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddDays(30), 
+
+                IsDelete = false,
+
+                RequiredSkills = oldJob.RequiredSkills.ToList(),
+                Domains = oldJob.Domains.ToList(),
+
+                Applications = new List<Application>(),
+                Reports = new List<Report>()
+            };
+
+            await _jobRepository.AddAsync(newJob);
+        }
+
+        public async Task StopRecruitmentAsync(int userId, int jobId)
+        {
+            var job = await _jobRepository.GetByIdAsync(jobId);
+            if (job == null) throw new Exception("Job not found");
+
+            var company = await _companyRepository.GetByUserIdAsync(userId);
+            if (company == null || job.CompanyId != company.Id) throw new Exception("Unauthorized");
+
+            job.EndDate = DateTime.Now.AddMinutes(-1); 
+
+            // Nếu Repo chưa có Update, bạn thêm vào Repo: _context.Jobs.Update(job); await _context.SaveChangesAsync();
+            await _jobRepository.UpdateAsync(job);
+        }
+
+        public async Task<bool> CanEditJobAsync(int jobId)
+        {
+            var job = await _jobRepository.GetJobWithDetailsAsync(jobId);
+            if (job == null) return false;
+
+            // Nếu số lượng Application > 0 thì KHÔNG ĐƯỢC SỬA
+            return job.Applications.Count == 0;
         }
     }
 }

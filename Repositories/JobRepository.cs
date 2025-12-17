@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SWP391_Project.Models;
 
 namespace SWP391_Project.Repositories
@@ -47,6 +47,21 @@ namespace SWP391_Project.Repositories
         public async Task AddAsync(Job job)
         {
             _context.Jobs.Add(job);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Job>> GetJobsByCompanyIdAsync(int companyId)
+        {
+            return await _context.Jobs
+                .Where(j => j.CompanyId == companyId && !j.IsDelete)
+                .Include(j => j.Location)       
+                .Include(j => j.Applications)   
+                .OrderByDescending(j => j.StartDate) 
+                .ToListAsync();
+        }
+        public async Task UpdateAsync(Job job)
+        {
+            _context.Jobs.Update(job);
             await _context.SaveChangesAsync();
         }
     }
