@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace SWP391_Project.ViewModels.Jobs
 {
     public class JobDetailVM

@@ -1,0 +1,292 @@
+@model SWP391_Project.ViewModels.Candidate.CandidateReportListVM
+@using SWP391_Project.Models.Enums
+@{
+    ViewData["Title"] = "Việc làm đã báo cáo";
+    Layout = "_Layout";
+    var primaryColor = "#28a745";
+    string GetStatusBadge(ReportStatus status) => status switch
+    {
+        ReportStatus.PENDING => "bg-secondary",
+        ReportStatus.REVIEWING => "bg-warning text-dark",
+        ReportStatus.RESOLVED => "bg-success",
+        _ => "bg-light text-dark"
+    };
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+        <div>
+            <h4 class="fw-bold text-success mb-1">
+                <i class="fa fa-flag me-2"></i> Việc làm đã báo cáo
+            </h4>
+            <p class="text-muted small mb-0">Danh sách các công việc bạn đã gửi báo cáo</p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted mb-0">Lọc</label>
+            <select id="statusFilter" class="form-select form-select-sm" style="border-radius: 10px; min-width: 170px;" onchange="onStatusFilterChange()">
+                <option value="" selected="@(Model.Filter == null ? "selected" : null)">Tất cả</option>
+                <option value="PENDING" selected="@(Model.Filter == ReportStatus.PENDING ? "selected" : null)">Chờ duyệt</option>
+                <option value="REVIEWING" selected="@(Model.Filter == ReportStatus.REVIEWING ? "selected" : null)">Đang xử lý</option>
+                <option value="RESOLVED" selected="@(Model.Filter == ReportStatus.RESOLVED ? "selected" : null)">Đã xử lý</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0" style="border-radius: 10px;">
+        <div class="card-body">
+            @if (Model.Reports.Count == 0)
+            {
+                <div class="text-center py-5">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" alt="Empty" style="width: 70px; opacity: 0.6;" class="mb-3" />
+                    <p class="text-muted mb-2">Chưa có báo cáo nào.</p>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-success btn-sm" style="border-radius: 10px;">Tìm việc ngay</a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Công việc</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var report in Model.Reports)
+                            {
+                                <tr data-report-id="@report.ReportId">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="@(report.CompanyLogo ?? "/imgs/ic_default_avatar.png")" alt="Logo" style="width: 42px; height: 42px; object-fit: cover; border-radius: 10px; border: 1px solid #ced4da;" />
+                                            <div class="ms-1">
+                                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                                                    <a asp-controller="Job" asp-action="Detail" asp-route-id="@report.JobId" class="text-decoration-none text-dark">
+                                                        @report.JobTitle
+                                                    </a>
+                                                </div>
+                                                <div class="text-muted small">@report.CompanyName</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge @GetStatusBadge(report.Status)" style="border-radius: 12px; padding: 0.45rem 0.85rem;">
+                                            @report.StatusText
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button class="btn btn-light btn-sm border" style="border-radius: 10px; color: @primaryColor;" title="Xem chi tiết" onclick="openReportDetail(@report.ReportId)">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-light btn-sm border" style="border-radius: 10px;" title="Chỉnh sửa lý do"
+                                                    onclick="openEditReport(@report.ReportId)"
+                                                    @(report.Status == ReportStatus.PENDING ? "" : "disabled")>
+                                                <i class="fa fa-pen"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="reportDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Chi tiết báo cáo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img id="detailCompanyLogo" src="/imgs/ic_default_avatar.png" alt="Logo" style="width: 48px; height: 48px; object-fit: cover; border-radius: 10px; border: 1px solid #ced4da;" />
+                    <div>
+                        <div id="detailJobTitle" class="fw-bold text-dark"></div>
+                        <div id="detailCompanyName" class="text-muted small"></div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted small">Trạng thái:</span>
+                    <span id="detailStatusBadge" class="badge bg-secondary ms-2" style="border-radius: 12px; padding: 0.45rem 0.85rem;">...</span>
+                </div>
+                <div class="mt-3">
+                    <div class="text-muted small mb-1">Lý do báo cáo</div>
+                    <div id="detailReason" class="bg-light p-3 rounded" style="border: 1px solid #dee2e6; white-space: pre-line;"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0" id="detailModalFooter">
+                <button type="button" class="btn btn-secondary" style="border-radius: 10px; display:none;" data-bs-dismiss="modal" id="detailCloseBtn">Đóng</button>
+                <button type="button" class="btn btn-danger" style="border-radius: 10px; display:none;" id="detailDeleteBtn" onclick="deleteReport()">Xóa báo cáo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editReportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold"><i class="fa fa-pen me-2 text-success"></i>Chỉnh sửa báo cáo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editReportId" />
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Công việc</label>
+                    <div id="editJobTitle" class="fw-bold text-dark"></div>
+                    <div id="editCompanyName" class="text-muted small"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Lý do báo cáo</label>
+                    <textarea id="editReason" class="form-control" rows="4" maxlength="500" style="border-radius: 10px;"></textarea>
+                    <div class="form-text" id="editReasonHint">Tối đa 500 ký tự.</div>
+                </div>
+                <div class="text-danger small" id="editError" style="display:none;"></div>
+                <div class="text-success small" id="editSuccess" style="display:none;"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" style="border-radius: 10px;" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" style="border-radius: 10px;" onclick="submitEdit()">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const statusClassMap = {
+            "PENDING": "badge bg-secondary",
+            "REVIEWING": "badge bg-warning text-dark",
+            "RESOLVED": "badge bg-success"
+        };
+
+        function onStatusFilterChange() {
+            const value = document.getElementById('statusFilter').value;
+            const url = value ? `?status=${value}` : window.location.pathname;
+            window.location.href = url;
+        }
+
+        function applyStatusBadge(element, status, text) {
+            element.className = statusClassMap[status] || "badge bg-light text-dark";
+            element.textContent = text;
+        }
+
+        let currentReportId = null;
+
+        function openReportDetail(reportId) {
+            currentReportId = reportId;
+            $.get('/Candidate/GetReportDetail', { id: reportId })
+                .done(function (res) {
+                    if (!res || !res.success) {
+                        alert("Không tải được chi tiết báo cáo.");
+                        return;
+                    }
+                    const data = res.data;
+                    $('#detailJobTitle').text(data.jobTitle);
+                    $('#detailCompanyName').text(data.companyName);
+                    $('#detailReason').text(data.reason);
+                    $('#detailCompanyLogo').attr('src', data.companyLogo || '/imgs/ic_default_avatar.png');
+                    applyStatusBadge(document.getElementById('detailStatusBadge'), data.statusCode, data.statusText);
+                    
+                    // Hiển thị nút phù hợp dựa trên trạng thái
+                    if (data.statusCode === 'PENDING') {
+                        $('#detailDeleteBtn').show();
+                        $('#detailCloseBtn').hide();
+                    } else {
+                        $('#detailDeleteBtn').hide();
+                        $('#detailCloseBtn').show();
+                    }
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('reportDetailModal'));
+                    modal.show();
+                })
+                .fail(function () { alert("Không tải được dữ liệu."); });
+        }
+
+        function deleteReport() {
+            if (!currentReportId) {
+                alert("Không tìm thấy báo cáo.");
+                return;
+            }
+
+            if (!confirm("Bạn có chắc chắn muốn xóa báo cáo này?")) {
+                return;
+            }
+
+            $.post('/Candidate/DeleteReport', { reportId: currentReportId })
+                .done(function (res) {
+                    if (res && res.success) {
+                        const modalEl = document.getElementById('reportDetailModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        modal.hide();
+                        // Reload trang để cập nhật danh sách
+                        window.location.reload();
+                    } else {
+                        alert(res?.message || "Xóa báo cáo thất bại");
+                    }
+                })
+                .fail(function () {
+                    alert("Có lỗi xảy ra. Vui lòng thử lại.");
+                });
+        }
+
+        function openEditReport(reportId) {
+            $.get('/Candidate/GetReportDetail', { id: reportId })
+                .done(function (res) {
+                    if (!res || !res.success) {
+                        alert("Không tải được báo cáo.");
+                        return;
+                    }
+                    const data = res.data;
+                    if (data.statusCode !== 'PENDING') {
+                        alert("Chỉ chỉnh sửa được báo cáo ở trạng thái Chờ duyệt.");
+                        return;
+                    }
+                    $('#editReportId').val(data.reportId);
+                    $('#editJobTitle').text(data.jobTitle);
+                    $('#editCompanyName').text(data.companyName);
+                    $('#editReason').val(data.reason);
+                    $('#editError').hide();
+                    $('#editSuccess').hide();
+                    const modal = new bootstrap.Modal(document.getElementById('editReportModal'));
+                    modal.show();
+                })
+                .fail(function () { alert("Không tải được dữ liệu."); });
+        }
+
+        function submitEdit() {
+            const reportId = $('#editReportId').val();
+            const reason = $('#editReason').val();
+
+            $('#editError').hide();
+            $('#editSuccess').hide();
+
+            $.post('/Candidate/UpdateReportReason', { reportId: reportId, reason: reason })
+                .done(function (res) {
+                    if (res && res.success) {
+                        $('#editSuccess').text(res.message).show();
+                        setTimeout(() => {
+                            const modalEl = document.getElementById('editReportModal');
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            modal.hide();
+                        }, 800);
+                    } else {
+                        $('#editError').text(res?.message || "Cập nhật thất bại").show();
+                    }
+                })
+                .fail(function () {
+                    $('#editError').text("Có lỗi xảy ra. Vui lòng thử lại.").show();
+                });
+        }
+    </script>
+}

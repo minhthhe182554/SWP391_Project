@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SWP391_Project.Helpers;
-using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.Services;
 
 namespace SWP391_Project.Controllers;
@@ -43,7 +43,7 @@ public class NotificationController : Controller
             return RedirectToAction("Detail", "Job", new { id = jobId.Value });
         }
 
-        // No navigation target -> do nothing (stay).
+        // No navigation target
         return NoContent();
     }
 }

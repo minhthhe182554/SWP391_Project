@@ -23,7 +23,7 @@
     .card-custom {
         border-radius: var(--border-radius-std);
         border: 1px solid #ced4da;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Nhẹ nhàng hơn */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
     }
 
     .card-header-custom {
@@ -192,7 +192,6 @@
 
                         <div class="small text-muted mb-3">
                             Định dạng JPG hoặc PNG. Dung lượng tối đa 5MB.<br>
-                            Kích thước hiển thị tốt nhất: Vuông (1:1)
                         </div>
 
                         <div class="w-100 px-4">
@@ -344,7 +343,7 @@
             }
         }
 
-        // 2. Load Tỉnh/Huyện (AJAX)
+        // 2. Load Tỉnh/Huyện 
         $(document).ready(function () {
             $('#citySelect').change(function () {
                 var cityCode = $(this).find(':selected').data('code');

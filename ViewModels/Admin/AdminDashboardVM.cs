@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace SWP391_Project.ViewModels;
 
     public class AdminDashboardVM

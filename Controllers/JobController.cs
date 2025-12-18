@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using SWP391_Project.Services;
-using SWP391_Project.ViewModels.Jobs;
-using System.Threading.Tasks;
 
 namespace SWP391_Project.Controllers
 {

@@ -1,6 +1,7 @@
 using SWP391_Project.Models;
 using SWP391_Project.Repositories;
 using SWP391_Project.ViewModels.Notification;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.Constants;
 
 namespace SWP391_Project.Services;
@@ -47,6 +48,29 @@ public class NotificationService : INotificationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating notification for report {ReportId}", reportId);
+        }
+    }
+
+    public async Task CreateReportDeletedAsync(int candidateId, int jobId, string jobTitle)
+    {
+        try
+        {
+            var title = NotificationConstants.BuildReportDeletedMessage(jobTitle);
+
+            var noti = new Notification
+            {
+                Title = title,
+                Type = NotificationType.REPORT,
+                CandidateId = candidateId,
+                NavigationId = jobId,
+                Read = false
+            };
+
+            await _notificationRepository.AddAsync(noti);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating notification for deleted report, candidate {CandidateId}, job {JobId}", candidateId, jobId);
         }
     }
 

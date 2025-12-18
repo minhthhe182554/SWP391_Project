@@ -1,3 +1,5 @@
+@using SWP391_Project.Models.Enums
+@using SWP391_Project.Constants
 @model SWP391_Project.ViewModels.Admin.ManageReportsVM
 @{
     Layout = "_LayoutAdmin";
@@ -43,9 +45,9 @@
                 {
                     var badgeClass = r.Status switch
                     {
-                        SWP391_Project.Models.ReportStatus.PENDING => "bg-secondary",
-                        SWP391_Project.Models.ReportStatus.REVIEWING => "bg-warning text-dark",
-                        SWP391_Project.Models.ReportStatus.RESOLVED => "bg-success",
+                        ReportStatus.PENDING => "bg-secondary",
+                        ReportStatus.REVIEWING => "bg-warning text-dark",
+                        ReportStatus.RESOLVED => "bg-success",
                         _ => "bg-secondary"
                     };
                     <tr id="report-row-@r.Id" data-id="@r.Id"
@@ -120,7 +122,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Trạng thái</label>
                         <select id="reportStatusField" class="form-select form-select-sm">
-                            @foreach (var st in Enum.GetValues(typeof(SWP391_Project.Models.ReportStatus)))
+                            @foreach (var st in Enum.GetValues(typeof(ReportStatus)))
                             {
                                 <option value="@st">@st</option>
                             }
@@ -131,7 +133,7 @@
                         <textarea id="reportAdminNoteField"
                                   class="form-control"
                                   rows="3"
-                                  placeholder="@SWP391_Project.Constants.NotificationConstants.ReportStatusNotePlaceholder"></textarea>
+                                  placeholder="@NotificationConstants.ReportStatusNotePlaceholder"></textarea>
                     </div>
                     <div class="alert alert-danger d-none" id="reportError"></div>
                     <div class="alert alert-success d-none" id="reportSuccess"></div>

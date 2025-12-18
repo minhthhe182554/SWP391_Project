@@ -1,11 +1,8 @@
 using SWP391_Project.Repositories;
 using SWP391_Project.Services.Storage;
-using System;
 using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.Constants;
 using SWP391_Project.ViewModels.Company;
 using System.Text.Json;

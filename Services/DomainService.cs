@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using SWP391_Project.Repositories;
 using SWP391_Project.ViewModels.Search;
 
@@ -26,7 +22,7 @@ public class DomainService : IDomainService
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 domains = domains
-                    .Where(d => d.Name.Contains(keyword.Trim(), System.StringComparison.OrdinalIgnoreCase))
+                    .Where(d => d.Name.Contains(keyword.Trim(), StringComparison.OrdinalIgnoreCase))
                     .ToList();
             }
 
@@ -34,7 +30,7 @@ public class DomainService : IDomainService
                 .Select(d => new DomainOptionVM { Id = d.Id, Name = d.Name })
                 .ToList();
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching domains");
             throw;

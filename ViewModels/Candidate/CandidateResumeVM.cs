@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace SWP391_Project.ViewModels.Candidate;
 
 public class CandidateResumeVM
