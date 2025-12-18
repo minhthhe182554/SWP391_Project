@@ -221,8 +221,6 @@
                 type: 'POST',
                 data: { jobId: jobId },
                 success: function (response) {
-                    // TRƯỜNG HỢP 1: Server trả về HTML trang đăng nhập (Do bị Redirect)
-                    // -> Hiển thị Modal đăng nhập giống nút "Ứng tuyển ngay"
                     if (typeof response === 'string' && (response.includes("<!DOCTYPE html>") || response.includes("<html"))) {
                         $('#applyModalContent').html(response);
                         var modal = new bootstrap.Modal(document.getElementById('applyModalContainer'));
@@ -230,7 +228,6 @@
                         return;
                     }
 
-                    // TRƯỜNG HỢP 2: Server trả về JSON (Đã đăng nhập)
                     if (response.success) {
                         var btn = $('#btnSaveJob');
                         var icon = $('#iconSaveJob');
@@ -250,10 +247,7 @@
                     }
                 },
                 error: function (xhr) {
-                    // TRƯỜNG HỢP 3: Server trả về đúng mã 401 (Nếu config API chuẩn)
                     if (xhr.status === 401) {
-                        // Gọi lại endpoint lấy form đăng nhập để hiện modal
-                        // (Giả sử bạn dùng chung cơ chế load modal của nút Apply)
                         $.get('@Url.Action("GetApplyModal", "Candidate")', { jobId: jobId }, function (html) {
                             $('#applyModalContent').html(html);
                             var modal = new bootstrap.Modal(document.getElementById('applyModalContainer'));

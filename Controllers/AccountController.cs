@@ -72,7 +72,6 @@ namespace SWP391_Project.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterVM model)
         {
-            // Validate Company fields nếu role là COMPANY
             if(model.Role == Role.COMPANY)
             {
                 if(string.IsNullOrWhiteSpace(model.PhoneNumber))

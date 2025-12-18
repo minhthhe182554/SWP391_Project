@@ -227,11 +227,9 @@
 
         // ================= LOGIC 3: TAGIFY (SKILLS & DOMAINS) =================
 
-        // Lấy danh sách gợi ý từ Server (Whitelist)
         var skillsWhitelist = @Html.Raw(Json.Serialize(Model.Skills.Select(s => s.Name)));
         var domainsWhitelist = @Html.Raw(Json.Serialize(Model.Domains.Select(d => d.Name)));
 
-        // Cấu hình cho Skills
         var skillInput = document.querySelector('#skillsInput');
         new Tagify(skillInput, {
             whitelist: skillsWhitelist,
@@ -244,7 +242,6 @@
             }
         });
 
-        // Cấu hình cho Domains
         var domainInput = document.querySelector('#domainsInput');
         new Tagify(domainInput, {
             whitelist: domainsWhitelist,

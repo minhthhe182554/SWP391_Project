@@ -43,14 +43,12 @@ namespace SWP391_Project.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Update session với thông tin mới nhất từ database
             HttpContext.Session.SetString("Name", company.Name);
             if (!string.IsNullOrEmpty(company.ImageUrl))
             {
                 HttpContext.Session.SetString("ImageUrl", company.ImageUrl);
             }
 
-            // Get company dashboard
             var viewModel = await _companyService.GetCompanyDashboardViewAsync(company.Id);
 
             return View(viewModel);
@@ -339,7 +337,7 @@ namespace SWP391_Project.Controllers
                 return RedirectToAction("ManageJobs");
             }
 
-            return Content("Form sửa tin sẽ hiện ở đây"); // Tạm thời
+            return Content("Form sửa tin sẽ hiện ở đây"); 
         }
         [RoleAuthorize(Role.COMPANY)]
         [HttpGet]
@@ -351,8 +349,6 @@ namespace SWP391_Project.Controllers
 
             try
             {
-                // 1. Lấy thông tin Company từ UserId
-                // (Bạn đã có _companyService trong Controller này rồi)
                 var company = await _companyService.GetCompanyByUserIdAsync(userId);
                 if (company == null)
                 {
@@ -360,10 +356,8 @@ namespace SWP391_Project.Controllers
                     return RedirectToAction("Profile");
                 }
 
-                // 2. Gọi Service: TRUYỀN company.Id (Thay vì userId)
                 var vm = await _applicationService.GetApplicantsForJobAsync(company.Id, id);
 
-                // 3. Truyền tiêu đề job sang View (lấy từ VM trả về)
                 ViewBag.JobTitle = vm.JobTitle;
 
                 return View(vm);
@@ -378,14 +372,12 @@ namespace SWP391_Project.Controllers
         [HttpGet]
         public async Task<IActionResult> ExportApplicants(int id)
         {
-            // 1. Lấy User đang đăng nhập
             var userIdStr = HttpContext.Session.GetString("UserID");
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
             int userId = int.Parse(userIdStr);
 
             try
             {
-                // 2. Lấy CompanyId từ UserId (Quan trọng!)
                 var company = await _companyService.GetCompanyByUserIdAsync(userId);
                 if (company == null)
                 {
@@ -393,14 +385,10 @@ namespace SWP391_Project.Controllers
                     return RedirectToAction("JobApplicants", new { id = id });
                 }
 
-                // 3. Gọi Service để lấy file Excel (byte array)
-                // Lưu ý: Truyền company.Id chứ không phải userId
                 var fileContent = await _applicationService.ExportApplicantsToExcelAsync(company.Id, id);
 
-                // 4. Tạo tên file duy nhất (kèm ngày giờ)
                 string fileName = $"DanhSachUngVien_Job_{id}_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
 
-                // 5. Trả về file cho trình duyệt tải xuống
                 return File(fileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             catch (Exception ex)

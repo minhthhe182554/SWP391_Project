@@ -133,7 +133,7 @@ namespace SWP391_Project.Services
                     PhoneNumber = a.PhoneNumber,
                     ResumeUrl = a.ResumeUrl,
                     CoverLetter = a.CoverLetter,
-                    AvatarUrl = a.Candidate?.ImageUrl, // Lấy ảnh từ Candidate
+                    AvatarUrl = a.Candidate?.ImageUrl, 
                     ApplyDate = a.SentDate
                 }).ToList()
             };
@@ -144,14 +144,12 @@ namespace SWP391_Project.Services
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var vm = await GetApplicantsForJobAsync(companyId, jobId);
 
-            // Cấu hình License cho EPPlus (Bắt buộc với bản mới)
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             using (var package = new ExcelPackage())
             {
                 var worksheet = package.Workbook.Worksheets.Add("Applicants");
 
-                // 1. Tạo Header
                 worksheet.Cells[1, 1].Value = "STT";
                 worksheet.Cells[1, 2].Value = "Họ và Tên";
                 worksheet.Cells[1, 3].Value = "Email";
@@ -160,7 +158,6 @@ namespace SWP391_Project.Services
                 worksheet.Cells[1, 6].Value = "Link CV";
                 worksheet.Cells[1, 7].Value = "Thư giới thiệu";
 
-                // Style Header
                 using (var range = worksheet.Cells[1, 1, 1, 7])
                 {
                     range.Style.Font.Bold = true;
@@ -169,7 +166,6 @@ namespace SWP391_Project.Services
                     range.Style.Border.Bottom.Style = ExcelBorderStyle.Thick;
                 }
 
-                // 2. Đổ dữ liệu
                 int row = 2;
                 int stt = 1;
                 foreach (var app in vm.Applicants)
@@ -184,7 +180,6 @@ namespace SWP391_Project.Services
                     row++;
                 }
 
-                // 3. Auto fit cột cho đẹp
                 worksheet.Cells.AutoFitColumns();
 
                 return package.GetAsByteArray();
