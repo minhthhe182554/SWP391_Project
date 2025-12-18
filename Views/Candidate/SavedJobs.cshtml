@@ -96,11 +96,8 @@
                 data: { jobId: jobId },
                 success: function (response) {
                     if (response.success && !response.isSaved) {
-                        // Xóa card khỏi giao diện
                         $('#job-card-' + jobId).fadeOut(300, function () { $(this).remove(); });
 
-                        // Cập nhật lại số lượng (Optional)
-                        // Reload trang nếu muốn đơn giản
                     }
                 }
             });

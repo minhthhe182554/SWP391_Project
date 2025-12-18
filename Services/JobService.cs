@@ -321,7 +321,6 @@ namespace SWP391_Project.Services
 
             job.EndDate = DateTime.Now.AddMinutes(-1);
 
-            // Nếu Repo chưa có Update, bạn thêm vào Repo: _context.Jobs.Update(job); await _context.SaveChangesAsync();
             await _jobRepository.UpdateAsync(job);
         }
 
@@ -330,7 +329,6 @@ namespace SWP391_Project.Services
             var job = await _jobRepository.GetJobWithDetailsAsync(jobId);
             if (job == null) return false;
 
-            // Nếu số lượng Application > 0 thì KHÔNG ĐƯỢC SỬA
             return job.Applications.Count == 0;
         }
         public async Task<(bool Success, string Message)> CreateJobReportAsync(int jobId, int candidateUserId, string reason)
