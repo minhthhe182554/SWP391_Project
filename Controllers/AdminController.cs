@@ -29,7 +29,8 @@ namespace SWP391_Project.Controllers
             int candidateBannedPage = 1,
             int companyActivePage = 1,
             int companyBannedPage = 1,
-            int pageSize = 10)
+            int pageSize = 10,
+            int? focusUserId = null)
         {
             candidateActivePage = Math.Max(1, candidateActivePage);
             candidateBannedPage = Math.Max(1, candidateBannedPage);
@@ -42,19 +43,48 @@ namespace SWP391_Project.Controllers
                 candidateBannedPage,
                 companyActivePage,
                 companyBannedPage,
-                pageSize);
+                pageSize,
+                focusUserId);
             return View("ManageUsers", vm);
         }
 
         [RoleAuthorize(Role.ADMIN)]
-        public async Task<IActionResult> ManageReports(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> ManageReports(int page = 1, int pageSize = 10, int? focusReportId = null)
         {
             page = Math.Max(1, page);
             pageSize = Math.Max(1, pageSize);
 
-            var vm = await _adminService.GetManageReportsAsync(page, pageSize);
+            var vm = await _adminService.GetManageReportsAsync(page, pageSize, focusReportId);
             return View("ManageReports", vm);
             }
+
+        [RoleAuthorize(Role.ADMIN)]
+        public async Task<IActionResult> ManageJobs(int page = 1, int pageSize = 10, string statusFilter = "all", int? focusJobId = null)
+        {
+            page = Math.Max(1, page);
+            pageSize = Math.Max(1, pageSize);
+
+            var vm = await _adminService.GetManageJobsAsync(page, pageSize, statusFilter, focusJobId);
+            return View("ManageJobs", vm);
+        }
+
+        [HttpGet]
+        [RoleAuthorize(Role.ADMIN)]
+        public async Task<IActionResult> JobDetail(int id)
+        {
+            var vm = await _adminService.GetJobDetailForAdminAsync(id);
+            if (vm == null) return NotFound();
+            return Json(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RoleAuthorize(Role.ADMIN)]
+        public async Task<IActionResult> UpdateReportStatus(int id, ReportStatus status, string? adminNote)
+        {
+            await _adminService.UpdateReportStatusAsync(id, status, adminNote);
+            return Json(new { success = true });
+        }
 
         [HttpGet]
         [RoleAuthorize(Role.ADMIN)]

@@ -1,20 +1,31 @@
 @model SWP391_Project.ViewModels.Admin.ManageReportsVM
 @{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "Manage Reports";
+    ViewData["Title"] = "Quản lý báo cáo";
 }
+
+<style>
+    .arrow-btn {
+        border-radius: 10px;
+        padding: 0.4rem 0.75rem;
+    }
+    .focused-row {
+        outline: 2px solid rgba(40, 167, 69, 0.55);
+        background: #eaf7f0 !important;
+    }
+</style>
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
     <div>
         <h2 class="mb-1">Quản lý báo cáo công việc</h2>
-        <small class="text-muted">Danh sách báo cáo, 10 bản ghi mỗi trang</small>
+        <small class="text-muted">Danh sách báo cáo</small>
     </div>
 </div>
 
 <div class="card shadow-sm">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Reports</h5>
+            <h5 class="mb-0">Báo cáo</h5>
             <small class="text-muted">Page @Model.Page / @Model.TotalPages</small>
         </div>
         <div class="table-responsive">
@@ -22,23 +33,42 @@
                 <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Job</th>
-                    <th>Candidate</th>
-                    <th>Status</th>
-                    <th>Reason</th>
+                    <th>Việc làm</th>
+                    <th>Trạng thái</th>
+                    <th class="text-center">Xem</th>
                 </tr>
                 </thead>
                 <tbody>
                 @foreach (var r in Model.Reports)
                 {
-                    <tr>
+                    var badgeClass = r.Status switch
+                    {
+                        SWP391_Project.Models.ReportStatus.PENDING => "bg-secondary",
+                        SWP391_Project.Models.ReportStatus.REVIEWING => "bg-warning text-dark",
+                        SWP391_Project.Models.ReportStatus.RESOLVED => "bg-success",
+                        _ => "bg-secondary"
+                    };
+                    <tr id="report-row-@r.Id" data-id="@r.Id"
+                        data-job="@r.JobTitle"
+                        data-candidate="@r.CandidateName"
+                        data-candidate-user-id="@r.CandidateUserId"
+                        data-reason="@r.Reason"
+                        data-status="@r.Status">
                         <td>@r.Id</td>
-                        <td>@r.JobTitle</td>
-                        <td>@r.CandidateName</td>
                         <td>
-                            <span class="badge bg-secondary">@r.Status</span>
+                            <a class="text-decoration-none"
+                               asp-controller="Admin"
+                               asp-action="ManageJobs"
+                               asp-route-focusJobId="@r.JobId">
+                                @r.JobTitle
+                            </a>
                         </td>
-                        <td>@r.Reason</td>
+                        <td><span class="badge @badgeClass">@r.Status</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="openReportDetail(@r.Id)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
                     </tr>
                 }
                 </tbody>
@@ -47,18 +77,145 @@
         <div class="d-flex justify-content-between align-items-center">
             <small class="text-muted">Tổng: @Model.Total</small>
             <div class="btn-group">
-                <a class="btn btn-outline-secondary @(Model.Page <= 1 ? "disabled" : "")"
+                <a class="btn btn-outline-secondary arrow-btn @(Model.Page <= 1 ? "disabled" : "")"
                    asp-action="ManageReports"
-                   asp-route-page="@(Model.Page - 1)">
-                    Prev
+                   asp-route-page="@(Model.Page - 1)"
+                   asp-route-focusReportId="@Model.FocusReportId">
+                    <i class="fas fa-chevron-left"></i>
                 </a>
-                <a class="btn btn-outline-secondary @(Model.Page >= Model.TotalPages ? "disabled" : "")"
+                <a class="btn btn-outline-secondary arrow-btn @(Model.Page >= Model.TotalPages ? "disabled" : "")"
                    asp-action="ManageReports"
-                   asp-route-page="@(Model.Page + 1)">
-                    Next
+                   asp-route-page="@(Model.Page + 1)"
+                   asp-route-focusReportId="@Model.FocusReportId">
+                    <i class="fas fa-chevron-right"></i>
                 </a>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="reportDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết báo cáo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reportStatusForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="reportIdField" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Việc làm</label>
+                        <div id="reportJobField" class="text-muted"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Ứng viên báo cáo</label>
+                        <a id="reportCandidateField" class="text-decoration-none" href="#"></a>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Lý do</label>
+                        <div id="reportReasonField" class="text-muted"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Trạng thái</label>
+                        <select id="reportStatusField" class="form-select form-select-sm">
+                            @foreach (var st in Enum.GetValues(typeof(SWP391_Project.Models.ReportStatus)))
+                            {
+                                <option value="@st">@st</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nội dung thông báo (tuỳ chọn)</label>
+                        <textarea id="reportAdminNoteField"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="@SWP391_Project.Constants.NotificationConstants.ReportStatusNotePlaceholder"></textarea>
+                    </div>
+                    <div class="alert alert-danger d-none" id="reportError"></div>
+                    <div class="alert alert-success d-none" id="reportSuccess"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="saveReportStatus()">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var focusId = '@(Model.FocusReportId?.ToString() ?? "")';
+            if (!focusId) return;
+            var row = document.getElementById('report-row-' + focusId);
+            if (row) {
+                row.classList.add('focused-row');
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        function openReportDetail(id) {
+            const row = document.querySelector(`tr[data-id='${id}']`);
+            if (!row) return;
+            const job = row.getAttribute('data-job') || '';
+            const candidate = row.getAttribute('data-candidate') || '';
+            const candidateUserId = row.getAttribute('data-candidate-user-id') || '';
+            const reason = row.getAttribute('data-reason') || '';
+            const status = row.getAttribute('data-status') || '';
+
+            $('#reportIdField').val(id);
+            $('#reportJobField').text(job);
+            const candidateEl = document.getElementById('reportCandidateField');
+            if (candidateEl) {
+                candidateEl.textContent = candidate;
+                candidateEl.href = candidateUserId ? `/Admin/ManageUsers?focusUserId=${candidateUserId}` : '#';
+            }
+            $('#reportReasonField').text(reason);
+            $('#reportStatusField').val(status);
+            $('#reportAdminNoteField').val('');
+            $('#reportError').addClass('d-none');
+            $('#reportSuccess').addClass('d-none');
+
+            const modal = new bootstrap.Modal(document.getElementById('reportDetailModal'));
+            modal.show();
+        }
+
+        function saveReportStatus() {
+            const id = $('#reportIdField').val();
+            const status = $('#reportStatusField').val();
+            const adminNote = $('#reportAdminNoteField').val();
+            $.ajax({
+                url: '@Url.Action("UpdateReportStatus", "Admin")',
+                type: 'POST',
+                data: {
+                    id: id,
+                    status: status,
+                    adminNote: adminNote,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (res) {
+                    if (res.success) {
+                        $('#reportSuccess').removeClass('d-none').text('Cập nhật trạng thái thành công');
+                        $('#reportError').addClass('d-none');
+                        const row = document.querySelector(`tr[data-id='${id}']`);
+                        if (row) {
+                            const badge = row.querySelector('.badge');
+                            if (badge) badge.textContent = status;
+                            row.setAttribute('data-status', status);
+                        }
+                    } else {
+                        $('#reportError').removeClass('d-none').text('Không thể cập nhật trạng thái');
+                        $('#reportSuccess').addClass('d-none');
+                    }
+                },
+                error: function () {
+                    $('#reportError').removeClass('d-none').text('Không thể cập nhật trạng thái');
+                    $('#reportSuccess').addClass('d-none');
+                }
+            });
+        }
+    </script>
+}
 

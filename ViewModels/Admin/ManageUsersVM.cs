@@ -37,6 +37,8 @@ public class ManageUsersVM
     // Job metrics
     public int TotalJobs { get; set; }
     public int ActiveJobs { get; set; }
+
+    public int? FocusUserId { get; set; }
 }
 
 public class UserItemVM

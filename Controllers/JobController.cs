@@ -30,6 +30,22 @@ namespace SWP391_Project.Controllers
 
             return View(vm);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateReport(int jobId, string reason)
+        {
+            var role = HttpContext.Session.GetString("Role");
+            var userIdStr = HttpContext.Session.GetString("UserID");
+
+            if (string.IsNullOrEmpty(role) || role != "CANDIDATE" || string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
+            {
+                return Json(new { success = false, requiresLogin = true, message = "Vui lòng đăng nhập bằng tài khoản ứng viên" });
+            }
+
+            var result = await _jobService.CreateJobReportAsync(jobId, userId, reason);
+            return Json(new { success = result.Success, message = result.Message });
+        }
     }
 }
 

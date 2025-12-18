@@ -1,0 +1,364 @@
+@model SWP391_Project.ViewModels.Admin.ManageJobsAdminVM
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Quản lý công việc";
+}
+
+<style>
+    .table thead th {
+        font-weight: 600;
+        color: #495057;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .table tbody td { vertical-align: middle; }
+    .arrow-btn {
+        border-radius: 10px;
+        padding: 0.4rem 0.75rem;
+    }
+    .focused-row {
+        outline: 2px solid rgba(40, 167, 69, 0.55);
+        background: #eaf7f0 !important;
+    }
+</style>
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+    <div>
+        <h2 class="mb-1">Quản lý công việc</h2>
+        <small class="text-muted">Danh sách công việc trong hệ thống</small>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Tất cả công việc</h5>
+            <small class="text-muted">Trang @Model.Page / @Model.TotalPages</small>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                <tr>
+                    <th style="width: 80px;">ID</th>
+                    <th>Việc làm</th>
+                    <th style="min-width: 220px;">Công ty</th>
+                    <th style="width: 180px;">Địa điểm</th>
+                    <th style="width: 180px;">
+                        <form method="get" asp-action="ManageJobs" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="page" value="1" />
+                            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+                            <select class="form-select form-select-sm" name="statusFilter" onchange="this.form.submit()">
+                                <option value="all" selected="@(Model.StatusFilter == "all")">Tất cả</option>
+                                <option value="active" selected="@(Model.StatusFilter == "active")">Đang tuyển</option>
+                                <option value="expired" selected="@(Model.StatusFilter == "expired")">Hết hạn</option>
+                                <option value="deleted" selected="@(Model.StatusFilter == "deleted")">Đã xóa</option>
+                            </select>
+                        </form>
+                    </th>
+                    <th class="text-center" style="width: 90px;">Xem</th>
+                </tr>
+                </thead>
+                <tbody>
+                @if (Model.Jobs != null && Model.Jobs.Any())
+                {
+                    foreach (var j in Model.Jobs)
+                    {
+                        var isExpired = DateTime.Now > j.EndDate;
+                        var badgeClass = j.IsDeleted
+                            ? "bg-secondary"
+                            : isExpired ? "bg-danger" : "bg-success";
+                        var label = j.IsDeleted
+                            ? "Đã xóa"
+                            : isExpired ? "Hết hạn" : "Đang tuyển";
+
+                        <tr>
+                            <td>@j.Id</td>
+                            <td>
+                                <div class="fw-semibold text-dark">@j.Title</div>
+                                <small class="text-muted">@j.StartDate.ToString("dd/MM/yyyy") - @j.EndDate.ToString("dd/MM/yyyy")</small>
+                            </td>
+                            <td>@j.CompanyName</td>
+                            <td>@j.CityName</td>
+                            <td><span class="badge @badgeClass">@label</span></td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openJobDetail(@j.Id)" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">Không có dữ liệu công việc.</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">Tổng: @Model.Total</small>
+            <div class="btn-group">
+                <a class="btn btn-outline-secondary arrow-btn @(Model.Page <= 1 ? "disabled" : "")"
+                   asp-action="ManageJobs"
+                   asp-route-page="@(Model.Page - 1)"
+                   asp-route-pageSize="@Model.PageSize"
+                   asp-route-statusFilter="@Model.StatusFilter"
+                   asp-route-focusJobId="@Model.FocusJobId">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                <a class="btn btn-outline-secondary arrow-btn @(Model.Page >= Model.TotalPages ? "disabled" : "")"
+                   asp-action="ManageJobs"
+                   asp-route-page="@(Model.Page + 1)"
+                   asp-route-pageSize="@Model.PageSize"
+                   asp-route-statusFilter="@Model.StatusFilter"
+                   asp-route-focusJobId="@Model.FocusJobId">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm" id="reported-section">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Công việc đang bị báo cáo</h5>
+            <small class="text-muted">Tổng: @(Model.ReportedJobs?.Count ?? 0)</small>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                <tr>
+                    <th style="width: 80px;">ID</th>
+                    <th>Việc làm</th>
+                    <th style="min-width: 220px;">Công ty</th>
+                    <th style="width: 180px;">Địa điểm</th>
+                    <th style="width: 180px;">Trạng thái</th>
+                    <th class="text-center" style="width: 90px;">Xem</th>
+                </tr>
+                </thead>
+                <tbody>
+                @if (Model.ReportedJobs != null && Model.ReportedJobs.Any())
+                {
+                    foreach (var rj in Model.ReportedJobs)
+                    {
+                        var focused = Model.FocusJobId.HasValue && Model.FocusJobId.Value == rj.Id;
+                        var isExpired = DateTime.Now > rj.EndDate;
+                        var badgeClass = rj.IsDeleted
+                            ? "bg-secondary"
+                            : isExpired ? "bg-danger" : "bg-success";
+                        var label = rj.IsDeleted
+                            ? "Đã xóa"
+                            : isExpired ? "Hết hạn" : "Đang tuyển";
+                        <tr id="reported-job-@rj.Id" class="@(focused ? "focused-row" : "")">
+                            <td>@rj.Id</td>
+                            <td>
+                                <div class="fw-semibold text-dark">@rj.Title</div>
+                                <small class="text-muted">@rj.StartDate.ToString("dd/MM/yyyy") - @rj.EndDate.ToString("dd/MM/yyyy")</small>
+                            </td>
+                            <td>@rj.CompanyName</td>
+                            <td>@rj.CityName</td>
+                            <td><span class="badge @badgeClass">@label</span></td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openJobDetail(@rj.Id)" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">Hiện không có công việc nào đang bị báo cáo.</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="jobDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết công việc</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="fw-semibold">Tiêu đề</div>
+                        <div id="jobTitleField" class="text-muted"></div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="fw-semibold">Công ty</div>
+                        <a id="jobCompanyLink" class="text-decoration-none" href="#"></a>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="fw-semibold">Địa điểm</div>
+                        <div id="jobLocationField" class="text-muted"></div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="fw-semibold">Trạng thái</div>
+                        <div id="jobStatusField" class="text-muted"></div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="fw-semibold">Thời hạn</div>
+                        <div id="jobDatesField" class="text-muted"></div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="fw-semibold">Loại hình</div>
+                        <div id="jobTypeField" class="text-muted"></div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="fw-semibold">Kinh nghiệm / Số lượng</div>
+                        <div id="jobExpField" class="text-muted"></div>
+                        <div id="jobVacancyField" class="text-muted"></div>
+                    </div>
+                    <div class="col-12">
+                        <div class="fw-semibold">Mức lương</div>
+                        <div id="jobSalaryField" class="text-muted"></div>
+                    </div>
+                    <div class="col-12">
+                        <div class="fw-semibold">Địa chỉ</div>
+                        <div id="jobAddressField" class="text-muted"></div>
+                    </div>
+                    <div class="col-12">
+                        <div class="fw-semibold">Mô tả</div>
+                        <div id="jobDescField" class="text-muted" style="white-space: pre-wrap;"></div>
+                    </div>
+                </div>
+
+                <hr class="my-3" />
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="fw-semibold">Báo cáo</div>
+                    <small class="text-muted" id="jobReportsCount">0</small>
+                </div>
+                <div id="jobReportsEmpty" class="text-muted">Không có báo cáo.</div>
+                <div class="table-responsive d-none" id="jobReportsTableWrap">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                        <tr>
+                            <th style="width: 80px;">ID</th>
+                            <th>Ứng viên</th>
+                            <th style="width: 140px;">Trạng thái</th>
+                            <th style="width: 90px;" class="text-center">Xem</th>
+                        </tr>
+                        </thead>
+                        <tbody id="jobReportsTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function fmtDate(d) {
+            try {
+                const dt = new Date(d);
+                if (Number.isNaN(dt.getTime())) return '';
+                const dd = String(dt.getDate()).padStart(2, '0');
+                const mm = String(dt.getMonth() + 1).padStart(2, '0');
+                const yy = dt.getFullYear();
+                return `${dd}/${mm}/${yy}`;
+            } catch { return ''; }
+        }
+
+        function salaryText(lower, higher) {
+            const fmt = (x) => (typeof x === 'number' ? x.toLocaleString('vi-VN') : '');
+            if (lower != null && higher != null) return `${fmt(lower)} - ${fmt(higher)} VNĐ`;
+            if (lower != null) return `Từ ${fmt(lower)} VNĐ`;
+            if (higher != null) return `Đến ${fmt(higher)} VNĐ`;
+            return 'Thoả thuận';
+        }
+
+        function statusLabel(isDeleted, isExpired) {
+            if (isDeleted) return '<span class=\"badge bg-secondary\">Đã xóa</span>';
+            if (isExpired) return '<span class=\"badge bg-danger\">Hết hạn</span>';
+            return '<span class=\"badge bg-success\">Đang tuyển</span>';
+        }
+
+        async function openJobDetail(id) {
+            const resp = await fetch(`/Admin/JobDetail?id=${id}`);
+            if (!resp.ok) {
+                alert('Không tải được chi tiết công việc');
+                return;
+            }
+            const data = await resp.json();
+
+            document.getElementById('jobTitleField').textContent = data.title || '';
+            const companyLink = document.getElementById('jobCompanyLink');
+            companyLink.textContent = data.companyName || 'N/A';
+            companyLink.href = `/Admin/ManageUsers?focusUserId=${data.companyUserId}`;
+
+            document.getElementById('jobLocationField').textContent = data.cityName || '';
+            document.getElementById('jobStatusField').innerHTML = statusLabel(!!data.isDeleted, !!data.isExpired);
+            document.getElementById('jobDatesField').textContent = `${fmtDate(data.startDate)} - ${fmtDate(data.endDate)}`;
+            document.getElementById('jobTypeField').textContent = data.jobTypeName || '';
+            document.getElementById('jobExpField').textContent = `Số năm kinh nghiệm: ${data.yearsOfExperience ?? 0} năm`;
+            document.getElementById('jobVacancyField').textContent = `Số lượng tuyển: ${data.vacancyCount ?? 0}`;
+            document.getElementById('jobSalaryField').textContent = salaryText(data.lowerSalaryRange, data.higherSalaryRange);
+            document.getElementById('jobAddressField').textContent = data.address || '';
+            document.getElementById('jobDescField').innerHTML = data.description || '';
+
+            const reports = Array.isArray(data.reports) ? data.reports : [];
+            document.getElementById('jobReportsCount').textContent = `Tổng: ${reports.length}`;
+            const empty = document.getElementById('jobReportsEmpty');
+            const wrap = document.getElementById('jobReportsTableWrap');
+            const tbody = document.getElementById('jobReportsTbody');
+            tbody.innerHTML = '';
+
+            if (reports.length === 0) {
+                empty.classList.remove('d-none');
+                wrap.classList.add('d-none');
+            } else {
+                empty.classList.add('d-none');
+                wrap.classList.remove('d-none');
+                reports.forEach(r => {
+                    const tr = document.createElement('tr');
+                    const st = r.statusName || '';
+                    tr.innerHTML = `
+                        <td>${r.id}</td>
+                        <td>${r.candidateName || 'N/A'}</td>
+                        <td><span class=\"badge ${st === 'REVIEWING' ? 'bg-warning text-dark' : (st === 'RESOLVED' ? 'bg-success' : 'bg-secondary')}\">${st}</span></td>
+                        <td class=\"text-center\">
+                            <a class=\"btn btn-sm btn-outline-secondary\" href=\"/Admin/ManageReports?focusReportId=${r.id}\" title=\"Xem báo cáo\">
+                                <i class=\"fas fa-eye\"></i>
+                            </a>
+                        </td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('jobDetailModal'));
+            modal.show();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var focusId = '@(Model.FocusJobId?.ToString() ?? "")';
+            if (!focusId) return;
+
+            var row = document.getElementById('reported-job-' + focusId);
+            if (row) {
+                row.classList.add('focused-row');
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            var section = document.getElementById('reported-section');
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    </script>
+}

@@ -25,6 +25,8 @@ builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();       
 builder.Services.AddScoped<IDomainRepository, DomainRepository>();
 builder.Services.AddScoped<IHomeRepository, HomeRepository>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 
 // Register Services
@@ -40,6 +42,7 @@ builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IApplicationService, ApplicationService>();
 builder.Services.AddScoped<IHomeService, HomeService>();
 builder.Services.AddScoped<IDomainService, DomainService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Register Storage Service (no Infrastructure layer)
 builder.Services.AddScoped<IStorageService, StorageService>();

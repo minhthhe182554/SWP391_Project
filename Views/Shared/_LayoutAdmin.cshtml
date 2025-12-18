@@ -75,10 +75,13 @@
                         Func<string, string> activeClass = (action) => string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase) ? "active" : "";
                     }
                     <a class="nav-link @activeClass("ManageUsers")" asp-controller="Admin" asp-action="ManageUsers">
-                        <i class="fa fa-users"></i> Manage Users
+                        <i class="fa fa-users"></i> Quản lý người dùng
                     </a>
                     <a class="nav-link @activeClass("ManageReports")" asp-controller="Admin" asp-action="ManageReports">
-                        <i class="fa fa-flag"></i> Quản lý Reports
+                        <i class="fa fa-flag"></i> Quản lý báo cáo
+                    </a>
+                    <a class="nav-link @activeClass("ManageJobs")" asp-controller="Admin" asp-action="ManageJobs">
+                        <i class="fa fa-briefcase"></i> Quản lý công việc
                     </a>
                 </nav>
             </div>
