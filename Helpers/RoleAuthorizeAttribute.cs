@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
-using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SWP391_Project.Helpers

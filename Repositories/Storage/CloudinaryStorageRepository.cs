@@ -1,24 +1,19 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using System.IO;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using dotenv.net;
+using System.Net;
 
 namespace SWP391_Project.Repositories.Storage
 {
     public class CloudinaryStorageRepository : IStorageRepository
     {
-        // Lazily initialized Cloudinary client
         private Cloudinary? _cloudinaryClient;
 
         private Cloudinary GetClientInternal()
         {
             if (_cloudinaryClient != null) return _cloudinaryClient;
 
-            // Load environment variables similar to original CloudinaryHelper
+            // Load environment variables 
             DotEnv.Load(options: new DotEnvOptions(probeForEnv: true));
 
             var cloudinaryUrl = Environment.GetEnvironmentVariable("CLOUDINARY_URL");
@@ -39,6 +34,7 @@ namespace SWP391_Project.Repositories.Storage
             var client = GetClientInternal();
             return client.Api.UrlImgUp.Format("png").BuildUrl(publicId);
         }
+
         public async Task<string> UploadImageAsync(IFormFile file, string folder, string? customPublicId = null)
         {
             if (file == null || file.Length == 0) throw new ArgumentException("File is empty or null");
@@ -70,6 +66,7 @@ namespace SWP391_Project.Repositories.Storage
             }
             return result.PublicId;
         }
+
         public async Task<(string PublicId, string SecureUrl)> UploadPdfAsync(IFormFile file, string folder, string? customPublicId = null)
         {
             if (file == null || file.Length == 0) throw new ArgumentException("File is empty or null");
@@ -100,6 +97,7 @@ namespace SWP391_Project.Repositories.Storage
             }
             return (result.PublicId, result.SecureUrl?.ToString() ?? string.Empty);
         }
+
         public string BuildRawUrl(string publicId)
         {
             if (string.IsNullOrEmpty(publicId)) throw new ArgumentNullException(nameof(publicId), "Public ID cannot be null or empty");
@@ -108,6 +106,7 @@ namespace SWP391_Project.Repositories.Storage
                 .Format("pdf")
                 .BuildUrl(publicId);
         }
+
         public string BuildPdfImageUrl(string publicId, int page = 1, int width = 800, int density = 150)
         {
             if (string.IsNullOrEmpty(publicId)) throw new ArgumentNullException(nameof(publicId), "Public ID cannot be null or empty");
@@ -120,13 +119,14 @@ namespace SWP391_Project.Repositories.Storage
                 .BuildUrl(publicId);
             return url;
         }
+
         public async Task<bool> DeleteAssetAsync(string publicId, ResourceType resourceType = ResourceType.Raw)
         {
             if (string.IsNullOrEmpty(publicId)) return true;
             var cloudinary = GetClientInternal();
             var deletionParams = new DeletionParams(publicId) { ResourceType = resourceType };
             var result = await cloudinary.DestroyAsync(deletionParams);
-            return result.StatusCode == System.Net.HttpStatusCode.OK || result.Result == "not found";
+            return result.StatusCode == HttpStatusCode.OK || result.Result == "not found";
         }
     }
 }

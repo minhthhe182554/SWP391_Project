@@ -179,7 +179,6 @@ namespace SWP391_Project.Services
                     worksheet.Cells[row, 7].Value = app.CoverLetter;
                     row++;
                 }
-
                 worksheet.Cells.AutoFitColumns();
 
                 return package.GetAsByteArray();

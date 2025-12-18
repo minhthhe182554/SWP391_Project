@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using SWP391_Project.ViewModels.Home;
 
 namespace SWP391_Project.ViewModels.Search;

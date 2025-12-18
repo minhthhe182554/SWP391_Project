@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SWP391_Project.Helpers;
-using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.Services;
 using SWP391_Project.ViewModels.Account;
 using SWP391_Project.ViewModels.Company;
@@ -339,6 +339,7 @@ namespace SWP391_Project.Controllers
 
             return Content("Form sửa tin sẽ hiện ở đây"); 
         }
+
         [RoleAuthorize(Role.COMPANY)]
         [HttpGet]
         public async Task<IActionResult> JobApplicants(int id)

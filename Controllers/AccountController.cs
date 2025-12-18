@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using SWP391_Project.Dtos;
-using SWP391_Project.Helpers;
-using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.Services;
 using SWP391_Project.ViewModels;
 
@@ -30,6 +28,7 @@ namespace SWP391_Project.Controllers
             _cache = cache;
             _logger = logger;
         }
+        
         public IActionResult Index()
         {
             return View();

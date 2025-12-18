@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 
 namespace SWP391_Project.ViewModels.Admin;
 

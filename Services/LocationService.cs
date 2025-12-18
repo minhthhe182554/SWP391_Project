@@ -1,7 +1,6 @@
 using System.Text.Json;
 using SWP391_Project.Dtos;
 using SWP391_Project.Helpers;
-
 namespace SWP391_Project.Services;
 
 public class LocationService : ILocationService
