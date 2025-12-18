@@ -1,11 +1,8 @@
 using SWP391_Project.Models;
 using SWP391_Project.Repositories;
 using SWP391_Project.ViewModels.Company;
-using Microsoft.AspNetCore.Hosting;
 using SWP391_Project.ViewModels;
 using SWP391_Project.Services.Storage;
-using System.Globalization;
-using System.Linq;
 using SWP391_Project.Constants;
 
 namespace SWP391_Project.Services

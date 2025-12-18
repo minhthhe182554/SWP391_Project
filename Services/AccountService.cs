@@ -1,5 +1,6 @@
 using SWP391_Project.Helpers;
 using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.Repositories;
 using SWP391_Project.ViewModels;
 

@@ -1,5 +1,3 @@
-using System;
-
 namespace SWP391_Project.Models;
 
 public class Domain

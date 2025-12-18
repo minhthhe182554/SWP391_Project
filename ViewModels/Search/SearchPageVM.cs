@@ -1,6 +1,5 @@
-using System.Collections.Generic;
 using SWP391_Project.Dtos;
-using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.ViewModels.Home;
 
 namespace SWP391_Project.ViewModels.Search;

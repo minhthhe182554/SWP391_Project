@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using SWP391_Project.Repositories;
 using SWP391_Project.ViewModels.Home;
 using SWP391_Project.ViewModels.Search;

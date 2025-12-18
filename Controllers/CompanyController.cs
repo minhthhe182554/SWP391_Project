@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SWP391_Project.Helpers;
-using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.Services;
 using SWP391_Project.ViewModels.Account;
 using SWP391_Project.ViewModels.Company;
@@ -339,8 +339,9 @@ namespace SWP391_Project.Controllers
                 return RedirectToAction("ManageJobs");
             }
 
-            return Content("Form sửa tin sẽ hiện ở đây"); // Tạm thời
+            return Content("Form sửa tin sẽ hiện ở đây"); 
         }
+
         [RoleAuthorize(Role.COMPANY)]
         [HttpGet]
         public async Task<IActionResult> JobApplicants(int id)
@@ -352,7 +353,6 @@ namespace SWP391_Project.Controllers
             try
             {
                 // 1. Lấy thông tin Company từ UserId
-                // (Bạn đã có _companyService trong Controller này rồi)
                 var company = await _companyService.GetCompanyByUserIdAsync(userId);
                 if (company == null)
                 {
@@ -360,7 +360,7 @@ namespace SWP391_Project.Controllers
                     return RedirectToAction("Profile");
                 }
 
-                // 2. Gọi Service: TRUYỀN company.Id (Thay vì userId)
+                // 2. Gọi Service: TRUYỀN company.Id 
                 var vm = await _applicationService.GetApplicantsForJobAsync(company.Id, id);
 
                 // 3. Truyền tiêu đề job sang View (lấy từ VM trả về)
@@ -385,7 +385,7 @@ namespace SWP391_Project.Controllers
 
             try
             {
-                // 2. Lấy CompanyId từ UserId (Quan trọng!)
+                // 2. Lấy CompanyId từ UserId
                 var company = await _companyService.GetCompanyByUserIdAsync(userId);
                 if (company == null)
                 {
@@ -394,10 +394,9 @@ namespace SWP391_Project.Controllers
                 }
 
                 // 3. Gọi Service để lấy file Excel (byte array)
-                // Lưu ý: Truyền company.Id chứ không phải userId
                 var fileContent = await _applicationService.ExportApplicantsToExcelAsync(company.Id, id);
 
-                // 4. Tạo tên file duy nhất (kèm ngày giờ)
+                // 4. Tạo tên file duy nhất 
                 string fileName = $"DanhSachUngVien_Job_{id}_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
 
                 // 5. Trả về file cho trình duyệt tải xuống

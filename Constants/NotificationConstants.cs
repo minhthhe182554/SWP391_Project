@@ -1,5 +1,4 @@
-using SWP391_Project.Models;
-using SWP391_Project.Constants;
+using SWP391_Project.Models.Enums;
 
 namespace SWP391_Project.Constants;
 
@@ -21,5 +20,10 @@ public static class NotificationConstants
         }
 
         return title + "\n" + statusLine + "\n\n" + "Ghi chú từ quản trị:" + "\n" + note;
+    }
+
+    public static string BuildReportDeletedMessage(string jobTitle)
+    {
+        return $"Bạn đã xóa báo cáo về công việc: \"{jobTitle}\"";
     }
 }

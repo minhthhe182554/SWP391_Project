@@ -1,4 +1,4 @@
-﻿using SWP391_Project.Models;
+﻿using SWP391_Project.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace SWP391_Project.ViewModels

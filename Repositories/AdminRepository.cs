@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 
 namespace SWP391_Project.Repositories;
 
@@ -22,7 +20,6 @@ namespace SWP391_Project.Repositories;
 
     public async Task<Dictionary<DateTime, int>> GetNewUsersByDateAsync(DateTime startDate, DateTime endDate)
     {
-        // Hiện chưa có trường CreatedDate cho User, trả về rỗng để service tự fill 0.
         return await Task.FromResult(new Dictionary<DateTime, int>());
     }
 

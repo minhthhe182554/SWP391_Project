@@ -2,7 +2,6 @@ using SWP391_Project.ViewModels.Company;
 using SWP391_Project.ViewModels.Job;
 using SWP391_Project.ViewModels.Jobs;
 using SWP391_Project.ViewModels.Search;
-using System.Threading.Tasks;
 
 namespace SWP391_Project.Services
 {

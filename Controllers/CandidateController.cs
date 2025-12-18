@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Text.RegularExpressions;
 using SWP391_Project.Models;
 using SWP391_Project.Services;
 using SWP391_Project.ViewModels.Candidate;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.Services.Storage;
 using SWP391_Project.Helpers;
 using Microsoft.AspNetCore.Authorization;
@@ -17,13 +17,15 @@ namespace SWP391_Project.Controllers
         private readonly IStorageService _storageService;
         private readonly ISavedJobService _savedJobService;
         private readonly IApplicationService _applicationService;
+        private readonly IReportService _reportService;
 
-        public CandidateController(ISavedJobService savedJobService, ICandidateService candidateService, IStorageService storageService, IApplicationService applicationService)
+        public CandidateController(ISavedJobService savedJobService, ICandidateService candidateService, IStorageService storageService, IApplicationService applicationService, IReportService reportService)
         {
             _candidateService = candidateService;
             _storageService = storageService;
             _savedJobService = savedJobService;
-            _applicationService = applicationService;   
+            _applicationService = applicationService;
+            _reportService = reportService;
         }
 
         public async Task<IActionResult> Index()
@@ -202,7 +204,7 @@ namespace SWP391_Project.Controllers
             // Validate phone number if provided
             if (!string.IsNullOrWhiteSpace(phoneNumber))
             {
-                var phoneRegex = new System.Text.RegularExpressions.Regex(@"^[0-9]{10,11}$");
+                var phoneRegex = new Regex(@"^[0-9]{10,11}$");
                 if (!phoneRegex.IsMatch(phoneNumber))
                 {
                     return Json(new { success = false, message = "Số điện thoại không hợp lệ" });
@@ -221,7 +223,7 @@ namespace SWP391_Project.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdatePassword(string currentPassword, string newPassword, string confirmPassword)
+        public async Task<IActionResult> UpdatePassword(string newPassword, string confirmPassword)
         {
             var userId = HttpContext.Session.GetString("UserID");
             if (string.IsNullOrEmpty(userId))
@@ -532,7 +534,6 @@ namespace SWP391_Project.Controllers
                 }
 
                 // Use custom public ID based on user ID to enable overwriting
-                // Format: user_{userId} 
                 var customPublicId = $"user_{userIdInt}";
                 
                 // Upload to Cloudinary 
@@ -640,6 +641,7 @@ namespace SWP391_Project.Controllers
             var result = await _applicationService.SubmitApplicationAsync(int.Parse(userIdStr), model);
             return Json(new { success = result.success, message = result.message });
         }
+        
         [HttpGet]
         public async Task<IActionResult> AppliedJobs()
         {
@@ -648,6 +650,48 @@ namespace SWP391_Project.Controllers
 
             var model = await _applicationService.GetAppliedJobsAsync(int.Parse(userIdStr));
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ReportedJobs(ReportStatus? status)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+
+            var model = await _reportService.GetCandidateReportsAsync(int.Parse(userIdStr), status);
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetReportDetail(int id)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+            var detail = await _reportService.GetCandidateReportDetailAsync(int.Parse(userIdStr), id);
+            if (detail == null) return NotFound();
+
+            return Json(new { success = true, data = detail });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateReportReason(int reportId, string reason)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+            var result = await _reportService.UpdateCandidateReportAsync(int.Parse(userIdStr), reportId, reason);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteReport(int reportId)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+            var result = await _reportService.DeleteCandidateReportAsync(int.Parse(userIdStr), reportId);
+            return Json(new { success = result.Success, message = result.Message });
         }
     }
 }

@@ -1,4 +1,5 @@
 using SWP391_Project.Models;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.ViewModels;
 using SWP391_Project.ViewModels.Admin;
 

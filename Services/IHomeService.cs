@@ -1,6 +1,5 @@
 using SWP391_Project.ViewModels.Home;
 using SWP391_Project.ViewModels.Search;
-using System.Threading.Tasks;
 
 namespace SWP391_Project.Services;
 

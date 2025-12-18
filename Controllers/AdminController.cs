@@ -1,10 +1,8 @@
-using System;
 using Microsoft.AspNetCore.Mvc;
 using SWP391_Project.Helpers;
 using SWP391_Project.Models;
 using SWP391_Project.Services;
-using SWP391_Project.ViewModels;
-using SWP391_Project.ViewModels.Admin;
+using SWP391_Project.Models.Enums;
 
 namespace SWP391_Project.Controllers
 {

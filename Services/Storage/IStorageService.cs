@@ -1,7 +1,4 @@
-using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
 
 namespace SWP391_Project.Services.Storage
 {

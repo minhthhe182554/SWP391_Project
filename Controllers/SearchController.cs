@@ -1,7 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using SWP391_Project.Models;
+using SWP391_Project.Dtos;
+using SWP391_Project.Models.Enums;
 using SWP391_Project.Services;
 using SWP391_Project.ViewModels.Home;
 using SWP391_Project.ViewModels.Search;
@@ -65,7 +64,7 @@ public class SearchController : Controller
             filter.CityName = city?.Name;
         }
 
-        var wards = new List<SWP391_Project.Dtos.WardDto>();
+        var wards = new List<WardDto>();
         if (!string.IsNullOrWhiteSpace(cityCode))
         {
             wards = await _locationService.GetWardsByCityCodeAsync(cityCode);
