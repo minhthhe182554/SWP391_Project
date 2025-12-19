@@ -12,7 +12,7 @@ namespace SWP391_Project.ViewModels.Job
         public int ApplicationCount { get; set; }
         public JobType JobType { get; set; }
 
-        public bool IsExpired => DateTime.Now > EndDate;
+        public bool IsExpired  => DateTime.Now > EndDate;
         public string StatusLabel => IsExpired
             ? "<span class='badge bg-danger'>Hết hạn</span>"
             : "<span class='badge bg-success'>Đang tuyển</span>";

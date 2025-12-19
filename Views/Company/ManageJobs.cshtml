@@ -8,9 +8,23 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold mb-0">Quản lý tin tuyển dụng</h4>
-        <a asp-action="PostJob" class="btn btn-success">
-            <i class="fas fa-plus me-2"></i> Đăng tin mới
-        </a>
+
+        <div class="d-flex align-items-center gap-2">
+
+            <form method="get" asp-action="ManageJobs" class="d-flex align-items-center">
+                <span class="me-2 text-muted"><i class="fas fa-filter"></i></span>
+
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 160px;">
+                    <!option value="all" @(ViewBag.CurrentStatus == "all" ? "selected" : "")>Tất cả trạng thái</!option>
+                    <!option value="active" @(ViewBag.CurrentStatus == "active" ? "selected" : "")>Đang tuyển</!option>
+                    <!option value="expired" @(ViewBag.CurrentStatus == "expired" ? "selected" : "")>Đã hết hạn</!option>
+                </select>
+            </form>
+
+            <a asp-action="PostJob" class="btn btn-success btn-sm">
+                <i class="fas fa-plus me-1"></i> Đăng tin mới
+            </a>
+        </div>
     </div>
 
     @if (TempData["Success"] != null)

@@ -276,12 +276,14 @@ namespace SWP391_Project.Controllers
         }
         [RoleAuthorize(Role.COMPANY)]
         [HttpGet]
-        public async Task<IActionResult> ManageJobs()
+        public async Task<IActionResult> ManageJobs(string status = "all")
         {
             var userIdStr = HttpContext.Session.GetString("UserID");
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
 
-            var list = await _jobService.GetCompanyJobsAsync(int.Parse(userIdStr));
+            ViewBag.CurrentStatus = status;
+
+            var list = await _jobService.GetCompanyJobsAsync(int.Parse(userIdStr), status);
             return View(list);
         }
 

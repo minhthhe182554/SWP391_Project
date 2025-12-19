@@ -10,6 +10,7 @@ using SWP391_Project.ViewModels.Job;
 using SWP391_Project.ViewModels.Jobs;
 using SWP391_Project.ViewModels.Search;
 using SWP391_Project.ViewModels.Home;
+using Microsoft.EntityFrameworkCore;
 
 namespace SWP391_Project.Services
 {
@@ -251,12 +252,25 @@ namespace SWP391_Project.Services
             await _jobRepository.AddAsync(job);
         }
 
-        public async Task<List<ManageJobsVM>> GetCompanyJobsAsync(int userId)
+        public async Task<List<ManageJobsVM>> GetCompanyJobsAsync(int userId, string status)
         {
             var company = await _companyRepository.GetByUserIdAsync(userId);
             if (company == null) return new List<ManageJobsVM>();
+            var jobsQuery = _jobRepository.GetQueryable() 
+                    .Include(j => j.Applications)
+                    .Include(j => j.Location)
+                    .Where(j => j.CompanyId == company.Id && !j.IsDelete);
+            var now = DateTime.Now;
+            if (status == "active")
+            {
+                jobsQuery = jobsQuery.Where(j => j.EndDate >= now);
+            }
+            else if (status == "expired")
+            {
+                jobsQuery = jobsQuery.Where(j => j.EndDate < now);
+            }
 
-            var jobs = await _jobRepository.GetJobsByCompanyIdAsync(company.Id);
+            var jobs = await jobsQuery.OrderByDescending(j => j.StartDate).ToListAsync();
 
             return jobs.Select(j => new ManageJobsVM
             {
@@ -266,7 +280,7 @@ namespace SWP391_Project.Services
                 StartDate = j.StartDate,
                 EndDate = j.EndDate,
                 JobType = j.Type,
-                ApplicationCount = j.Applications.Count
+                ApplicationCount = j.Applications.Count,
             }).ToList();
         }
 
