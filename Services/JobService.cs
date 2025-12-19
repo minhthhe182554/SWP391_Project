@@ -27,12 +27,13 @@ namespace SWP391_Project.Services
         private readonly ISkillRepository _skillRepository;
         private readonly IDomainRepository _domainRepository;
         private readonly IReportRepository _reportRepository;
+        private readonly EzJobDbContext _context;
         public JobService(ISavedJobRepository savedJobRepository,
         ICandidateRepository candidateRepository, IJobRepository jobRepository, IStorageService storageService, ILogger<JobService> logger, IApplicationRepository applicationRepository, ICompanyRepository companyRepository,
         ILocationRepository locationRepository,
         ISkillRepository skillRepository,
         IDomainRepository domainRepository,
-        IReportRepository reportRepository)
+        IReportRepository reportRepository, EzJobDbContext context)
         {
             _jobRepository = jobRepository;
             _storageService = storageService;
@@ -45,6 +46,7 @@ namespace SWP391_Project.Services
             _skillRepository = skillRepository;
             _domainRepository = domainRepository;
             _reportRepository = reportRepository;
+            _context = context;
         }
 
         public async Task<JobDetailVM?> GetJobDetailAsync(int jobId, int? userId = null)
@@ -256,10 +258,11 @@ namespace SWP391_Project.Services
         {
             var company = await _companyRepository.GetByUserIdAsync(userId);
             if (company == null) return new List<ManageJobsVM>();
-            var jobsQuery = _jobRepository.GetQueryable() 
-                    .Include(j => j.Applications)
-                    .Include(j => j.Location)
-                    .Where(j => j.CompanyId == company.Id && !j.IsDelete);
+            var jobsQuery = _jobRepository.GetQueryable()
+            .IgnoreQueryFilters()
+            .Include(j => j.Applications)
+            .Include(j => j.Location)
+            .Where(j => j.CompanyId == company.Id);
             var now = DateTime.Now;
             if (status == "active")
             {
@@ -281,7 +284,26 @@ namespace SWP391_Project.Services
                 EndDate = j.EndDate,
                 JobType = j.Type,
                 ApplicationCount = j.Applications.Count,
+                IsDelete = j.IsDelete,
             }).ToList();
+        }
+
+        public async Task<bool> ToggleJobVisibilityAsync(int userId, int jobId)
+        {
+            var company = await _companyRepository.GetByUserIdAsync(userId);
+
+            if (company == null) return false;
+
+            var job = await _context.Jobs
+                .IgnoreQueryFilters() 
+                .FirstOrDefaultAsync(j => j.Id == jobId && j.CompanyId == company.Id);
+
+            if (job == null) return false;
+
+            job.IsDelete = !job.IsDelete;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task RepostJobAsync(int userId, int jobId)

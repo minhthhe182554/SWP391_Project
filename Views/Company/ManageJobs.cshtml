@@ -47,6 +47,7 @@
                             <th>Hạn nộp</th>
                             <th>Ứng viên</th>
                             <th>Trạng thái</th>
+                            <th class="text-center">Ẩn/Hiện</th>
                             <th class="text-end pe-4">Hành động</th>
                         </tr>
                     </thead>
@@ -55,7 +56,10 @@
                         {
                             foreach (var item in Model)
                             {
-                                <tr>
+                                @* var rowClass = item.IsDelete ? "opacity-50 bg-light" : ""; *@
+                                var rowClass = item.IsDelete ? "bg-light text-muted" : "";
+
+                                <tr class="@rowClass">
                                     <td class="ps-4">
                                         <div class="fw-bold text-dark">@item.Title</div>
                                         <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i> @item.CityName</small>
@@ -68,54 +72,54 @@
                                     <td>
                                         @Html.Raw(item.StatusLabel)
                                     </td>
-                                    <td class="text-end pe-4" style="min-width: 200px;">
 
-                                        <a asp-action="JobApplicants"
-                                           asp-route-id="@item.Id"
-                                           class="btn btn-sm btn-info text-white me-1"
-                                           title="Xem danh sách ứng viên">
-                                            <i class="fas fa-users"></i>
-                                        </a>
-                                        @if (item.IsExpired)
-                                        {
-                                            <form asp-action="RepostJob" asp-route-id="@item.Id" method="post" class="d-inline"
-                                                  onsubmit="return confirm('Đăng lại tin này? Tin mới sẽ được tạo.');">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold shadow-sm" title="Đăng lại tin này">
-                                                    <i class="fas fa-redo"></i> Đăng lại
-                                                </button>
-                                            </form>
+                                    <td class="text-center">
+                                        <form asp-action="ToggleVisibility" asp-route-id="@item.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
 
-                                            <a href="javascript:void(0)"
-                                               onclick="alert('Tính năng Xóa đang được phát triển! Vui lòng quay lại sau.');"
-                                               class="btn btn-sm btn-outline-danger ms-1"
-                                               title="Xóa tin">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            @if (item.ApplicationCount == 0)
+                                            @if (item.IsDelete)
                                             {
-                                                <a href="javascript:void(0)"
-                                                   onclick="alert('Tính năng đang được phát triển! Vui lòng quay lại sau.');"
-                                                   class="btn btn-sm btn-outline-primary"
-                                                   title="Sửa tin">
-                                                    <i class="fas fa-edit"></i> Sửa
-                                                </a>
+                                                <button type="submit" class="btn btn-sm btn-warning text-dark fw-bold"
+                                                        title="Tin đang ẩn. Nhấn để hiện lại.">
+                                                    Hiện lại
+                                                </button>
                                             }
                                             else
                                             {
-                                                <button class="btn btn-sm btn-outline-secondary disabled" title="Không thể sửa vì đã có ứng viên nộp hồ sơ">
-                                                    <i class="fas fa-edit"></i> Sửa
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                                        title="Tin đang hiện. Nhấn để ẩn đi.">
+                                                    Ẩn đi
                                                 </button>
                                             }
+                                        </form>
+                                    </td>
+                                    <td class="text-end pe-4" style="min-width: 180px;">
+                                        <a asp-action="JobApplicants" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white me-1" title="Xem ứng viên">
+                                            <i class="fas fa-users"></i>
+                                        </a>
+
+                                        @if (!item.IsExpired && !item.IsDelete) 
+                                        {
+                                            <a href="#" class="btn btn-sm btn-outline-primary me-1" title="Sửa tin">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
 
                                             <form asp-action="StopRecruitment" asp-route-id="@item.Id" method="post" class="d-inline"
-                                                  onsubmit="return confirm('Bạn chắc chắn muốn dừng tuyển dụng tin này sớm?');">
+                                                  onsubmit="return confirm('Bạn chắc chắn muốn dừng tuyển dụng sớm?');">
                                                 @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-outline-danger ms-1" title="Dừng tuyển dụng ngay">
-                                                    <i class="fas fa-stop-circle"></i> Dừng
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Dừng tuyển dụng">
+                                                    <i class="fas fa-stop-circle"></i>
+                                                </button>
+                                            </form>
+                                        }
+
+                                        @if (item.IsExpired)
+                                        {
+                                            <form asp-action="RepostJob" asp-route-id="@item.Id" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Đăng lại tin này?');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-warning text-dark" title="Đăng lại">
+                                                    <i class="fas fa-redo"></i>
                                                 </button>
                                             </form>
                                         }
@@ -126,7 +130,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
+                                <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="fas fa-folder-open fa-3x mb-3"></i>
                                     <p>Chưa có tin tuyển dụng nào.</p>
                                 </td>

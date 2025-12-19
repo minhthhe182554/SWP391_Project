@@ -15,6 +15,7 @@ namespace SWP391_Project.Services
         Task<bool> CanEditJobAsync(int jobId);
         Task StopRecruitmentAsync(int userId, int jobId);
         Task<SearchPageVM> SearchJobsAsync(SearchFilter filter);
+        Task<bool> ToggleJobVisibilityAsync(int userId, int jobId);
         Task<(bool Success, string Message)> CreateJobReportAsync(int jobId, int candidateUserId, string reason);
     }
 }

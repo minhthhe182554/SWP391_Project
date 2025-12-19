@@ -289,6 +289,27 @@ namespace SWP391_Project.Controllers
 
         [RoleAuthorize(Role.COMPANY)]
         [HttpPost]
+        public async Task<IActionResult> ToggleVisibility(int id)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+
+            var result = await _jobService.ToggleJobVisibilityAsync(int.Parse(userIdStr), id);
+
+            if (result)
+            {
+                TempData["Success"] = "Cập nhật trạng thái tin thành công!";
+            }
+            else
+            {
+                TempData["Error"] = "Có lỗi xảy ra";
+            }
+
+            return RedirectToAction("ManageJobs");
+        }
+
+        [RoleAuthorize(Role.COMPANY)]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RepostJob(int id)
         {
