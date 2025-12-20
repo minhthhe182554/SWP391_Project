@@ -257,6 +257,19 @@
         const canReport = @(Model.CanReport.ToString().ToLower());
 
         function toggleSaveJob(jobId) {
+
+            if (isCandidate) {
+                var isCurrentlySaved = $('#btnSaveJob').hasClass('btn-success');
+
+                var message = isCurrentlySaved
+                    ? "Bạn có chắc chắn muốn BỎ LƯU công việc này?"
+                    : "Bạn có chắc chắn muốn LƯU công việc này vào hồ sơ?";
+
+                if (!confirm(message)) {
+                    return; 
+                }
+            }
+
             $.ajax({
                 url: '@Url.Action("ToggleSaveJob", "Candidate")',
                 type: 'POST',
