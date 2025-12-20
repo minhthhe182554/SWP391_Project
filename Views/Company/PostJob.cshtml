@@ -118,8 +118,16 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="EndDate" class="form-label fw-bold">Hạn nộp hồ sơ <span class="text-danger">*</span></label>
-                            <input asp-for="EndDate" class="form-control w-50" type="date" />
+                            <label asp-for="EndDate" class="form-label fw-bold">
+                                Hạn nộp hồ sơ <span class="text-danger">*</span>
+                            </label>
+
+                            <input asp-for="EndDate"
+                                   type="date"
+                                   class="form-control w-50"
+                                   min="@DateTime.Now.ToString("yyyy-MM-dd")"
+                                   value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+
                             <span asp-validation-for="EndDate" class="text-danger small"></span>
                         </div>
 
@@ -228,11 +236,9 @@
 
         // ================= LOGIC 3: TAGIFY (SKILLS & DOMAINS) =================
 
-        // Lấy danh sách gợi ý từ Server (Whitelist)
         var skillsWhitelist = @Html.Raw(Json.Serialize(Model.Skills.Select(s => s.Name)));
         var domainsWhitelist = @Html.Raw(Json.Serialize(Model.Domains.Select(d => d.Name)));
 
-        // Cấu hình cho Skills
         var skillInput = document.querySelector('#skillsInput');
         new Tagify(skillInput, {
             whitelist: skillsWhitelist,
@@ -245,7 +251,6 @@
             }
         });
 
-        // Cấu hình cho Domains
         var domainInput = document.querySelector('#domainsInput');
         new Tagify(domainInput, {
             whitelist: domainsWhitelist,

@@ -176,6 +176,10 @@ namespace SWP391_Project.Repositories
 
             return await query.Select(x => x.Job).ToListAsync();
         }
+        public IQueryable<Job> GetQueryable()
+        {
+            return _context.Jobs.AsQueryable();
+        }
     }
 }
 

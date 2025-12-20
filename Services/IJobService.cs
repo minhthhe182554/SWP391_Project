@@ -10,11 +10,12 @@ namespace SWP391_Project.Services
         Task<JobDetailVM> GetJobDetailAsync(int jobId, int? userId = null);
         Task<PostJobVM> GetPostJobModelAsync();
         Task AddJobAsync(int userId, PostJobVM model);
-        Task<List<ManageJobsVM>> GetCompanyJobsAsync(int userId);
+        Task<List<ManageJobsVM>> GetCompanyJobsAsync(int userId, string status);
         Task RepostJobAsync(int userId, int jobId);
         Task<bool> CanEditJobAsync(int jobId);
         Task StopRecruitmentAsync(int userId, int jobId);
         Task<SearchPageVM> SearchJobsAsync(SearchFilter filter);
+        Task<bool> ToggleJobVisibilityAsync(int userId, int jobId);
         Task<(bool Success, string Message)> CreateJobReportAsync(int jobId, int candidateUserId, string reason);
     }
 }

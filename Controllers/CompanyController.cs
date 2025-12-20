@@ -43,14 +43,12 @@ namespace SWP391_Project.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Update session với thông tin mới nhất từ database
             HttpContext.Session.SetString("Name", company.Name);
             if (!string.IsNullOrEmpty(company.ImageUrl))
             {
                 HttpContext.Session.SetString("ImageUrl", company.ImageUrl);
             }
 
-            // Get company dashboard
             var viewModel = await _companyService.GetCompanyDashboardViewAsync(company.Id);
 
             return View(viewModel);
@@ -278,13 +276,36 @@ namespace SWP391_Project.Controllers
         }
         [RoleAuthorize(Role.COMPANY)]
         [HttpGet]
-        public async Task<IActionResult> ManageJobs()
+        public async Task<IActionResult> ManageJobs(string status = "all")
         {
             var userIdStr = HttpContext.Session.GetString("UserID");
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
 
-            var list = await _jobService.GetCompanyJobsAsync(int.Parse(userIdStr));
+            ViewBag.CurrentStatus = status;
+
+            var list = await _jobService.GetCompanyJobsAsync(int.Parse(userIdStr), status);
             return View(list);
+        }
+
+        [RoleAuthorize(Role.COMPANY)]
+        [HttpPost]
+        public async Task<IActionResult> ToggleVisibility(int id)
+        {
+            var userIdStr = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
+
+            var result = await _jobService.ToggleJobVisibilityAsync(int.Parse(userIdStr), id);
+
+            if (result)
+            {
+                TempData["Success"] = "Cập nhật trạng thái tin thành công!";
+            }
+            else
+            {
+                TempData["Error"] = "Có lỗi xảy ra";
+            }
+
+            return RedirectToAction("ManageJobs");
         }
 
         [RoleAuthorize(Role.COMPANY)]
@@ -352,7 +373,6 @@ namespace SWP391_Project.Controllers
 
             try
             {
-                // 1. Lấy thông tin Company từ UserId
                 var company = await _companyService.GetCompanyByUserIdAsync(userId);
                 if (company == null)
                 {
@@ -360,10 +380,8 @@ namespace SWP391_Project.Controllers
                     return RedirectToAction("Profile");
                 }
 
-                // 2. Gọi Service: TRUYỀN company.Id 
                 var vm = await _applicationService.GetApplicantsForJobAsync(company.Id, id);
 
-                // 3. Truyền tiêu đề job sang View (lấy từ VM trả về)
                 ViewBag.JobTitle = vm.JobTitle;
 
                 return View(vm);
@@ -378,14 +396,12 @@ namespace SWP391_Project.Controllers
         [HttpGet]
         public async Task<IActionResult> ExportApplicants(int id)
         {
-            // 1. Lấy User đang đăng nhập
             var userIdStr = HttpContext.Session.GetString("UserID");
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login", "Account");
             int userId = int.Parse(userIdStr);
 
             try
             {
-                // 2. Lấy CompanyId từ UserId
                 var company = await _companyService.GetCompanyByUserIdAsync(userId);
                 if (company == null)
                 {
@@ -393,13 +409,10 @@ namespace SWP391_Project.Controllers
                     return RedirectToAction("JobApplicants", new { id = id });
                 }
 
-                // 3. Gọi Service để lấy file Excel (byte array)
                 var fileContent = await _applicationService.ExportApplicantsToExcelAsync(company.Id, id);
 
-                // 4. Tạo tên file duy nhất 
                 string fileName = $"DanhSachUngVien_Job_{id}_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
 
-                // 5. Trả về file cho trình duyệt tải xuống
                 return File(fileContent, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             catch (Exception ex)

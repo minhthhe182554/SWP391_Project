@@ -71,8 +71,16 @@ namespace SWP391_Project.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterVM model)
         {
-            // Validate Company fields nếu role là COMPANY
-            if(model.Role == Role.COMPANY)
+            if (model.Role == Role.CANDIDATE)
+            {
+                ModelState.Remove("Description");
+                ModelState.Remove("City");
+                ModelState.Remove("Ward");
+                ModelState.Remove("PhoneNumber");
+                ModelState.Remove("Address");
+            }
+
+            if (model.Role == Role.COMPANY)
             {
                 if(string.IsNullOrWhiteSpace(model.PhoneNumber))
                 {

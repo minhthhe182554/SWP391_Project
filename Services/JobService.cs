@@ -10,6 +10,7 @@ using SWP391_Project.ViewModels.Job;
 using SWP391_Project.ViewModels.Jobs;
 using SWP391_Project.ViewModels.Search;
 using SWP391_Project.ViewModels.Home;
+using Microsoft.EntityFrameworkCore;
 
 namespace SWP391_Project.Services
 {
@@ -26,12 +27,13 @@ namespace SWP391_Project.Services
         private readonly ISkillRepository _skillRepository;
         private readonly IDomainRepository _domainRepository;
         private readonly IReportRepository _reportRepository;
+        private readonly EzJobDbContext _context;
         public JobService(ISavedJobRepository savedJobRepository,
         ICandidateRepository candidateRepository, IJobRepository jobRepository, IStorageService storageService, ILogger<JobService> logger, IApplicationRepository applicationRepository, ICompanyRepository companyRepository,
         ILocationRepository locationRepository,
         ISkillRepository skillRepository,
         IDomainRepository domainRepository,
-        IReportRepository reportRepository)
+        IReportRepository reportRepository, EzJobDbContext context)
         {
             _jobRepository = jobRepository;
             _storageService = storageService;
@@ -44,6 +46,7 @@ namespace SWP391_Project.Services
             _skillRepository = skillRepository;
             _domainRepository = domainRepository;
             _reportRepository = reportRepository;
+            _context = context;
         }
 
         public async Task<JobDetailVM?> GetJobDetailAsync(int jobId, int? userId = null)
@@ -251,12 +254,26 @@ namespace SWP391_Project.Services
             await _jobRepository.AddAsync(job);
         }
 
-        public async Task<List<ManageJobsVM>> GetCompanyJobsAsync(int userId)
+        public async Task<List<ManageJobsVM>> GetCompanyJobsAsync(int userId, string status)
         {
             var company = await _companyRepository.GetByUserIdAsync(userId);
             if (company == null) return new List<ManageJobsVM>();
+            var jobsQuery = _jobRepository.GetQueryable()
+            .IgnoreQueryFilters()
+            .Include(j => j.Applications)
+            .Include(j => j.Location)
+            .Where(j => j.CompanyId == company.Id);
+            var now = DateTime.Now;
+            if (status == "active")
+            {
+                jobsQuery = jobsQuery.Where(j => j.EndDate >= now);
+            }
+            else if (status == "expired")
+            {
+                jobsQuery = jobsQuery.Where(j => j.EndDate < now);
+            }
 
-            var jobs = await _jobRepository.GetJobsByCompanyIdAsync(company.Id);
+            var jobs = await jobsQuery.OrderByDescending(j => j.StartDate).ToListAsync();
 
             return jobs.Select(j => new ManageJobsVM
             {
@@ -266,8 +283,27 @@ namespace SWP391_Project.Services
                 StartDate = j.StartDate,
                 EndDate = j.EndDate,
                 JobType = j.Type,
-                ApplicationCount = j.Applications.Count
+                ApplicationCount = j.Applications.Count,
+                IsDelete = j.IsDelete,
             }).ToList();
+        }
+
+        public async Task<bool> ToggleJobVisibilityAsync(int userId, int jobId)
+        {
+            var company = await _companyRepository.GetByUserIdAsync(userId);
+
+            if (company == null) return false;
+
+            var job = await _context.Jobs
+                .IgnoreQueryFilters() 
+                .FirstOrDefaultAsync(j => j.Id == jobId && j.CompanyId == company.Id);
+
+            if (job == null) return false;
+
+            job.IsDelete = !job.IsDelete;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task RepostJobAsync(int userId, int jobId)
@@ -318,7 +354,6 @@ namespace SWP391_Project.Services
 
             job.EndDate = DateTime.Now.AddMinutes(-1);
 
-            // Nếu Repo chưa có Update, bạn thêm vào Repo: _context.Jobs.Update(job); await _context.SaveChangesAsync();
             await _jobRepository.UpdateAsync(job);
         }
 
@@ -327,7 +362,6 @@ namespace SWP391_Project.Services
             var job = await _jobRepository.GetJobWithDetailsAsync(jobId);
             if (job == null) return false;
 
-            // Nếu số lượng Application > 0 thì KHÔNG ĐƯỢC SỬA
             return job.Applications.Count == 0;
         }
         public async Task<(bool Success, string Message)> CreateJobReportAsync(int jobId, int candidateUserId, string reason)

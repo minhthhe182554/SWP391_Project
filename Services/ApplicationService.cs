@@ -4,6 +4,7 @@ using SWP391_Project.Models;
 using SWP391_Project.Repositories;
 using SWP391_Project.ViewModels.Candidate;
 using SWP391_Project.ViewModels.Company;
+using SWP391_Project.Services.Storage;
 
 namespace SWP391_Project.Services
 {
@@ -12,15 +13,17 @@ namespace SWP391_Project.Services
         private readonly IApplicationRepository _applicationRepository;
         private readonly ICandidateRepository _candidateRepository;
         private readonly IJobRepository _jobRepository;
+        private readonly IStorageService _storageService;
 
         public ApplicationService(
             IApplicationRepository applicationRepository,
             ICandidateRepository candidateRepository,
-            IJobRepository jobRepository)
+            IJobRepository jobRepository, IStorageService storageService)
         {
             _applicationRepository = applicationRepository;
             _candidateRepository = candidateRepository;
             _jobRepository = jobRepository;
+            _storageService = storageService;
         }
 
         public async Task<ApplyJobVM> GetApplyFormAsync(int userId, int jobId)
@@ -124,17 +127,26 @@ namespace SWP391_Project.Services
             {
                 JobId = job.Id,
                 JobTitle = job.Title,
-                Applicants = applications.Select(a => new ApplicantDto
+                Applicants = applications.Select(a =>
                 {
-                    ApplicationId = a.Id,
-                    CandidateId = a.CandidateId,
-                    FullName = a.FullName,
-                    Email = a.Email,
-                    PhoneNumber = a.PhoneNumber,
-                    ResumeUrl = a.ResumeUrl,
-                    CoverLetter = a.CoverLetter,
-                    AvatarUrl = a.Candidate?.ImageUrl, // Lấy ảnh từ Candidate
-                    ApplyDate = a.SentDate
+                    string publicId = ExtractPublicIdFromUrl(a.ResumeUrl);
+
+                    var previewLinks = GeneratePreviewLinks(publicId, 3);
+
+                    return new ApplicantDto
+                    {
+                        ApplicationId = a.Id,
+                        CandidateId = a.CandidateId,
+                        FullName = a.FullName,
+                        Email = a.Email,
+                        PhoneNumber = a.PhoneNumber,
+                        CvUrl = a.ResumeUrl,
+                        CoverLetter = a.CoverLetter,
+                        AvatarUrl = a.Candidate?.ImageUrl, 
+                        ApplyDate = a.SentDate,
+
+                        PreviewUrls = previewLinks
+                    };
                 }).ToList()
             };
         }
@@ -144,14 +156,12 @@ namespace SWP391_Project.Services
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             var vm = await GetApplicantsForJobAsync(companyId, jobId);
 
-            // Cấu hình License cho EPPlus (Bắt buộc với bản mới)
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             using (var package = new ExcelPackage())
             {
                 var worksheet = package.Workbook.Worksheets.Add("Applicants");
 
-                // 1. Tạo Header
                 worksheet.Cells[1, 1].Value = "STT";
                 worksheet.Cells[1, 2].Value = "Họ và Tên";
                 worksheet.Cells[1, 3].Value = "Email";
@@ -160,7 +170,6 @@ namespace SWP391_Project.Services
                 worksheet.Cells[1, 6].Value = "Link CV";
                 worksheet.Cells[1, 7].Value = "Thư giới thiệu";
 
-                // Style Header
                 using (var range = worksheet.Cells[1, 1, 1, 7])
                 {
                     range.Style.Font.Bold = true;
@@ -169,7 +178,6 @@ namespace SWP391_Project.Services
                     range.Style.Border.Bottom.Style = ExcelBorderStyle.Thick;
                 }
 
-                // 2. Đổ dữ liệu
                 int row = 2;
                 int stt = 1;
                 foreach (var app in vm.Applicants)
@@ -179,15 +187,58 @@ namespace SWP391_Project.Services
                     worksheet.Cells[row, 3].Value = app.Email;
                     worksheet.Cells[row, 4].Value = app.PhoneNumber;
                     worksheet.Cells[row, 5].Value = app.ApplyDate.ToString("dd/MM/yyyy HH:mm");
-                    worksheet.Cells[row, 6].Value = app.ResumeUrl;
+                    worksheet.Cells[row, 6].Value = app.CvUrl;
                     worksheet.Cells[row, 7].Value = app.CoverLetter;
                     row++;
                 }
-
-                // 3. Auto fit cột 
                 worksheet.Cells.AutoFitColumns();
 
                 return package.GetAsByteArray();
+            }
+        }
+        private List<string> GeneratePreviewLinks(string publicId, int pageCount)
+        {
+            var urls = new List<string>();
+            if (string.IsNullOrEmpty(publicId)) return urls;
+
+            for (int i = 1; i <= pageCount; i++)
+            {
+                var url = _storageService.BuildPdfImageUrl(publicId, page: i, width: 900, density: 150);
+                urls.Add(url);
+            }
+            return urls;
+        }
+
+        private string ExtractPublicIdFromUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url)) return "";
+
+            if (!url.StartsWith("http")) return url;
+
+            try
+            {
+                var uri = new Uri(url);
+                var path = uri.AbsolutePath;
+
+                var parts = path.Split(new[] { "upload/" }, StringSplitOptions.None);
+                if (parts.Length < 2) return "";
+
+                var afterUpload = parts[1]; 
+
+                var segments = afterUpload.Split('/');
+                var publicIdWithExt = string.Join("/", segments.Skip(1)); 
+
+                var lastDot = publicIdWithExt.LastIndexOf('.');
+                if (lastDot > 0)
+                {
+                    return publicIdWithExt.Substring(0, lastDot); 
+                }
+
+                return publicIdWithExt;
+            }
+            catch
+            {
+                return "";
             }
         }
     }

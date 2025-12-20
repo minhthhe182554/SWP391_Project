@@ -46,14 +46,14 @@
                     }
                 </select>
                 <div class="form-text text-end mt-1">
-                    <a href="#" class="text-success text-decoration-none small"><i class="fas fa-plus-circle"></i> Tải lên CV mới</a>
+                    <a asp-controller="Candidate" asp-action="Resume" class="text-success text-decoration-none small"><i class="fas fa-plus-circle"></i> Tải lên CV mới</a>
                 </div>
             }
             else
             {
                 <div class="alert alert-warning small">
                     <i class="fas fa-exclamation-circle"></i> Bạn chưa có CV nào.
-                    <a href="/Candidate/Profile" class="fw-bold text-dark">Vui lòng tải lên CV trước.</a>
+                    <a href="/Candidate/Resume" class="fw-bold text-dark">Vui lòng tải lên CV trước.</a>
                 </div>
             }
         </div>

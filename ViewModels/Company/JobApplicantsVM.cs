@@ -15,8 +15,9 @@
         public string Email { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
         public string? CoverLetter { get; set; }
-        public string ResumeUrl { get; set; } = null!;
+        public string CvUrl { get; set; } = null!;
         public string? AvatarUrl { get; set; }
         public DateTime ApplyDate { get; set; }
+        public List<string> PreviewUrls { get; set; } = new();
     }
 }
