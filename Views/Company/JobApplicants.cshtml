@@ -6,6 +6,30 @@
     Layout = "_LayoutCompany";
 }
 
+<style>
+    /* CSS cho Modal Preview */
+    .preview-container {
+        position: relative;
+        min-height: 400px;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #previewImage {
+        max-width: 100%;
+        max-height: 80vh;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+    }
+
+    .modal-xl {
+        max-width: 1140px;
+    }
+</style>
+
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -19,7 +43,6 @@
             <a asp-action="ExportApplicants" asp-route-id="@Model.JobId" class="btn btn-success me-2">
                 <i class="fas fa-file-excel me-2"></i> Xuất Excel
             </a>
-
             <a asp-action="ManageJobs" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-2"></i> Quay lại
             </a>
@@ -35,8 +58,8 @@
                             <th class="ps-4">Tên ứng viên</th>
                             <th>Email / Liên hệ</th>
                             <th>Ngày nộp</th>
-                            <th>CV & Thư</th>
-                            <th class="text-end pe-4">Hành động</th>
+                            <th>CV</th>
+                            @* <th class="text-end pe-4">Hành động</th> *@
                         </tr>
                     </thead>
                     <tbody>
@@ -47,32 +70,51 @@
                                 <tr>
                                     <td class="ps-4">
                                         <div class="d-flex align-items-center">
-                                            <img src="@(string.IsNullOrEmpty(app.AvatarUrl) ? "/imgs/default_avatar.png" : app.AvatarUrl)"
-                                                 class="rounded-circle me-3" width="40" height="40" style="object-fit: cover;">
-                                            <span class="fw-bold">@app.FullName</span>
+                                            <img src="@(string.IsNullOrEmpty(app.AvatarUrl) ? "/imgs/ic_default_avatar.png" : app.AvatarUrl)"
+                                                 class="rounded-circle me-3 border" width="40" height="40" style="object-fit: cover;">
+                                            <div>
+                                                <div class="fw-bold">@app.FullName</div>
+                                            </div>
                                         </div>
                                     </td>
+
                                     <td>
                                         <div>@app.Email</div>
                                         <small class="text-muted">@app.PhoneNumber</small>
                                     </td>
+
                                     <td>@app.ApplyDate.ToString("dd/MM/yyyy HH:mm")</td>
+
                                     <td>
                                         <div class="d-flex flex-column gap-1">
-                                            <a href="" target="_blank" class="text-decoration-none">
-                                                <i class="fas fa-file-pdf text-danger me-1"></i> Xem CV
-                                            </a>
-                                            @if (!string.IsNullOrEmpty(app.CoverLetter))
+                                            @if (app.PreviewUrls != null && app.PreviewUrls.Any())
                                             {
-                                                <span class="text-muted small" title="@app.CoverLetter">
+                                                <button type="button" class="btn btn-sm btn-outline-danger border-0 text-start ps-0 fw-bold"
+                                                        data-preview='@Json.Serialize(app.PreviewUrls)'
+                                                        data-applicant-name="@app.FullName"
+                                                        onclick="openPreview(this)">
+                                                    <i class="fas fa-eye me-1"></i> Xem CV 
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <a href="@app.CvUrl" target="_blank" class="text-decoration-none text-danger small">
+                                                    <i class="fas fa-file-pdf me-1"></i> Tải PDF
+                                                </a>
+                                            }
+
+                                            @* @if (!string.IsNullOrEmpty(app.CoverLetter))
+                                            {
+                                                <span class="text-muted small" title="@app.CoverLetter" style="cursor:help;">
                                                     <i class="fas fa-envelope-open-text me-1"></i> Xem thư
                                                 </span>
-                                            }
+                                            } *@
                                         </div>
                                     </td>
-                                    <td class="text-end pe-4">
+
+                                    @* <td class="text-end pe-4">
                                         <button class="btn btn-sm btn-outline-primary">Chi tiết</button>
-                                    </td>
+                                    </td> *@
                                 </tr>
                             }
                         }
@@ -81,7 +123,7 @@
                             <tr>
                                 <td colspan="5" class="text-center py-5 text-muted">
                                     <i class="fas fa-user-slash fa-3x mb-3"></i>
-                                    <p>Chưa có ứng viên nào nộp hồ sơ cho công việc này.</p>
+                                    <p>Chưa có ứng viên nào nộp hồ sơ.</p>
                                 </td>
                             </tr>
                         }
@@ -91,3 +133,142 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="previewTitle">Xem CV</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body text-center bg-light p-0">
+                <div class="preview-container">
+                    <div id="previewSpinner" class="spinner-border text-primary" role="status" style="display:none;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+
+                    <img id="previewImage" src="" alt="CV Preview" style="display:none;" />
+                </div>
+            </div>
+
+            <div class="modal-footer d-flex justify-content-between align-items-center bg-white">
+                <div class="text-muted small fw-semibold" id="pageIndicator">Trang 1</div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary px-3" id="prevPage" disabled>
+                        <i class="fas fa-chevron-left me-1"></i> Trước
+                    </button>
+                    <button type="button" class="btn btn-outline-primary px-3" id="nextPage" disabled>
+                        Sau <i class="fas fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // === LOGIC JAVASCRIPT XỬ LÝ PREVIEW (GIỐNG HỆT TRANG CANDIDATE) ===
+
+        let currentPreviewIndex = 0;
+        let currentPreviews = [];
+        const spinner = document.getElementById('previewSpinner');
+        const imgEl = document.getElementById('previewImage');
+        const prevBtn = document.getElementById('prevPage');
+        const nextBtn = document.getElementById('nextPage');
+        const pageInd = document.getElementById('pageIndicator');
+
+        // Hàm kiểm tra ảnh có load được không (tránh lỗi ảnh chết)
+        async function filterLoaded(previews) {
+            const results = await Promise.all(previews.map(url => new Promise(res => {
+                const img = new Image();
+                img.onload = () => res(url);
+                img.onerror = () => res(null);
+                img.src = url;
+            })));
+            return results.filter(Boolean);
+        }
+
+        // Hàm mở Modal khi bấm nút
+        async function openPreview(btn) {
+            const data = btn.getAttribute('data-preview');
+            const name = btn.getAttribute('data-applicant-name') || 'Ứng viên';
+
+            // 1. Reset giao diện Modal
+            imgEl.style.display = 'none';
+            spinner.style.display = 'block';
+            document.getElementById('previewTitle').textContent = 'CV của: ' + name;
+
+            // 2. Hiển thị Modal ngay lập tức (để người dùng biết đang tải)
+            const modalElement = document.getElementById('previewModal');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+
+            // 3. Parse dữ liệu ảnh
+            try {
+                currentPreviews = JSON.parse(data) || [];
+            } catch {
+                currentPreviews = [];
+            }
+
+            if (!currentPreviews.length) {
+                alert('Không tìm thấy dữ liệu ảnh CV.');
+                modal.hide();
+                return;
+            }
+
+            // 4. Lọc bỏ ảnh lỗi (nếu có)
+            currentPreviews = await filterLoaded(currentPreviews);
+
+            spinner.style.display = 'none';
+
+            if (!currentPreviews.length) {
+                alert('Không thể tải ảnh CV. Vui lòng thử tải file PDF gốc.');
+                modal.hide();
+                return;
+            }
+
+            // 5. Hiển thị trang đầu tiên
+            imgEl.style.display = 'inline-block';
+            currentPreviewIndex = 0;
+            updatePreviewImage();
+        }
+
+        // Hàm cập nhật ảnh khi chuyển trang
+        function updatePreviewImage() {
+            imgEl.src = currentPreviews[currentPreviewIndex];
+
+            // Disable nút nếu ở trang đầu/cuối
+            prevBtn.disabled = currentPreviewIndex === 0;
+            nextBtn.disabled = currentPreviewIndex === currentPreviews.length - 1;
+
+            // Cập nhật số trang
+            pageInd.innerText = `Trang ${currentPreviewIndex + 1} / ${currentPreviews.length}`;
+        }
+
+        // Sự kiện click nút Trước/Sau
+        prevBtn.addEventListener('click', function () {
+            if (currentPreviewIndex > 0) {
+                currentPreviewIndex--;
+                updatePreviewImage();
+            }
+        });
+
+        nextBtn.addEventListener('click', function () {
+            if (currentPreviewIndex < currentPreviews.length - 1) {
+                currentPreviewIndex++;
+                updatePreviewImage();
+            }
+        });
+
+        // Hỗ trợ phím mũi tên trên bàn phím
+        document.addEventListener('keydown', function (event) {
+            const modalEl = document.getElementById('previewModal');
+            if (modalEl.classList.contains('show')) {
+                if (event.key === "ArrowLeft") prevBtn.click();
+                if (event.key === "ArrowRight") nextBtn.click();
+            }
+        });
+    </script>
+}
