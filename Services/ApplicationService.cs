@@ -1,4 +1,4 @@
-﻿using OfficeOpenXml.Style;
+using OfficeOpenXml.Style;
 using OfficeOpenXml;
 using SWP391_Project.Models;
 using SWP391_Project.Repositories;
@@ -133,6 +133,15 @@ namespace SWP391_Project.Services
 
                     var previewLinks = GeneratePreviewLinks(publicId, 3);
 
+                    // Build avatar URL from publicId
+                    string candidateImagePublicId = !string.IsNullOrEmpty(a.Candidate?.ImageUrl) 
+                        ? a.Candidate.ImageUrl 
+                        : "default_yvl9oh";
+                    string avatarUrl = _storageService.BuildImageUrl(candidateImagePublicId);
+
+                    // Build CV download URL from publicId
+                    string cvDownloadUrl = _storageService.BuildRawUrl(a.ResumeUrl);
+
                     return new ApplicantDto
                     {
                         ApplicationId = a.Id,
@@ -140,9 +149,9 @@ namespace SWP391_Project.Services
                         FullName = a.FullName,
                         Email = a.Email,
                         PhoneNumber = a.PhoneNumber,
-                        CvUrl = a.ResumeUrl,
+                        CvUrl = cvDownloadUrl,
                         CoverLetter = a.CoverLetter,
-                        AvatarUrl = a.Candidate?.ImageUrl, 
+                        AvatarUrl = avatarUrl, 
                         ApplyDate = a.SentDate,
 
                         PreviewUrls = previewLinks
@@ -187,7 +196,14 @@ namespace SWP391_Project.Services
                     worksheet.Cells[row, 3].Value = app.Email;
                     worksheet.Cells[row, 4].Value = app.PhoneNumber;
                     worksheet.Cells[row, 5].Value = app.ApplyDate.ToString("dd/MM/yyyy HH:mm");
-                    worksheet.Cells[row, 6].Value = app.CvUrl;
+                    
+                    // Set CV download URL as hyperlink 
+                    var cvCell = worksheet.Cells[row, 6];
+                    cvCell.Value = app.CvUrl;
+                    cvCell.Hyperlink = new Uri(app.CvUrl);
+                    cvCell.Style.Font.UnderLine = true;
+                    cvCell.Style.Font.Color.SetColor(System.Drawing.Color.Blue);
+                    
                     worksheet.Cells[row, 7].Value = app.CoverLetter;
                     row++;
                 }
