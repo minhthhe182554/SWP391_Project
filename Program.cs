@@ -2,10 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using SWP391_Project.Models;
 using SWP391_Project.Services;
 using SWP391_Project.Repositories;
-using SWP391_Project.Helpers;
 using SWP391_Project.Repositories.Storage;
 using SWP391_Project.Services.Storage;
-using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Regist EzJobDbContext 
 builder.Services.AddDbContext<EzJobDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Demo")));
 
 // Register Repositories
 builder.Services.AddScoped<ICandidateRepository, CandidateRepository>();
