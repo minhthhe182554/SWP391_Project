@@ -27,14 +27,14 @@
         </div>
     </div>
 
-    @if (TempData["Success"] != null)
+    @* @if (TempData["Success"] != null)
     {
         <div class="alert alert-success">@TempData["Success"]</div>
     }
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger">@TempData["Error"]</div>
-    }
+    } *@
 
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
@@ -100,9 +100,9 @@
 
                                         @if (!item.IsExpired && !item.IsDelete) 
                                         {
-                                            <a href="#" class="btn btn-sm btn-outline-primary me-1" title="Sửa tin">
+                                            @* <a href="#" class="btn btn-sm btn-outline-primary me-1" title="Sửa tin">
                                                 <i class="fas fa-edit"></i>
-                                            </a>
+                                            </a> *@
 
                                             <form asp-action="StopRecruitment" asp-route-id="@item.Id" method="post" class="d-inline"
                                                   onsubmit="return confirm('Bạn chắc chắn muốn dừng tuyển dụng sớm?');">
