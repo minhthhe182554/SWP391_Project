@@ -26,6 +26,24 @@ namespace SWP391_Project.Repositories
         {
             return await _context.Users.AnyAsync(u => u.Email == email);
         }
+        public async Task<bool> PhoneNumberExistsAsync(string phoneNumber)
+        {
+            if (string.IsNullOrWhiteSpace(phoneNumber))
+            {
+                return false;
+            }
+
+            bool existsInCandidates = await _context.Candidates
+                                            .AnyAsync(c => c.PhoneNumber == phoneNumber);
+
+            if (existsInCandidates) return true;
+
+            bool existsInCompanies = await _context.Companies
+                                           .AnyAsync(c => c.PhoneNumber == phoneNumber);
+
+            return existsInCompanies;
+        }
+
 
         public async Task<Candidate?> GetCandidateByUserIdAsync(int userId)
         {

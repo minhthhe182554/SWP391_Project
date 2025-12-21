@@ -187,7 +187,7 @@
                                  class="avatar-upload shadow-sm"
                                  src="@(string.IsNullOrEmpty(Model.ExistingImageUrl) ? "/imgs/default-company.png" : Model.ExistingImageUrl)"
                                  alt="Company Logo"
-                                 onerror="this.src='https://via.placeholder.com/180?text=Logo'">
+                                 onerror="this.onerror=null;this.src='/imgs/default-company.png';">
                         </div>
 
                         <div class="small text-muted mb-3">

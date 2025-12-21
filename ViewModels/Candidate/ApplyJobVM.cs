@@ -20,6 +20,7 @@ namespace SWP391_Project.ViewModels.Candidate
         public string Email { get; set; } = null!;
 
         [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
         public string PhoneNumber { get; set; } = null!;
 
         [Required(ErrorMessage = "Vui lòng chọn CV để ứng tuyển")]
