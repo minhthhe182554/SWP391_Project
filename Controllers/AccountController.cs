@@ -104,7 +104,17 @@ namespace SWP391_Project.Controllers
                 }
             }
 
-            if(!ModelState.IsValid)
+            if (await _accountService.EmailExistsAsync(model.Email))
+            {
+                ModelState.AddModelError("Email", "Email này đã được sử dụng");
+            }
+
+            if (!string.IsNullOrEmpty(model.PhoneNumber) && await _accountService.PhoneNumberExistsAsync(model.PhoneNumber))
+            {
+                ModelState.AddModelError("PhoneNumber", "Số điện thoại này đã được sử dụng");
+            }
+
+            if (!ModelState.IsValid)
             {
                 var cities = await _locationService.GetCitiesAsync();
                 ViewBag.Cities = cities;

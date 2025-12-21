@@ -55,6 +55,18 @@ namespace SWP391_Project.Services
                 throw;
             }
         }
+        public async Task<bool> PhoneNumberExistsAsync(string phoneNumber)
+        {
+            try
+            {
+                return await _accountRepository.PhoneNumberExistsAsync(phoneNumber);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if email exists: {PhoneNumber}", phoneNumber);
+                throw;
+            }
+        }
 
         public async Task<(bool success, string? error)> RegisterCandidateAsync(RegisterVM model)
         {
@@ -101,6 +113,12 @@ namespace SWP391_Project.Services
                 {
                     return (false, "Email này đã được sử dụng");
                 }
+
+                if (await _accountRepository.PhoneNumberExistsAsync(model.PhoneNumber))
+                {
+                    return (false, "Số điện thoại đã được sử dụng");
+                }
+
 
                 // Get or create location
                 var location = await _accountRepository.GetOrCreateLocationAsync(model.City!, model.Ward!);

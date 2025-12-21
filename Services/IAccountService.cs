@@ -8,6 +8,7 @@ namespace SWP391_Project.Services
         Task<User?> GetUserByEmailAsync(string email);
         Task<User?> GetUserByIdAsync(int userId);
         Task<bool> EmailExistsAsync(string email);
+        Task<bool> PhoneNumberExistsAsync(string phoneNumber);
         Task<(bool success, string? error)> RegisterCandidateAsync(RegisterVM model);
         Task<(bool success, string? error)> RegisterCompanyAsync(RegisterVM model, Func<string, string, Task> sendEmailAsync);
         Task<(bool success, User? user, string? error)> LoginAsync(LoginVM model);
